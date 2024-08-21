@@ -248,17 +248,20 @@ func (db *Database) GetSnapshot() (kvdb.Snapshot, error) {
 }
 
 // Stat returns a particular internal stat of the database.
-func (db *Database) Stat(property string) (string, error) {
-	if property == "disk.size" {
-		dbStats := &leveldb.DBStats{}
-		if err := db.underlying.Stats(dbStats); err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("%d", dbStats.LevelSizes.Sum()), nil
+func (db *Database) Stat() (string, error) {
+	return db.underlying.GetProperty("leveldb.stats")
+}
+
+func (db *Database) IoStats() (string, error) {
+	return db.underlying.GetProperty("leveldb.iostats")
+}
+
+func (db *Database) UsedDiskSpace() (string, error) {
+	dbStats := &leveldb.DBStats{}
+	if err := db.underlying.Stats(dbStats); err != nil {
+		return "", err
 	}
-	prop := fmt.Sprintf("leveldb.%s", property)
-	stats, err := db.underlying.GetProperty(prop)
-	return stats, err
+	return fmt.Sprintf("%d", dbStats.LevelSizes.Sum()), nil
 }
 
 // Compact flattens the underlying data store for the given key range. In essence,

@@ -35,8 +35,8 @@ func (t *Table) GetSnapshot() (kvdb.Snapshot, error) {
 	}, nil
 }
 
-func (t *Table) Stat(property string) (string, error) {
-	return t.underlying.Stat(property)
+func (t *Table) Stat() (string, error) {
+	return t.underlying.Stat()
 }
 
 /*

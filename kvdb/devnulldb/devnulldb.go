@@ -65,7 +65,7 @@ func (db *Database) GetSnapshot() (kvdb.Snapshot, error) {
 }
 
 // Stat returns a particular internal stat of the database.
-func (db *Database) Stat(property string) (string, error) {
+func (db *Database) Stat() (string, error) {
 	return "", nil
 }
 

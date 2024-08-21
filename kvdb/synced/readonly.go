@@ -61,11 +61,11 @@ func (ro *iteratedReader) NewIterator(prefix []byte, start []byte) kvdb.Iterator
 }
 
 // Stat returns a particular internal stat of the database.
-func (s *store) Stat(property string) (string, error) {
+func (s *store) Stat() (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return s.underlying.Stat(property)
+	return s.underlying.Stat()
 }
 
 // GetSnapshot returns a latest snapshot of the underlying DB. A snapshot

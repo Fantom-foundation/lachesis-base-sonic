@@ -330,27 +330,21 @@ func bytesPrefix(prefix []byte) pebble.IterOptions {
 }
 
 // Stat returns a particular internal stat of the database.
-func (db *Database) Stat(property string) (string, error) {
-	if property == "async_flush" {
-		return "", db.AsyncFlush()
-	}
-	if property == "sync_flush" {
-		return "", db.SyncFlush()
-	}
+func (db *Database) Stat() (string, error) {
+	return db.underlying.Metrics().String(), nil
+}
+
+func (db *Database) IoStats() (string, error) {
 	metrics := db.underlying.Metrics()
-	if property == "iostats" {
-		total := metrics.Total()
-		return fmt.Sprintf("Read(MB):%.5f Write(MB):%.5f",
-			float64(total.BytesRead)/1048576.0, // 1024*1024
-			float64(total.BytesFlushed+total.BytesCompacted)/1048576.0), nil
-	}
-	if property == "disk.size" {
-		return fmt.Sprintf("%d", metrics.Total().Size), nil
-	}
-	if property == "stats" {
-		return metrics.String(), nil
-	}
-	return "", fmt.Errorf("pebble stat property %s does not exists", property)
+	total := metrics.Total()
+	return fmt.Sprintf("Read(MB):%.5f Write(MB):%.5f",
+		float64(total.BytesRead)/1048576.0, // 1024*1024
+		float64(total.BytesFlushed+total.BytesCompacted)/1048576.0), nil
+}
+
+func (db *Database) UsedDiskSpace() (string, error) {
+	metrics := db.underlying.Metrics()
+	return fmt.Sprintf("%d", metrics.Total().Size), nil
 }
 
 // Compact flattens the underlying data store for the given key range. In essence,

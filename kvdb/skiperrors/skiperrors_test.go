@@ -53,7 +53,7 @@ func TestWrapper(t *testing.T) {
 	assertar.NoError(err)
 
 	// Get stat test
-	stat, err := wrapped.Stat("")
+	stat, err := wrapped.Stat()
 	assertar.NoError(err)
 	assertar.Equal(stat, "")
 

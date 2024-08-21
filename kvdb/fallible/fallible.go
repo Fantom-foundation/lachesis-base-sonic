@@ -93,8 +93,8 @@ func (f *Fallible) GetSnapshot() (kvdb.Snapshot, error) {
 }
 
 // Stat returns a particular internal stat of the database.
-func (f *Fallible) Stat(property string) (string, error) {
-	return f.Underlying.Stat(property)
+func (f *Fallible) Stat() (string, error) {
+	return f.Underlying.Stat()
 }
 
 // Compact flattens the underlying data store for the given key range. In essence,

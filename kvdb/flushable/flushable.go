@@ -233,12 +233,12 @@ func (w *Flushable) flush() error {
 }
 
 // Stat returns a particular internal stat of the database.
-func (w *Flushable) Stat(property string) (string, error) {
+func (w *Flushable) Stat() (string, error) {
 	w.lock.RLock()
 	underlying := w.underlying
 	w.lock.RUnlock()
 
-	return underlying.Stat(property)
+	return underlying.Stat()
 }
 
 // Compact flattens the underlying data store for the given key range.

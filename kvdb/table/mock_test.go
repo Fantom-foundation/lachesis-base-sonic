@@ -749,18 +749,18 @@ func (mr *MockStoreMockRecorder) Put(key, value interface{}) *gomock.Call {
 }
 
 // Stat mocks base method.
-func (m *MockStore) Stat(property string) (string, error) {
+func (m *MockStore) Stat() (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Stat", property)
+	ret := m.ctrl.Call(m, "Stat")
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Stat indicates an expected call of Stat.
-func (mr *MockStoreMockRecorder) Stat(property interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Stat() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stat", reflect.TypeOf((*MockStore)(nil).Stat), property)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stat", reflect.TypeOf((*MockStore)(nil).Stat))
 }
 
 // MockDroper is a mock of Droper interface.

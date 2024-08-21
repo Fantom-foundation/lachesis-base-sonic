@@ -116,8 +116,8 @@ func (f *wrapper) GetSnapshot() (kvdb.Snapshot, error) {
 }
 
 // Stat returns a particular internal stat of the database.
-func (f *wrapper) Stat(property string) (string, error) {
-	stat, err := f.underlying.Stat(property)
+func (f *wrapper) Stat() (string, error) {
+	stat, err := f.underlying.Stat()
 	if f.skip(err) {
 		return "", nil
 	}
