@@ -23,7 +23,7 @@ func (p *Orderer) Build(e dag.MutableEvent) error {
 		p.crit(errors.New("event wasn't created by an existing validator"))
 	}
 
-	_, frame := p.calcFrameIdx(e, false)
+	_, frame := p.calcFrameIdx(e)
 	e.SetFrame(frame)
 
 	return nil
@@ -51,7 +51,7 @@ func (p *Orderer) Process(e dag.Event) (err error) {
 // checkAndSaveEvent checks consensus-related fields: Frame, IsRoot
 func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 	// check frame & isRoot
-	selfParentFrame, frameIdx := p.calcFrameIdx(e, true)
+	selfParentFrame, frameIdx := p.calcFrameIdx(e)
 	if e.Frame() != frameIdx {
 		return ErrWrongFrame, 0
 	}
@@ -160,30 +160,17 @@ func (p *Orderer) forklessCausedByQuorumOn(e dag.Event, f idx.Frame) bool {
 	return observedCounter.HasQuorum()
 }
 
-// calcFrameIdx checks root-conditions for new event
-// and returns event's frame.
+// calcFrameIdx checks root-conditions for new event and returns event's frame.
 // It is not safe for concurrent use.
-func (p *Orderer) calcFrameIdx(e dag.Event, checkOnly bool) (selfParentFrame, frame idx.Frame) {
-	selfParentFrame = idx.Frame(0)
-	if e.SelfParent() != nil {
-		selfParentFrame = p.input.GetEvent(*e.SelfParent()).Frame()
+func (p *Orderer) calcFrameIdx(e dag.Event) (selfParentFrame, frame idx.Frame) {
+	if e.SelfParent() == nil {
+		return 0, 1
 	}
-
-	// Note: we cannot "skip" frames and also we must check that event is caused by 2/3W+1 roots at F, even if one
-	// of the parents has a frame >= F+1
-	// The reason of those checks is that "forkless caused" relation isn't transitive in a case if there's at least one
-	// cheater
-
-	maxFrameToCheck := selfParentFrame + 100
-	if checkOnly {
-		maxFrameToCheck = e.Frame()
+	selfParentFrame = p.input.GetEvent(*e.SelfParent()).Frame()
+	frame = selfParentFrame
+	// Find highest frame s.t. event e is forklessCausedByQuorumOn by frame-1 roots
+	for p.forklessCausedByQuorumOn(e, frame) {
+		frame++
 	}
-
-	var f idx.Frame
-	for f = selfParentFrame; f < maxFrameToCheck && p.forklessCausedByQuorumOn(e, f); f++ {
-	}
-	if f == 0 {
-		f = 1
-	}
-	return selfParentFrame, f
+	return selfParentFrame, frame
 }
