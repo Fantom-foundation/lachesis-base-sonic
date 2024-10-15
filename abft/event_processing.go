@@ -52,7 +52,7 @@ func (p *Orderer) Process(e dag.Event) (err error) {
 func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 	// check frame & isRoot
 	selfParentFrame, frameIdx := p.calcFrameIdx(e)
-	if e.Frame() != frameIdx {
+	if !p.config.SuppressFramePanic && e.Frame() != frameIdx {
 		return ErrWrongFrame, 0
 	}
 
