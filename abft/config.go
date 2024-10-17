@@ -3,6 +3,7 @@ package abft
 import "github.com/Fantom-foundation/lachesis-base/utils/cachescale"
 
 type Config struct {
+	// Suppresses the frame missmatch panic - used only for importing older historical event files, disabled by default
 	SuppressFramePanic bool
 }
 

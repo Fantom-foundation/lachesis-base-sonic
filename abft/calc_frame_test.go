@@ -13,6 +13,7 @@ func TestCalFrameIdx_10000(t *testing.T) {
 	testCalcFrameIdx(t, 10000)
 }
 
+// testCalcFrameIdx verifies that lagging validator calculates correct frame numbers after a (large) pause
 func testCalcFrameIdx(t *testing.T, gap int) {
 	nodes := tdag.GenNodes(2)
 	// Give one validator quorum power to advance the frames on it's own
@@ -33,6 +34,7 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 
 var maxLamport idx.Lamport = 0
 
+// processTestEvent builds and pipes the event through main Lacehsis' DAG manipulation pipeline
 func processTestEvent(t *testing.T, lch *TestLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.Event, parents hash.Events) *tdag.TestEvent {
 	event := &tdag.TestEvent{}
 	event.SetSeq(seq)
@@ -44,6 +46,7 @@ func processTestEvent(t *testing.T, lch *TestLachesis, store *EventStore, valida
 	if err := lch.Build(event); err != nil {
 		t.Errorf("error while building event for validator: %d, seq: %d, err: %v", validatorId, seq, err)
 	}
+	// default sample hash assigned through Build is enough
 	store.SetEvent(event)
 	if err := lch.Process(event); err != nil {
 		t.Errorf("error while processing event for validator: %d, seq: %d, err: %v", validatorId, seq, err)
