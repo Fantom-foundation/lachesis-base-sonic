@@ -3,6 +3,7 @@ package abft
 import (
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"testing"
 
@@ -24,7 +25,7 @@ type event struct {
 }
 
 func TestAtroposChain(t *testing.T) {
-	conn, err := sql.Open("sqlite3", "testdata/events5577-5586.db")
+	conn, err := sql.Open("sqlite3", "testdata/events-5577.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,6 +57,7 @@ func testAtroposForEpoch(t *testing.T, conn *sql.DB, epoch idx.Epoch) {
 	}
 
 	expectedAtropoi := getAtropoi(t, conn, epoch)
+	fmt.Println(len(expectedAtropoi))
 	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want != got {
 		t.Fatalf("incorrect number of atropoi recalculated for epoch %d, expected: %d, got: %d.", epoch, want, got)
 	}
@@ -86,8 +88,9 @@ func ingestEvent(t *testing.T, lch *TestLachesis, store *EventStore, e *event) *
 
 func getEpochs(t *testing.T, conn *sql.DB) []idx.Epoch {
 	rows, err := conn.Query(`
-		SELECT DISTINCT EpochId
-		FROM Validator
+		SELECT DISTINCT v.EpochId
+		FROM Validator v
+		WHERE v.EpochId in (SELECT e.EpochId FROM Event e)
 	`)
 	if err != nil {
 		t.Fatal(err)
