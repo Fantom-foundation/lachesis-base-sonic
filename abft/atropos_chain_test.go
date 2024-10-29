@@ -3,7 +3,6 @@ package abft
 import (
 	"database/sql"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"testing"
 
@@ -24,7 +23,7 @@ type event struct {
 	parents     []hash.Event
 }
 
-func TestAtroposChain(t *testing.T) {
+func TestRegressionData_AtroposChainMatches(t *testing.T) {
 	conn, err := sql.Open("sqlite3", "testdata/events-5577.db")
 	if err != nil {
 		t.Fatal(err)
@@ -39,13 +38,13 @@ func TestAtroposChain(t *testing.T) {
 
 func testAtroposForEpoch(t *testing.T, conn *sql.DB, epoch idx.Epoch) {
 	validators, weights := getValidatorMeta(t, conn, epoch)
-	lch, _, store, _ := FakeLachesis(validators, weights)
+	testLachesis, _, eventStore, _ := FakeLachesis(validators, weights)
 	// Plant the real epoch state for the sake of event hash calculation (epoch=1 by default)
-	lch.store.SetEpochState(&EpochState{Epoch: epoch, Validators: lch.store.GetValidators()})
+	testLachesis.store.SetEpochState(&EpochState{Epoch: epoch, Validators: testLachesis.store.GetValidators()})
 
 	recalculatedAtropoi := make([]hash.Event, 0)
 	// Capture the elected atropoi by planting the `applyBlock` callback (nil by default)
-	lch.applyBlock = func(block *lachesis.Block) *pos.Validators {
+	testLachesis.applyBlock = func(block *lachesis.Block) *pos.Validators {
 		recalculatedAtropoi = append(recalculatedAtropoi, block.Atropos)
 		return nil
 	}
@@ -53,11 +52,10 @@ func testAtroposForEpoch(t *testing.T, conn *sql.DB, epoch idx.Epoch) {
 	eventsOrdered, eventMap := getEvents(t, conn, epoch)
 	// Ingesting by lamport ts guarantees that all parents are already ingested
 	for _, event := range eventsOrdered {
-		ingestEvent(t, lch, store, event)
+		ingestEvent(t, testLachesis, eventStore, event)
 	}
 
 	expectedAtropoi := getAtropoi(t, conn, epoch)
-	fmt.Println(len(expectedAtropoi))
 	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want != got {
 		t.Fatalf("incorrect number of atropoi recalculated for epoch %d, expected: %d, got: %d.", epoch, want, got)
 	}
@@ -68,29 +66,29 @@ func testAtroposForEpoch(t *testing.T, conn *sql.DB, epoch idx.Epoch) {
 	}
 }
 
-func ingestEvent(t *testing.T, lch *TestLachesis, store *EventStore, e *event) *tdag.TestEvent {
-	event := &tdag.TestEvent{}
-	event.SetSeq(e.seq)
-	event.SetCreator(e.validatorId)
-	event.SetParents(e.parents)
-	event.SetLamport(e.lamportTs)
-	event.SetEpoch(lch.store.GetEpoch())
-	if err := lch.Build(event); err != nil {
-		t.Fatalf("error while building event for validator: %d, seq: %d, err: %v", e.validatorId, e.seq, err)
+func ingestEvent(t *testing.T, testLachesis *TestLachesis, eventStore *EventStore, event *event) *tdag.TestEvent {
+	testEvent := &tdag.TestEvent{}
+	testEvent.SetSeq(event.seq)
+	testEvent.SetCreator(event.validatorId)
+	testEvent.SetParents(event.parents)
+	testEvent.SetLamport(event.lamportTs)
+	testEvent.SetEpoch(testLachesis.store.GetEpoch())
+	if err := testLachesis.Build(testEvent); err != nil {
+		t.Fatalf("error while building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
 	}
-	event.SetID([24]byte(e.hash[8:]))
-	store.SetEvent(event)
-	if err := lch.Process(event); err != nil {
-		t.Fatalf("error while processing event for validator: %d, seq: %d, err: %v", e.validatorId, e.seq, err)
+	testEvent.SetID([24]byte(event.hash[8:]))
+	eventStore.SetEvent(testEvent)
+	if err := testLachesis.Process(testEvent); err != nil {
+		t.Fatalf("error while processing event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
 	}
-	return event
+	return testEvent
 }
 
 func getEpochs(t *testing.T, conn *sql.DB) []idx.Epoch {
+	// Query the `Event` table as `Validator` table may include future (empty) epochs
 	rows, err := conn.Query(`
-		SELECT DISTINCT v.EpochId
-		FROM Validator v
-		WHERE v.EpochId in (SELECT e.EpochId FROM Event e)
+		SELECT DISTINCT e.EpochId
+		FROM Event e
 	`)
 	if err != nil {
 		t.Fatal(err)
