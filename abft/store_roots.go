@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
+	electionv1 "github.com/Fantom-foundation/lachesis-base/abft/election_v1"
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -90,4 +91,35 @@ func (s *Store) GetFrameRoots(f idx.Frame) []election.RootAndSlot {
 	s.cache.FrameRoots.Add(f, rr, uint(len(rr)))
 
 	return rr
+}
+
+// GetFrameRoots returns all the roots in the specified frame
+// Not safe for concurrent use due to the complex mutable cache!
+func (s *Store) GetFrameRoots_v1(frame idx.Frame) []electionv1.EventDescriptor {
+	roots := make([]electionv1.EventDescriptor, 0, 100)
+	it := s.epochTable.Roots.NewIterator(frame.Bytes(), nil)
+	defer it.Release()
+	for it.Next() {
+		key := it.Key()
+		if len(key) != frameSize+validatorIDSize+eventIDSize {
+			s.crit(fmt.Errorf("roots table: incorrect key len=%d", len(key)))
+		}
+		if calcFrame := idx.BytesToFrame(key[:frameSize]); calcFrame != frame {
+			s.crit(fmt.Errorf("roots table: invalid frame=%d, expected=%d", calcFrame, frame))
+		}
+
+		hsh := hash.BytesToEvent(key[frameSize+validatorIDSize:])
+		roots = append(
+			roots,
+			electionv1.EventDescriptor{
+				EventID:     &hsh,
+				ValidatorID: idx.BytesToValidatorID(key[frameSize : frameSize+validatorIDSize]),
+			},
+		)
+	}
+	if it.Error() != nil {
+		s.crit(it.Error())
+	}
+
+	return roots
 }

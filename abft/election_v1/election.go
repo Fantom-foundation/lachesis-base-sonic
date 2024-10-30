@@ -1,0 +1,181 @@
+package electionv1
+
+import (
+	"errors"
+
+	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+)
+
+type (
+	ForklessCauseFn func(a hash.Event, b hash.Event) bool
+	GetFrameRootsFn func(f idx.Frame) []EventDescriptor
+)
+
+type EventDescriptor struct {
+	ValidatorID idx.ValidatorID
+	EventID     *hash.Event
+}
+
+type AtroposDecision struct {
+	frame   idx.Frame
+	atropos *hash.Event
+}
+
+type Election struct {
+	frameToDecideMin idx.Frame
+	frameToDecideMax idx.Frame
+	validators       *pos.Validators
+
+	forklessCauses ForklessCauseFn
+	getFrameRoots  GetFrameRootsFn
+
+	vote     map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool
+	decided  map[idx.Frame]map[idx.ValidatorID]bool
+	eventMap map[idx.Frame]map[idx.ValidatorID]*hash.Event
+}
+
+// New election context
+func New(
+	validators *pos.Validators,
+	forklessCauseFn ForklessCauseFn,
+	getFrameRoots GetFrameRootsFn,
+) *Election {
+	election := &Election{
+		forklessCauses: forklessCauseFn,
+		getFrameRoots:  getFrameRoots,
+		validators:     validators,
+	}
+	election.Reset(validators)
+	return election
+}
+
+func (el *Election) Reset(validators *pos.Validators) {
+	el.vote = make(map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool)
+	el.eventMap = make(map[idx.Frame]map[idx.ValidatorID]*hash.Event)
+	el.decided = make(map[idx.Frame]map[idx.ValidatorID]bool)
+	el.newFrameToDecide(0)
+	el.frameToDecideMin = 0
+	el.frameToDecideMax = 0
+	el.validators = validators
+}
+
+// ProcessRoot calculates Atropos votes only for the new root.
+// If this root observes that the current election is decided, then return decided Atropos
+func (el *Election) processRoot(
+	frame idx.Frame,
+	validatorId idx.ValidatorID,
+	root hash.Event,
+) ([]AtroposDecision, error) {
+	decidedAtropoi := make([]AtroposDecision, 0)
+	// Iterate over all undecided frames
+	for frameToDecide := range el.vote {
+		round := int32(frame) - int32(frameToDecide)
+		if round <= 0 {
+			// Root cannot vote on any rounds from now on
+			break
+		} else if round == 1 {
+			if _, ok := el.vote[frameToDecide]; !ok {
+				el.newFrameToDecide(frameToDecide)
+			}
+			el.yesVote(frameToDecide, root)
+			break
+		} else {
+			el.aggregateVotes(frame, root)
+			// check if election is decided
+			atropos, _ := el.chooseAtropos(frameToDecide)
+			if atropos != nil {
+				decidedAtropoi = append(decidedAtropoi, AtroposDecision{frame: frameToDecide, atropos: atropos})
+				el.decidedFrameCleanup(frameToDecide)
+			}
+		}
+	}
+	return decidedAtropoi, nil
+}
+
+func (el *Election) newFrameToDecide(frame idx.Frame) {
+	el.vote[frame] = make(map[hash.Event]map[idx.ValidatorID]bool)
+	el.decided[frame] = make(map[idx.ValidatorID]bool)
+	el.eventMap[frame] = make(map[idx.ValidatorID]*hash.Event)
+	el.frameToDecideMax = max(frame, el.frameToDecideMax)
+	el.frameToDecideMin = max(frame, el.frameToDecideMin)
+}
+
+func (el *Election) getVoteVector(frame idx.Frame, event hash.Event) map[idx.ValidatorID]bool {
+	if _, ok := el.vote[frame][event]; !ok {
+		el.vote[frame][event] = make(map[idx.ValidatorID]bool)
+	}
+	return el.vote[frame][event]
+}
+
+func (el *Election) decidedFrameCleanup(frame idx.Frame) {
+	// delete(el.vote, frame)
+	// delete(el.decided, frame)
+	// delete(el.eventMap, frame)
+	// el.frameToDecideMin = min(el.frameToDecideMin, frame+1)
+}
+
+func (el *Election) yesVote(frame idx.Frame, root hash.Event) {
+	observedRoots := el.observedRoots(root, frame)
+	for _, candidateRoot := range observedRoots {
+		el.eventMap[frame][candidateRoot.ValidatorID] = candidateRoot.EventID
+		voteVector := el.getVoteVector(frame, root)
+		voteVector[candidateRoot.ValidatorID] = true
+	}
+}
+
+func (el *Election) aggregateVotes(
+	frame idx.Frame,
+	voterRoot hash.Event,
+) error {
+	observedRoots := el.observedRoots(voterRoot, frame-1)
+	for frameToDecide := range el.vote {
+		for _, validator := range el.validators.IDs() {
+			if _, ok := el.decided[frameToDecide][validator]; ok {
+				continue
+			}
+			yesVotes := el.validators.NewCounter()
+			noVotes := el.validators.NewCounter()
+			for _, observedRoot := range observedRoots {
+				vote, ok := el.vote[frameToDecide][*observedRoot.EventID][validator]
+				if ok && vote {
+					yesVotes.Count(observedRoot.ValidatorID)
+				} else {
+					noVotes.Count(observedRoot.ValidatorID)
+				}
+			}
+			if yesVotes.HasQuorum() || noVotes.HasQuorum() {
+				el.decided[frameToDecide][validator] = yesVotes.HasQuorum()
+			} else {
+				voteVector := el.getVoteVector(frameToDecide, voterRoot)
+				voteVector[validator] = yesVotes.Sum() >= noVotes.Sum()
+			}
+		}
+	}
+	return nil
+}
+
+func (el *Election) chooseAtropos(frame idx.Frame) (*hash.Event, error) {
+	for _, validatorId := range el.validators.SortedIDs() {
+		decision, ok := el.decided[frame][validatorId]
+		if !ok {
+			return nil, nil // no new decisions
+		}
+		if decision {
+			return el.eventMap[frame][validatorId], nil
+		}
+	}
+	return nil, errors.New("all the roots are decided as 'no', which is possible only if more than 1/3W are Byzantine")
+}
+
+func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []EventDescriptor {
+	observedRoots := make([]EventDescriptor, 0, el.validators.Len())
+	frameRoots := el.getFrameRoots(frame)
+	for _, frameRoot := range frameRoots {
+		if el.forklessCauses(root, *frameRoot.EventID) {
+			observedRoots = append(observedRoots, frameRoot)
+		}
+	}
+	return observedRoots
+}
