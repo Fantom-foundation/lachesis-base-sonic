@@ -3,7 +3,6 @@ package abft
 import (
 	"github.com/pkg/errors"
 
-	"github.com/Fantom-foundation/lachesis-base/abft/election"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
@@ -65,85 +64,69 @@ func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 // calculates Atropos election for the root, calls p.onFrameDecided if election was decided
 func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) error {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
-		decided, err := p.election.ProcessRoot(election.RootAndSlot{
-			ID: root.ID(),
-			Slot: election.Slot{
-				Frame:     f,
-				Validator: root.Creator(),
-			},
-		})
+		decided, err := p.election.ProcessRoot(f, root.Creator(), root.ID())
 		if err != nil {
 			return err
 		}
-		if decided == nil {
-			continue
-		}
-
-		// if we’re here, then this root has observed that lowest not decided frame is decided now
-		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos)
-		if err != nil {
-			return err
-		}
-		if sealed {
-			break
-		}
-		sealed, err = p.bootstrapElection()
-		if err != nil {
-			return err
-		}
-		if sealed {
-			break
+		for _, atroposDecision := range decided {
+			sealed, err := p.onFrameDecided(atroposDecision.Frame, *atroposDecision.AtroposID)
+			if err != nil {
+				return err
+			}
+			if sealed {
+				return nil
+			}
 		}
 	}
 	return nil
 }
 
 // bootstrapElection calls processKnownRoots until it returns nil
-func (p *Orderer) bootstrapElection() (bool, error) {
-	for {
-		decided, err := p.processKnownRoots()
-		if err != nil {
-			return false, err
-		}
-		if decided == nil {
-			break
-		}
+// func (p *Orderer) bootstrapElection() (bool, error) {
+// 	for {
+// 		decided, err := p.processKnownRoots()
+// 		if err != nil {
+// 			return false, err
+// 		}
+// 		if decided == nil {
+// 			break
+// 		}
 
-		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos)
-		if err != nil {
-			return false, err
-		}
-		if sealed {
-			return true, nil
-		}
-	}
-	return false, nil
-}
+// 		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos)
+// 		if err != nil {
+// 			return false, err
+// 		}
+// 		if sealed {
+// 			return true, nil
+// 		}
+// 	}
+// 	return false, nil
+// }
 
 // The function is similar to processRoot, but it fully re-processes the current voting.
 // This routine should be called after node startup, and after each decided frame.
-func (p *Orderer) processKnownRoots() (*election.Res, error) {
-	// iterate all the roots from LastDecidedFrame+1 to highest, call processRoot for each
-	lastDecidedFrame := p.store.GetLastDecidedFrame()
-	var decided *election.Res
-	for f := lastDecidedFrame + 1; ; f++ {
-		frameRoots := p.store.GetFrameRoots(f)
-		for _, it := range frameRoots {
-			var err error
-			decided, err = p.election.ProcessRoot(it)
-			if err != nil {
-				return nil, err
-			}
-			if decided != nil {
-				return decided, nil
-			}
-		}
-		if len(frameRoots) == 0 {
-			break
-		}
-	}
-	return nil, nil
-}
+// func (p *Orderer) processKnownRoots() (*election.Res, error) {
+// 	// iterate all the roots from LastDecidedFrame+1 to highest, call processRoot for each
+// 	lastDecidedFrame := p.store.GetLastDecidedFrame()
+// 	var decided *election.Res
+// 	for f := lastDecidedFrame + 1; ; f++ {
+// 		frameRoots := p.store.GetFrameRoots(f)
+// 		for _, it := range frameRoots {
+// 			var err error
+// 			decided, err = p.election.ProcessRoot(it)
+// 			if err != nil {
+// 				return nil, err
+// 			}
+// 			if decided != nil {
+// 				return decided, nil
+// 			}
+// 		}
+// 		if len(frameRoots) == 0 {
+// 			break
+// 		}
+// 	}
+// 	return nil, nil
+// }
 
 // forklessCausedByQuorumOn returns true if event is forkless caused by 2/3W roots on specified frame
 func (p *Orderer) forklessCausedByQuorumOn(e dag.Event, f idx.Frame) bool {

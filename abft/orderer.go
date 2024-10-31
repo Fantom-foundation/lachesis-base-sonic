@@ -2,7 +2,7 @@ package abft
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/abft/election"
+	electionv1 "github.com/Fantom-foundation/lachesis-base/abft/election_v1"
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
@@ -26,7 +26,7 @@ type Orderer struct {
 	store  *Store
 	input  EventSource
 
-	election *election.Election
+	election *electionv1.Election
 	dagIndex OrdererDagIndex
 
 	callback OrdererCallbacks

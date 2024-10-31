@@ -19,14 +19,12 @@ type EventDescriptor struct {
 }
 
 type AtroposDecision struct {
-	frame   idx.Frame
-	atropos *hash.Event
+	Frame     idx.Frame
+	AtroposID *hash.Event
 }
 
 type Election struct {
-	frameToDecideMin idx.Frame
-	frameToDecideMax idx.Frame
-	validators       *pos.Validators
+	validators *pos.Validators
 
 	forklessCauses ForklessCauseFn
 	getFrameRoots  GetFrameRootsFn
@@ -56,37 +54,34 @@ func (el *Election) Reset(validators *pos.Validators) {
 	el.eventMap = make(map[idx.Frame]map[idx.ValidatorID]*hash.Event)
 	el.decided = make(map[idx.Frame]map[idx.ValidatorID]bool)
 	el.newFrameToDecide(0)
-	el.frameToDecideMin = 0
-	el.frameToDecideMax = 0
 	el.validators = validators
 }
 
 // ProcessRoot calculates Atropos votes only for the new root.
 // If this root observes that the current election is decided, then return decided Atropos
-func (el *Election) processRoot(
+func (el *Election) ProcessRoot(
 	frame idx.Frame,
 	validatorId idx.ValidatorID,
 	root hash.Event,
 ) ([]AtroposDecision, error) {
 	decidedAtropoi := make([]AtroposDecision, 0)
 	// Iterate over all undecided frames
+	if _, ok := el.vote[frame]; !ok {
+		el.newFrameToDecide(frame)
+	}
 	for frameToDecide := range el.vote {
 		round := int32(frame) - int32(frameToDecide)
 		if round <= 0 {
 			// Root cannot vote on any rounds from now on
-			break
+			continue
 		} else if round == 1 {
-			if _, ok := el.vote[frameToDecide]; !ok {
-				el.newFrameToDecide(frameToDecide)
-			}
 			el.yesVote(frameToDecide, root)
-			break
 		} else {
 			el.aggregateVotes(frame, root)
 			// check if election is decided
 			atropos, _ := el.chooseAtropos(frameToDecide)
 			if atropos != nil {
-				decidedAtropoi = append(decidedAtropoi, AtroposDecision{frame: frameToDecide, atropos: atropos})
+				decidedAtropoi = append(decidedAtropoi, AtroposDecision{Frame: frameToDecide, AtroposID: atropos})
 				el.decidedFrameCleanup(frameToDecide)
 			}
 		}
@@ -98,8 +93,6 @@ func (el *Election) newFrameToDecide(frame idx.Frame) {
 	el.vote[frame] = make(map[hash.Event]map[idx.ValidatorID]bool)
 	el.decided[frame] = make(map[idx.ValidatorID]bool)
 	el.eventMap[frame] = make(map[idx.ValidatorID]*hash.Event)
-	el.frameToDecideMax = max(frame, el.frameToDecideMax)
-	el.frameToDecideMin = max(frame, el.frameToDecideMin)
 }
 
 func (el *Election) getVoteVector(frame idx.Frame, event hash.Event) map[idx.ValidatorID]bool {
@@ -113,7 +106,6 @@ func (el *Election) decidedFrameCleanup(frame idx.Frame) {
 	// delete(el.vote, frame)
 	// delete(el.decided, frame)
 	// delete(el.eventMap, frame)
-	// el.frameToDecideMin = min(el.frameToDecideMin, frame+1)
 }
 
 func (el *Election) yesVote(frame idx.Frame, root hash.Event) {

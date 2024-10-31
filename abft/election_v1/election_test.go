@@ -301,7 +301,7 @@ func testProcessRoot(
 		if !ok {
 			t.Fatal("inconsistent vertices")
 		}
-		atropoi, err := el.processRoot(rootSlot.frame, rootSlot.validatorID, rootHash)
+		atropoi, err := el.ProcessRoot(rootSlot.frame, rootSlot.validatorID, rootHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -310,8 +310,8 @@ func testProcessRoot(
 		decisive := expected != nil && expected.DecisiveRoots[root.ID().String()]
 		if decisive || alreadyDecided {
 			assertar.NotNil(atropoi)
-			assertar.Equal(expected.DecidedFrame, atropoi[0].frame)
-			assertar.Equal(expected.DecidedAtropos, atropoi[0].atropos.String())
+			assertar.Equal(expected.DecidedFrame, atropoi[0].Frame)
+			assertar.Equal(expected.DecidedAtropos, atropoi[0].AtroposID.String())
 			alreadyDecided = true
 		} else {
 			assertar.Equal([]AtroposDecision{}, atropoi)
