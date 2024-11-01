@@ -63,7 +63,7 @@ func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 
 // calculates Atropos election for the root, calls p.onFrameDecided if election was decided
 func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) error {
-	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
+	for f := root.Frame(); f <= root.Frame(); f++ {
 		decided, err := p.election.ProcessRoot(f, root.Creator(), root.ID())
 		if err != nil {
 			return err

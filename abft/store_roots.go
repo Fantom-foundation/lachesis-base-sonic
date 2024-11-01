@@ -22,9 +22,7 @@ func rootRecordKey(r *election.RootAndSlot) []byte {
 // AddRoot stores the new root
 // Not safe for concurrent use due to the complex mutable cache!
 func (s *Store) AddRoot(selfParentFrame idx.Frame, root dag.Event) {
-	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
-		s.addRoot(root, f)
-	}
+	s.addRoot(root, root.Frame())
 }
 
 func (s *Store) addRoot(root dag.Event, frame idx.Frame) {
