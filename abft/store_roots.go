@@ -65,11 +65,11 @@ func (s *Store) addRoot_v1(root dag.Event, frame idx.Frame) {
 	}
 
 	// Add to cache.
-	// if c, ok := s.cache.FrameRoots.Get(frame); ok {
-	// 	rr := c.([]electionv1.EventDescriptor)
-	// 	rr = append(rr, r)
-	// 	s.cache.FrameRoots.Add(frame, rr, uint(len(rr)))
-	// }
+	if c, ok := s.cache.FrameRoots.Get(frame); ok {
+		rr := c.([]electionv1.EventDescriptor)
+		rr = append(rr, r)
+		s.cache.FrameRoots.Add(frame, rr, uint(len(rr)))
+	}
 }
 
 const (
@@ -120,6 +120,9 @@ func (s *Store) GetFrameRoots(f idx.Frame) []election.RootAndSlot {
 // GetFrameRoots returns all the roots in the specified frame
 // Not safe for concurrent use due to the complex mutable cache!
 func (s *Store) GetFrameRoots_v1(frame idx.Frame) []electionv1.EventDescriptor {
+	if rr, ok := s.cache.FrameRoots.Get(frame); ok {
+		return rr.([]electionv1.EventDescriptor)
+	}
 	roots := make([]electionv1.EventDescriptor, 0, 100)
 	it := s.epochTable.Roots.NewIterator(frame.Bytes(), nil)
 	defer it.Release()
@@ -144,6 +147,8 @@ func (s *Store) GetFrameRoots_v1(frame idx.Frame) []electionv1.EventDescriptor {
 	if it.Error() != nil {
 		s.crit(it.Error())
 	}
+
+	s.cache.FrameRoots.Add(frame, roots, uint(len(roots)))
 
 	return roots
 }

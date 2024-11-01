@@ -2,7 +2,6 @@ package electionv1
 
 import (
 	"errors"
-	"os"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -75,23 +74,21 @@ func (el *Election) ProcessRoot(
 	for frameToDecide := range el.vote {
 		round := int32(frame) - int32(frameToDecide)
 		if round <= 0 {
-			// Root cannot vote on any rounds from now on
+			// Root cannot vote
 			continue
 		} else if round == 1 {
 			// DBG(fmt.Sprintf("Event %c%d is DIRECTLY VOTING:\n", 'a'+rune(validatorId), frame))
 			el.yesVote(frameToDecide, root)
 		} else {
 			// DBG(fmt.Sprintf("Event %c%d is AGGREGATING:\n", 'a'+rune(validatorId), frame))
-			el.aggregateVotes(frameToDecide, frame, root)
+			el.aggregateVotes(frameToDecide, frame, root) // check if election is decided
+			atropos, _ := el.chooseAtropos(frameToDecide)
+			if atropos != nil {
+				decidedAtropoi = append(decidedAtropoi, atropos)
+				el.decidedFrameCleanup(frameToDecide)
+			}
 		}
-		// check if election is decided
-		atropos, _ := el.chooseAtropos(frameToDecide)
-		if atropos != nil {
-			decidedAtropoi = append(decidedAtropoi, atropos)
-		}
-	}
-	for _, atroposDecision := range decidedAtropoi {
-		el.decidedFrameCleanup(atroposDecision.Frame)
+
 	}
 	return decidedAtropoi, nil
 }
@@ -110,9 +107,9 @@ func (el *Election) getVoteVector(frame idx.Frame, event hash.Event) map[idx.Val
 }
 
 func (el *Election) decidedFrameCleanup(frame idx.Frame) {
-	// delete(el.vote, frame)
-	// delete(el.decided, frame)
-	// delete(el.eventMap, frame)
+	delete(el.vote, frame)
+	delete(el.decided, frame)
+	delete(el.eventMap, frame)
 }
 
 func (el *Election) yesVote(frame idx.Frame, root hash.Event) {
@@ -149,9 +146,6 @@ func (el *Election) aggregateVotes(
 		}
 		// DBG(fmt.Sprintf("Total for %c%d: %d.\n", 'a'+rune(validator), frameToDecide, yesVotes.Sum()))
 		if yesVotes.HasQuorum() || noVotes.HasQuorum() {
-			if yesVotes.HasQuorum() {
-				DBG("Decided Yes!\n")
-			}
 			el.decided[frameToDecide][validator] = yesVotes.HasQuorum()
 		} else {
 			voteVector := el.getVoteVector(frameToDecide, voterRoot)
@@ -163,16 +157,13 @@ func (el *Election) aggregateVotes(
 }
 
 func (el *Election) chooseAtropos(frame idx.Frame) (*AtroposDecision, error) {
-	if _, ok := el.atropos[frame]; ok {
-		return nil, nil
-	}
 	for _, validatorId := range el.validators.SortedIDs() {
 		decision, ok := el.decided[frame][validatorId]
 		if !ok {
 			return nil, nil // no new decisions
 		}
 		if decision {
-			el.atropos[frame] = struct{}{}
+			// el.atropos[frame] = struct{}{}
 			return &AtroposDecision{
 				frame,
 				el.eventMap[frame][validatorId],
@@ -195,8 +186,8 @@ func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []EventDescr
 	return observedRoots
 }
 
-func DBG(s string) {
-	file, _ := os.OpenFile("DBG.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	file.WriteString(s)
-	file.Close()
-}
+// func DBG(s string) {
+// 	file, _ := os.OpenFile("DBG.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+// 	file.WriteString(s)
+// 	file.Close()
+// }
