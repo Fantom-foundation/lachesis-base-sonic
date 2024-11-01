@@ -112,7 +112,7 @@ func (s *Store) GetFrameRoots_v1(frame idx.Frame) []electionv1.EventDescriptor {
 		roots = append(
 			roots,
 			electionv1.EventDescriptor{
-				EventID:     &hsh,
+				EventID:     hsh,
 				ValidatorID: idx.BytesToValidatorID(key[frameSize : frameSize+validatorIDSize]),
 			},
 		)

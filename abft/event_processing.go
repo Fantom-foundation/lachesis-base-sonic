@@ -69,7 +69,7 @@ func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) erro
 			return err
 		}
 		for _, atroposDecision := range decided {
-			sealed, err := p.onFrameDecided(atroposDecision.Frame, *atroposDecision.AtroposID)
+			sealed, err := p.onFrameDecided(atroposDecision.Frame, atroposDecision.AtroposID)
 			if err != nil {
 				return err
 			}

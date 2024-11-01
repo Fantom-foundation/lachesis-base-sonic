@@ -2,6 +2,7 @@ package electionv1
 
 import (
 	"errors"
+	"os"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -14,13 +15,14 @@ type (
 )
 
 type EventDescriptor struct {
+	Frame       idx.Frame
 	ValidatorID idx.ValidatorID
-	EventID     *hash.Event
+	EventID     hash.Event
 }
 
 type AtroposDecision struct {
 	Frame     idx.Frame
-	AtroposID *hash.Event
+	AtroposID hash.Event
 }
 
 type Election struct {
@@ -31,7 +33,8 @@ type Election struct {
 
 	vote     map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool
 	decided  map[idx.Frame]map[idx.ValidatorID]bool
-	eventMap map[idx.Frame]map[idx.ValidatorID]*hash.Event
+	eventMap map[idx.Frame]map[idx.ValidatorID]hash.Event
+	atropos  map[idx.Frame]struct{}
 }
 
 // New election context
@@ -51,9 +54,9 @@ func New(
 
 func (el *Election) Reset(validators *pos.Validators) {
 	el.vote = make(map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool)
-	el.eventMap = make(map[idx.Frame]map[idx.ValidatorID]*hash.Event)
+	el.eventMap = make(map[idx.Frame]map[idx.ValidatorID]hash.Event)
 	el.decided = make(map[idx.Frame]map[idx.ValidatorID]bool)
-	el.newFrameToDecide(0)
+	el.atropos = make(map[idx.Frame]struct{})
 	el.validators = validators
 }
 
@@ -63,8 +66,8 @@ func (el *Election) ProcessRoot(
 	frame idx.Frame,
 	validatorId idx.ValidatorID,
 	root hash.Event,
-) ([]AtroposDecision, error) {
-	decidedAtropoi := make([]AtroposDecision, 0)
+) ([]*AtroposDecision, error) {
+	decidedAtropoi := make([]*AtroposDecision, 0)
 	// Iterate over all undecided frames
 	if _, ok := el.vote[frame]; !ok {
 		el.newFrameToDecide(frame)
@@ -75,16 +78,20 @@ func (el *Election) ProcessRoot(
 			// Root cannot vote on any rounds from now on
 			continue
 		} else if round == 1 {
+			// DBG(fmt.Sprintf("Event %c%d is DIRECTLY VOTING:\n", 'a'+rune(validatorId), frame))
 			el.yesVote(frameToDecide, root)
 		} else {
-			el.aggregateVotes(frame, root)
-			// check if election is decided
-			atropos, _ := el.chooseAtropos(frameToDecide)
-			if atropos != nil {
-				decidedAtropoi = append(decidedAtropoi, AtroposDecision{Frame: frameToDecide, AtroposID: atropos})
-				el.decidedFrameCleanup(frameToDecide)
-			}
+			// DBG(fmt.Sprintf("Event %c%d is AGGREGATING:\n", 'a'+rune(validatorId), frame))
+			el.aggregateVotes(frameToDecide, frame, root)
 		}
+		// check if election is decided
+		atropos, _ := el.chooseAtropos(frameToDecide)
+		if atropos != nil {
+			decidedAtropoi = append(decidedAtropoi, atropos)
+		}
+	}
+	for _, atroposDecision := range decidedAtropoi {
+		el.decidedFrameCleanup(atroposDecision.Frame)
 	}
 	return decidedAtropoi, nil
 }
@@ -92,7 +99,7 @@ func (el *Election) ProcessRoot(
 func (el *Election) newFrameToDecide(frame idx.Frame) {
 	el.vote[frame] = make(map[hash.Event]map[idx.ValidatorID]bool)
 	el.decided[frame] = make(map[idx.ValidatorID]bool)
-	el.eventMap[frame] = make(map[idx.ValidatorID]*hash.Event)
+	el.eventMap[frame] = make(map[idx.ValidatorID]hash.Event)
 }
 
 func (el *Election) getVoteVector(frame idx.Frame, event hash.Event) map[idx.ValidatorID]bool {
@@ -114,48 +121,64 @@ func (el *Election) yesVote(frame idx.Frame, root hash.Event) {
 		el.eventMap[frame][candidateRoot.ValidatorID] = candidateRoot.EventID
 		voteVector := el.getVoteVector(frame, root)
 		voteVector[candidateRoot.ValidatorID] = true
+		// DBG(fmt.Sprintf("For %c%d.\n", 'a'+rune(candidateRoot.ValidatorID), frame))
 	}
+	// DBG("\n")
 }
 
 func (el *Election) aggregateVotes(
+	frameToDecide idx.Frame,
 	frame idx.Frame,
 	voterRoot hash.Event,
 ) error {
 	observedRoots := el.observedRoots(voterRoot, frame-1)
-	for frameToDecide := range el.vote {
-		for _, validator := range el.validators.IDs() {
-			if _, ok := el.decided[frameToDecide][validator]; ok {
-				continue
-			}
-			yesVotes := el.validators.NewCounter()
-			noVotes := el.validators.NewCounter()
-			for _, observedRoot := range observedRoots {
-				vote, ok := el.vote[frameToDecide][*observedRoot.EventID][validator]
-				if ok && vote {
-					yesVotes.Count(observedRoot.ValidatorID)
-				} else {
-					noVotes.Count(observedRoot.ValidatorID)
-				}
-			}
-			if yesVotes.HasQuorum() || noVotes.HasQuorum() {
-				el.decided[frameToDecide][validator] = yesVotes.HasQuorum()
+	for _, validator := range el.validators.IDs() {
+		if _, ok := el.decided[frameToDecide][validator]; ok {
+			continue
+		}
+		yesVotes := el.validators.NewCounter()
+		noVotes := el.validators.NewCounter()
+		for _, observedRoot := range observedRoots {
+			vote, ok := el.vote[frameToDecide][observedRoot.EventID][validator]
+			if ok && vote {
+				yesVotes.Count(observedRoot.ValidatorID)
+				// DBG(fmt.Sprintf("For %c%d through %c%d, stake: %d.\n", 'a'+rune(validator), frameToDecide, 'a'+rune(observedRoot.ValidatorID), frame-1, el.validators.Get(observedRoot.ValidatorID)))
 			} else {
-				voteVector := el.getVoteVector(frameToDecide, voterRoot)
-				voteVector[validator] = yesVotes.Sum() >= noVotes.Sum()
+				noVotes.Count(observedRoot.ValidatorID)
 			}
 		}
+		// DBG(fmt.Sprintf("Total for %c%d: %d.\n", 'a'+rune(validator), frameToDecide, yesVotes.Sum()))
+		if yesVotes.HasQuorum() || noVotes.HasQuorum() {
+			if yesVotes.HasQuorum() {
+				DBG("Decided Yes!\n")
+			}
+			el.decided[frameToDecide][validator] = yesVotes.HasQuorum()
+		} else {
+			voteVector := el.getVoteVector(frameToDecide, voterRoot)
+			voteVector[validator] = yesVotes.Sum() >= noVotes.Sum()
+		}
+		// DBG("\n")
 	}
 	return nil
 }
 
-func (el *Election) chooseAtropos(frame idx.Frame) (*hash.Event, error) {
+func (el *Election) chooseAtropos(frame idx.Frame) (*AtroposDecision, error) {
+	if _, ok := el.atropos[frame]; ok {
+		return nil, nil
+	}
 	for _, validatorId := range el.validators.SortedIDs() {
 		decision, ok := el.decided[frame][validatorId]
 		if !ok {
 			return nil, nil // no new decisions
 		}
 		if decision {
-			return el.eventMap[frame][validatorId], nil
+			el.atropos[frame] = struct{}{}
+			return &AtroposDecision{
+				frame,
+				el.eventMap[frame][validatorId],
+			}, nil
+
+			// return &el.eventMap[frame][validatorId], nil
 		}
 	}
 	return nil, errors.New("all the roots are decided as 'no', which is possible only if more than 1/3W are Byzantine")
@@ -165,9 +188,15 @@ func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []EventDescr
 	observedRoots := make([]EventDescriptor, 0, el.validators.Len())
 	frameRoots := el.getFrameRoots(frame)
 	for _, frameRoot := range frameRoots {
-		if el.forklessCauses(root, *frameRoot.EventID) {
+		if el.forklessCauses(root, frameRoot.EventID) {
 			observedRoots = append(observedRoots, frameRoot)
 		}
 	}
 	return observedRoots
+}
+
+func DBG(s string) {
+	file, _ := os.OpenFile("DBG.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file.WriteString(s)
+	file.Close()
 }
