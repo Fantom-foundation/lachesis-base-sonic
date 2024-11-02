@@ -14,7 +14,6 @@ type (
 )
 
 type EventDescriptor struct {
-	Frame       idx.Frame
 	ValidatorID idx.ValidatorID
 	EventID     hash.Event
 }

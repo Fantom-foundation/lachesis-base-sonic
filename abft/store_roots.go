@@ -19,11 +19,11 @@ func rootRecordKey(r *election.RootAndSlot) []byte {
 	return key.Bytes()
 }
 
-func rootRecordKey_v1(r *electionv1.EventDescriptor) []byte {
+func rootRecordKey_v1(frame idx.Frame, root *electionv1.EventDescriptor) []byte {
 	key := bytes.Buffer{}
-	key.Write(r.Frame.Bytes())
-	key.Write(r.ValidatorID.Bytes())
-	key.Write(r.EventID.Bytes())
+	key.Write(frame.Bytes())
+	key.Write(root.ValidatorID.Bytes())
+	key.Write(root.EventID.Bytes())
 	return key.Bytes()
 }
 
@@ -55,12 +55,11 @@ func (s *Store) addRoot(root dag.Event, frame idx.Frame) {
 
 func (s *Store) addRoot_v1(root dag.Event, frame idx.Frame) {
 	r := electionv1.EventDescriptor{
-		Frame:       frame,
 		ValidatorID: root.Creator(),
 		EventID:     root.ID(),
 	}
 
-	if err := s.epochTable.Roots.Put(rootRecordKey_v1(&r), []byte{}); err != nil {
+	if err := s.epochTable.Roots.Put(rootRecordKey_v1(frame, &r), []byte{}); err != nil {
 		s.crit(err)
 	}
 
@@ -133,14 +132,13 @@ func (s *Store) GetFrameRoots_v1(frame idx.Frame) []electionv1.EventDescriptor {
 		}
 
 		r := electionv1.EventDescriptor{
-			Frame:       idx.BytesToFrame(key[:frameSize]),
 			EventID:     hash.BytesToEvent(key[frameSize+validatorIDSize:]),
 			ValidatorID: idx.BytesToValidatorID(key[frameSize : frameSize+validatorIDSize]),
 		}
 
-		if r.Frame != frame {
-			s.crit(fmt.Errorf("roots table: invalid frame=%d, expected=%d", r.Frame, frame))
-		}
+		// if r.Frame != frame {
+		// 	s.crit(fmt.Errorf("roots table: invalid frame=%d, expected=%d", r.Frame, frame))
+		// }
 		roots = append(roots, r)
 
 	}
