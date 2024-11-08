@@ -17,7 +17,7 @@ func TestCalFrameIdx_10000(t *testing.T) {
 func testCalcFrameIdx(t *testing.T, gap int) {
 	nodes := tdag.GenNodes(2)
 	// Give one validator quorum power to advance the frames on it's own
-	lch, _, store, _ := FakeLachesis(nodes, []pos.Weight{1, 3})
+	lch, _, store, _ := NewCoreLachesis(nodes, []pos.Weight{1, 3})
 
 	laggyGenesis := processTestEvent(t, lch, store, nodes[0], 1, hash.Events{})
 	parentEvent := processTestEvent(t, lch, store, nodes[1], 1, hash.Events{})
@@ -35,7 +35,7 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 var maxLamport idx.Lamport = 0
 
 // processTestEvent builds and pipes the event through main Lacehsis' DAG manipulation pipeline
-func processTestEvent(t *testing.T, lch *TestLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.Event, parents hash.Events) *tdag.TestEvent {
+func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.Event, parents hash.Events) *tdag.TestEvent {
 	event := &tdag.TestEvent{}
 	event.SetSeq(seq)
 	event.SetCreator(validatorId)

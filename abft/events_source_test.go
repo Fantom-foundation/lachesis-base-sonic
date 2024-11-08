@@ -10,40 +10,6 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
 )
 
-// EventStore is a abft event storage for test purpose.
-// It implements EventSource interface.
-type EventStore struct {
-	db map[hash.Event]dag.Event
-}
-
-// NewEventStore creates store over memory map.
-func NewEventStore() *EventStore {
-	return &EventStore{
-		db: map[hash.Event]dag.Event{},
-	}
-}
-
-// Close leaves underlying database.
-func (s *EventStore) Close() {
-	s.db = nil
-}
-
-// SetEvent stores event.
-func (s *EventStore) SetEvent(e dag.Event) {
-	s.db[e.ID()] = e
-}
-
-// GetEvent returns stored event.
-func (s *EventStore) GetEvent(h hash.Event) dag.Event {
-	return s.db[h]
-}
-
-// HasEvent returns true if event exists.
-func (s *EventStore) HasEvent(h hash.Event) bool {
-	_, ok := s.db[h]
-	return ok
-}
-
 /*
  * Tests:
  */

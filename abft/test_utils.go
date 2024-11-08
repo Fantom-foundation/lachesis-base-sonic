@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -12,6 +13,15 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
 )
+
+type dbEvent struct {
+	hash        hash.Event
+	validatorId idx.ValidatorID
+	seq         idx.Event
+	frame       idx.Frame
+	lamportTs   idx.Lamport
+	parents     []hash.Event
+}
 
 type applyBlockFn func(block *lachesis.Block) *pos.Validators
 
@@ -26,8 +36,8 @@ type BlockResult struct {
 	Validators *pos.Validators
 }
 
-// TestLachesis extends Lachesis for tests.
-type TestLachesis struct {
+// CoreLachesis extends Indexed Orderer for tests.
+type CoreLachesis struct {
 	*IndexedLachesis
 
 	blocks      map[BlockKey]*BlockResult
@@ -37,8 +47,8 @@ type TestLachesis struct {
 	applyBlock applyBlockFn
 }
 
-// FakeLachesis creates empty abft with mem store and equal weights of nodes in genesis.
-func FakeLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memorydb.Mod) (*TestLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
+// NewCoreLachesis creates empty abft consensus with mem store and optional node weights w.o. some callbacks usually instantiated by Client
+func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memorydb.Mod) (*CoreLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
 	validators := make(pos.ValidatorsBuilder, len(nodes))
 	for i, v := range nodes {
 		if weights == nil {
@@ -70,7 +80,7 @@ func FakeLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memoryd
 	dagIndexer := &adapters.VectorToDagIndexer{Index: vecfc.NewIndex(crit, vecfc.LiteConfig())}
 	lch := NewIndexedLachesis(store, input, dagIndexer, crit, config)
 
-	extended := &TestLachesis{
+	extended := &CoreLachesis{
 		IndexedLachesis: lch,
 		blocks:          map[BlockKey]*BlockResult{},
 		epochBlocks:     map[idx.Epoch]idx.Frame{},
@@ -119,4 +129,38 @@ func mutateValidators(validators *pos.Validators) *pos.Validators {
 		builder.Set(vid, pos.Weight(stake))
 	}
 	return builder.Build()
+}
+
+// EventStore is a abft event storage for test purpose.
+// It implements EventSource interface.
+type EventStore struct {
+	db map[hash.Event]dag.Event
+}
+
+// NewEventStore creates store over memory map.
+func NewEventStore() *EventStore {
+	return &EventStore{
+		db: map[hash.Event]dag.Event{},
+	}
+}
+
+// Close leaves underlying database.
+func (s *EventStore) Close() {
+	s.db = nil
+}
+
+// SetEvent stores event.
+func (s *EventStore) SetEvent(e dag.Event) {
+	s.db[e.ID()] = e
+}
+
+// GetEvent returns stored event.
+func (s *EventStore) GetEvent(h hash.Event) dag.Event {
+	return s.db[h]
+}
+
+// HasEvent returns true if event exists.
+func (s *EventStore) HasEvent(h hash.Event) bool {
+	_, ok := s.db[h]
+	return ok
 }

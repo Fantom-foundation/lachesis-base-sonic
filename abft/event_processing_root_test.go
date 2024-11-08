@@ -268,7 +268,7 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 	// get nodes only
 	nodes, _, _ := tdag.ASCIIschemeToDAG(scheme)
 	// init abft
-	lch, _, input, _ := FakeLachesis(nodes, nil)
+	lch, _, input, _ := NewCoreLachesis(nodes, nil)
 
 	// process events
 	_, _, names := tdag.ASCIIschemeForEach(scheme, tdag.ForEachEvent{

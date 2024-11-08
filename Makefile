@@ -1,3 +1,7 @@
+GO_BIN := $(CURDIR)/build
+dbchecker:
+	go build -o $(GO_BIN)/dbchecker ./cmd/dbchecker
+
 .PHONY : test
 test :
 	go test -shuffle=on ./...

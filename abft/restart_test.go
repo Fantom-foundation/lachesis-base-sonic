@@ -79,10 +79,10 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 	)
 	nodes := tdag.GenNodes(len(weights))
 
-	lchs := make([]*TestLachesis, 0, COUNT)
+	lchs := make([]*CoreLachesis, 0, COUNT)
 	inputs := make([]*EventStore, 0, COUNT)
 	for i := 0; i < COUNT; i++ {
-		lch, _, input, _ := FakeLachesis(nodes, weights)
+		lch, _, input, _ := NewCoreLachesis(nodes, weights)
 		lchs = append(lchs, lch)
 		inputs = append(inputs, input)
 	}
@@ -210,7 +210,7 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 	compareBlocks(assertar, lchs[EXPECTED], lchs[RESTORED])
 }
 
-func compareStates(assertar *assert.Assertions, expected, restored *TestLachesis) {
+func compareStates(assertar *assert.Assertions, expected, restored *CoreLachesis) {
 	assertar.Equal(
 		*(expected.store.GetLastDecidedState()), *(restored.store.GetLastDecidedState()))
 	assertar.Equal(
@@ -225,7 +225,7 @@ func compareStates(assertar *assert.Assertions, expected, restored *TestLachesis
 	}
 }
 
-func compareBlocks(assertar *assert.Assertions, expected, restored *TestLachesis) {
+func compareBlocks(assertar *assert.Assertions, expected, restored *CoreLachesis) {
 	assertar.Equal(expected.lastBlock, restored.lastBlock)
 	for e := idx.Epoch(1); e <= expected.lastBlock.Epoch; e++ {
 		assertar.Equal(expected.epochBlocks[e], restored.epochBlocks[e])

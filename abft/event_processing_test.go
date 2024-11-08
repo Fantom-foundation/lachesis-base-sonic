@@ -75,10 +75,10 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 	const lchCount = 3
 	nodes := tdag.GenNodes(len(weights))
 
-	lchs := make([]*TestLachesis, 0, lchCount)
+	lchs := make([]*CoreLachesis, 0, lchCount)
 	inputs := make([]*EventStore, 0, lchCount)
 	for i := 0; i < lchCount; i++ {
-		lch, _, input, _ := FakeLachesis(nodes, weights)
+		lch, _, input, _ := NewCoreLachesis(nodes, weights)
 		lchs = append(lchs, lch)
 		inputs = append(inputs, input)
 	}
@@ -175,7 +175,7 @@ func reorder(events dag.Events) dag.Events {
 	return reordered
 }
 
-func compareResults(t *testing.T, lchs []*TestLachesis) {
+func compareResults(t *testing.T, lchs []*CoreLachesis) {
 	t.Helper()
 	assertar := assert.New(t)
 

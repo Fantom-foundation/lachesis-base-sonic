@@ -181,13 +181,13 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 	validators := pos.ArrayToValidators(nodes, weights)
 
 	var input *EventStore
-	var lch *TestLachesis
+	var lch *CoreLachesis
 	var dagIndexer ancestor.DagIndex
 	inputs := make([]EventStore, numValidators)
-	lchs := make([]TestLachesis, numValidators)
+	lchs := make([]CoreLachesis, numValidators)
 	fcIndexers := make([]*ancestor.FCIndexer, numValidators)
 	for i := 0; i < numValidators; i++ {
-		lch, _, input, dagIndexer = FakeLachesis(nodes, weights)
+		lch, _, input, dagIndexer = NewCoreLachesis(nodes, weights)
 		lchs[i] = *lch
 		inputs[i] = *input
 		fcIndexers[i] = ancestor.NewFCIndexer(validators, dagIndexer, nodes[i])
@@ -497,7 +497,7 @@ func updateHeads(newEvent dag.Event, heads *dag.Events) {
 	*heads = append(*heads, newEvent) //add newEvent to heads
 }
 
-func processEvent(input EventStore, lchs *TestLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *dag.Events, self idx.ValidatorID, time int) (frame idx.Frame) {
+func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *dag.Events, self idx.ValidatorID, time int) (frame idx.Frame) {
 	input.SetEvent(e)
 
 	lchs.dagIndexer.Add(e)
