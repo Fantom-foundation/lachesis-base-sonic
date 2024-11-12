@@ -54,24 +54,6 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	return nil
 }
 
-func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEvent) error {
-	testEvent := &tdag.TestEvent{}
-	testEvent.SetSeq(event.seq)
-	testEvent.SetCreator(event.validatorId)
-	testEvent.SetParents(event.parents)
-	testEvent.SetLamport(event.lamportTs)
-	testEvent.SetEpoch(testLachesis.store.GetEpoch())
-	if err := testLachesis.Build(testEvent); err != nil {
-		return fmt.Errorf("error while building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
-	}
-	testEvent.SetID([24]byte(event.hash[8:]))
-	eventStore.SetEvent(testEvent)
-	if err := testLachesis.Process(testEvent); err != nil {
-		return fmt.Errorf("error while processing event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
-	}
-	return nil
-}
-
 func GetEpochRange(conn *sql.DB) (idx.Epoch, idx.Epoch, error) {
 	// Query the `Event` table as `Validator` table may include future (empty) epochs
 	rows, err := conn.Query(`
@@ -92,6 +74,24 @@ func GetEpochRange(conn *sql.DB) (idx.Epoch, idx.Epoch, error) {
 		return 0, 0, err
 	}
 	return epochMin, epochMax, nil
+}
+
+func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEvent) error {
+	testEvent := &tdag.TestEvent{}
+	testEvent.SetSeq(event.seq)
+	testEvent.SetCreator(event.validatorId)
+	testEvent.SetParents(event.parents)
+	testEvent.SetLamport(event.lamportTs)
+	testEvent.SetEpoch(testLachesis.store.GetEpoch())
+	if err := testLachesis.Build(testEvent); err != nil {
+		return fmt.Errorf("error while building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
+	}
+	testEvent.SetID([24]byte(event.hash[8:]))
+	eventStore.SetEvent(testEvent)
+	if err := testLachesis.Process(testEvent); err != nil {
+		return fmt.Errorf("error while processing event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
+	}
+	return nil
 }
 
 func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []pos.Weight, error) {
