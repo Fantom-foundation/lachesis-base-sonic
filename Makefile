@@ -1,5 +1,5 @@
 dbchecker:
-	go build -ldflags="-s -w" -o build/dbchecker cmd/dbchecker
+	go build -ldflags="-s -w" -o build/dbchecker ./cmd/dbchecker
 
 .PHONY : test
 test :
