@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"slices"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
@@ -46,12 +47,15 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	if err != nil {
 		return err
 	}
+	slices.SortFunc(recalculatedAtropoi, func(a, b hash.Event) int {
+		return int(eventMap[a].frame) - int(eventMap[b].frame)
+	})
 	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want > got {
 		return fmt.Errorf("incorrect number of atropoi recalculated for epoch %d, expected at least: %d, got: %d", epoch, want, got)
 	}
 	for idx := range expectedAtropoi {
 		if want, got := expectedAtropoi[idx], recalculatedAtropoi[idx]; want != got {
-			return fmt.Errorf("incorrect atropos for epoch %d on position %d, expected: %v got: %v", epoch, idx, eventMap[want], eventMap[got])
+			return fmt.Errorf("incorrect atropos for epoch %d on position %d, expected: %v got: %v", epoch, idx, want.String(), got.String())
 		}
 	}
 	return nil
