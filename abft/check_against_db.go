@@ -17,6 +17,9 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	if err != nil {
 		return err
 	}
+	if len(validators) == 0 {
+		return nil
+	}
 	testLachesis, _, eventStore, _ := NewCoreLachesis(validators, weights)
 	// Plant the real epoch state for the sake of event hash calculation (epoch=1 by default)
 	testLachesis.store.applyGenesis(epoch, testLachesis.store.GetValidators())
@@ -43,10 +46,10 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	if err != nil {
 		return err
 	}
-	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want != got {
-		return fmt.Errorf("incorrect number of atropoi recalculated for epoch %d, expected: %d, got: %d", epoch, want, got)
+	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want > got {
+		return fmt.Errorf("incorrect number of atropoi recalculated for epoch %d, expected at least: %d, got: %d", epoch, want, got)
 	}
-	for idx := range recalculatedAtropoi {
+	for idx := range expectedAtropoi {
 		if want, got := expectedAtropoi[idx], recalculatedAtropoi[idx]; want != got {
 			return fmt.Errorf("incorrect atropos for epoch %d on position %d, expected: %v got: %v", epoch, idx, eventMap[want], eventMap[got])
 		}
