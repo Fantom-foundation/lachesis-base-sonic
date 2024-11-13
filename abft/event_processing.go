@@ -155,3 +155,24 @@ func (p *Orderer) calcFrameIdx(e dag.Event) (selfParentFrame, frame idx.Frame) {
 	}
 	return selfParentFrame, frame
 }
+
+// calcFrameIdx checks root-conditions for new event and returns event's frame.
+// It is not safe for concurrent use.
+// calcFrameIdx checks root-conditions for new event and returns event's frame.
+// It is not safe for concurrent use.
+func (p *Orderer) calcFrameIdx_v1(e dag.Event) (selfParentFrame, frame idx.Frame) {
+	if e.SelfParent() == nil {
+		return 0, 1
+	}
+	selfParentFrame = p.input.GetEvent(*e.SelfParent()).Frame()
+	frame = selfParentFrame
+	for _, parent := range e.Parents() {
+		frame = max(frame, p.input.GetEvent(parent).Frame())
+	}
+
+	// Find highest frame s.t. event e is forklessCausedByQuorumOn by frame-1 roots
+	if p.forklessCausedByQuorumOn(e, frame) {
+		frame++
+	}
+	return selfParentFrame, frame
+}
