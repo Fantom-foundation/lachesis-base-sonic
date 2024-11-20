@@ -1,9 +1,9 @@
 package electionv1
 
 import (
+	"container/heap"
 	"errors"
 	"os"
-	"slices"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -34,6 +34,9 @@ type Election struct {
 	vote     map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool
 	decided  map[idx.Frame]map[idx.ValidatorID]bool
 	eventMap map[idx.Frame]map[idx.ValidatorID]hash.Event
+
+	deliveryBuffer heapBuffer
+	frameToDeliver idx.Frame
 }
 
 // New election context
@@ -55,6 +58,9 @@ func (el *Election) Reset(validators *pos.Validators) {
 	el.vote = make(map[idx.Frame]map[hash.Event]map[idx.ValidatorID]bool)
 	el.eventMap = make(map[idx.Frame]map[idx.ValidatorID]hash.Event)
 	el.decided = make(map[idx.Frame]map[idx.ValidatorID]bool)
+	el.deliveryBuffer = make(heapBuffer, 0)
+	heap.Init(&el.deliveryBuffer)
+	el.frameToDeliver = 1
 	el.validators = validators
 }
 
@@ -77,7 +83,6 @@ func (el *Election) ProcessRoot(
 	validatorId idx.ValidatorID,
 	root hash.Event,
 ) ([]*AtroposDecision, error) {
-	decidedAtropoi := make([]*AtroposDecision, 0)
 	// Iterate over all undecided frames
 	if _, ok := el.vote[frame]; !ok {
 		el.newFrameToDecide(frame)
@@ -95,16 +100,12 @@ func (el *Election) ProcessRoot(
 			el.aggregateVotes(frameToDecide, frame, root) // check if election is decided
 			atropos, _ := el.chooseAtropos(frameToDecide)
 			if atropos != nil {
-				decidedAtropoi = append(decidedAtropoi, atropos)
+				heap.Push(&el.deliveryBuffer, atropos)
 				el.decidedFrameCleanup(frameToDecide)
 			}
 		}
-
 	}
-	slices.SortFunc(decidedAtropoi, func(a, b *AtroposDecision) int {
-		return int(a.Frame) - int(b.Frame)
-	})
-	return decidedAtropoi, nil
+	return el.alignedAtropoi(), nil
 }
 
 func (el *Election) getVoteVector(frame idx.Frame, event hash.Event) map[idx.ValidatorID]bool {
@@ -184,4 +185,41 @@ func DBG(s string) {
 	file, _ := os.OpenFile("DBG.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	file.WriteString(s)
 	file.Close()
+}
+
+// alignedAtropoi pops and returns only continuous sequence of decided atropoi
+// that start with `frameToDeliver` frame number
+// example 1: frameToDeliver = 100, heapBuffer = [100, 101, 102], deliveredAtropoi = [100, 101, 102]
+// example 2: frameToDeliver = 100, heapBuffer = [101, 102], deliveredAtropoi = []
+// example 3: frameToDeliver = 100, heapBuffer = [100, 101, 104, 105], deliveredAtropoi = [100, 101]
+func (el *Election) alignedAtropoi() []*AtroposDecision {
+	deliveredAtropoi := make([]*AtroposDecision, 0)
+	for len(el.deliveryBuffer) > 0 && el.deliveryBuffer[0].Frame == el.frameToDeliver {
+		deliveredAtropoi = append(deliveredAtropoi, heap.Pop(&el.deliveryBuffer).(*AtroposDecision))
+		el.frameToDeliver++
+	}
+	return deliveredAtropoi
+}
+
+// heapBuffer is a min-heap of Atropos decisions ordered by Frames.
+// it is an easy to maintain structure that keeps continuous sequences (possibly multiple patches of them)
+// together and allows for efficient delivery of the sequence when the minimal Atropos in the sequence aligns with 'frameToDeliver'
+type heapBuffer []*AtroposDecision
+
+func (h heapBuffer) Len() int           { return len(h) }
+func (h heapBuffer) Less(i, j int) bool { return h[i].Frame < h[j].Frame }
+func (h heapBuffer) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *heapBuffer) Push(x any) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.(*AtroposDecision))
+}
+
+func (h *heapBuffer) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
 }
