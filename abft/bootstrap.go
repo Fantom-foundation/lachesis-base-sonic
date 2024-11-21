@@ -50,7 +50,7 @@ func (p *Orderer) Bootstrap(callback OrdererCallbacks) error {
 	p.election = electionv1.New(p.store.GetValidators(), p.dagIndex.ForklessCause, p.store.GetFrameRoots_v1)
 
 	// events reprocessing
-	// _, err = p.bootstrapElection()
+	err = p.bootstrapElection()
 	return err
 }
 
