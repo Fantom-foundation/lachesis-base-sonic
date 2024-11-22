@@ -1,6 +1,7 @@
 package abft
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
@@ -21,6 +22,10 @@ type dbEvent struct {
 	frame       idx.Frame
 	lamportTs   idx.Lamport
 	parents     []hash.Event
+}
+
+func (e *dbEvent) String() string {
+	return fmt.Sprintf("{Epoch:%d Validator:%d Frame:%d Seq:%d Lamport:%d}", e.hash.Epoch(), e.validatorId, e.frame, e.seq, e.lamportTs)
 }
 
 type applyBlockFn func(block *lachesis.Block) *pos.Validators

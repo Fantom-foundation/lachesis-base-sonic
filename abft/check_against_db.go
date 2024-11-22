@@ -46,15 +46,12 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	if err != nil {
 		return err
 	}
-	// slices.SortFunc(recalculatedAtropoi, func(a, b hash.Event) int {
-	// 	return int(eventMap[a].frame) - int(eventMap[b].frame)
-	// })
 	if want, got := len(expectedAtropoi), len(recalculatedAtropoi); want > got {
 		return fmt.Errorf("incorrect number of atropoi recalculated for epoch %d, expected at least: %d, got: %d", epoch, want, got)
 	}
 	for idx := range expectedAtropoi {
 		if want, got := expectedAtropoi[idx], recalculatedAtropoi[idx]; want != got {
-			fmt.Printf("incorrect atropos for epoch %d on position %d, expected: %v got: %v\n", epoch, idx, eventMap[want].String(), eventMap[got].String())
+			return fmt.Errorf("incorrect atropos for epoch %d on position %d, expected: %s got: %s", epoch, idx, eventMap[want].String(), eventMap[got].String())
 		}
 	}
 	return nil

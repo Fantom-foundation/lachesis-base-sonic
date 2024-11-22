@@ -39,7 +39,6 @@ type Election struct {
 	frameToDeliver idx.Frame
 }
 
-// New election context
 func New(
 	validators *pos.Validators,
 	forklessCauseFn ForklessCauseFn,
@@ -77,7 +76,7 @@ func (el *Election) decidedFrameCleanup(frame idx.Frame) {
 }
 
 // ProcessRoot calculates Atropos votes only for the new root.
-// If this root observes that the current election is decided, then return decided Atropos
+// If this root observes that the current election is decided, then return decided Atropoi
 func (el *Election) ProcessRoot(
 	frame idx.Frame,
 	validatorId idx.ValidatorID,
@@ -93,10 +92,8 @@ func (el *Election) ProcessRoot(
 			// Root cannot vote
 			continue
 		} else if round == 1 {
-			// DBG(fmt.Sprintf("Event %c%d is DIRECTLY VOTING:\n", 'a'+rune(validatorId), frame))
 			el.yesVote(frameToDecide, root)
 		} else {
-			// DBG(fmt.Sprintf("Event %c%d is AGGREGATING:\n", 'a'+rune(validatorId), frame))
 			el.aggregateVotes(frameToDecide, frame, root) // check if election is decided
 			atropos, _ := el.chooseAtropos(frameToDecide)
 			if atropos != nil {
@@ -203,7 +200,7 @@ func (el *Election) alignedAtropoi() []*AtroposDecision {
 
 // heapBuffer is a min-heap of Atropos decisions ordered by Frames.
 // it is an easy to maintain structure that keeps continuous sequences (possibly multiple patches of them)
-// together and allows for efficient delivery of the sequence when the minimal Atropos in the sequence aligns with 'frameToDeliver'
+// together and allows for efficient delivery of whole sequence when min frame Atropos of sequence aligns with 'frameToDeliver'
 type heapBuffer []*AtroposDecision
 
 func (h heapBuffer) Len() int           { return len(h) }
