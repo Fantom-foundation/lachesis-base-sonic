@@ -22,7 +22,7 @@ func (p *Orderer) Build(e dag.MutableEvent) error {
 		p.crit(errors.New("event wasn't created by an existing validator"))
 	}
 
-	_, frame := p.calcFrameIdx(e)
+	_, frame := p.calcFrameIdx_v1(e)
 	e.SetFrame(frame)
 
 	return nil
@@ -50,7 +50,7 @@ func (p *Orderer) Process(e dag.Event) (err error) {
 // checkAndSaveEvent checks consensus-related fields: Frame, IsRoot
 func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 	// check frame & isRoot
-	selfParentFrame, frameIdx := p.calcFrameIdx(e)
+	selfParentFrame, frameIdx := p.calcFrameIdx_v1(e)
 	if !p.config.SuppressFramePanic && e.Frame() != frameIdx {
 		return ErrWrongFrame, 0
 	}
