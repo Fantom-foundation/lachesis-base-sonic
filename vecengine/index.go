@@ -12,10 +12,10 @@ import (
 )
 
 type Callbacks struct {
-	GetHighestBefore func(hash.Event) HighestBeforeI
-	GetLowestAfter   func(hash.Event) LowestAfterI
-	SetHighestBefore func(hash.Event, HighestBeforeI)
-	SetLowestAfter   func(hash.Event, LowestAfterI)
+	GetHighestBefore func(hash.EventHash) HighestBeforeI
+	GetLowestAfter   func(hash.EventHash) LowestAfterI
+	SetHighestBefore func(hash.EventHash, HighestBeforeI)
+	SetLowestAfter   func(hash.EventHash, LowestAfterI)
 	NewHighestBefore func(idx.Validator) HighestBeforeI
 	NewLowestAfter   func(idx.Validator) LowestAfterI
 	OnDropNotFlushed func()
@@ -28,7 +28,7 @@ type Engine struct {
 
 	bi *BranchesInfo
 
-	getEvent func(hash.Event) ltypes.Event
+	getEvent func(hash.EventHash) ltypes.Event
 
 	callback Callbacks
 
@@ -50,7 +50,7 @@ func NewIndex(crit func(error), callbacks Callbacks) *Engine {
 }
 
 // Reset resets buffers.
-func (vi *Engine) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
+func (vi *Engine) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.EventHash) ltypes.Event) {
 	// use wrapper to be able to drop failed events by dropping cache
 	vi.getEvent = getEvent
 	vi.vecDb = db
@@ -207,7 +207,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	}
 
 	// graph traversal starting from e, but excluding e
-	onWalk := func(walk hash.Event) (godeeper bool) {
+	onWalk := func(walk hash.EventHash) (godeeper bool) {
 		wLowestAfterSeq := vi.callback.GetLowestAfter(walk)
 
 		// update LowestAfter vector of the old event, because newly-connected event observes it
@@ -230,7 +230,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	return myVecs, nil
 }
 
-func (vi *Engine) GetMergedHighestBefore(id hash.Event) HighestBeforeI {
+func (vi *Engine) GetMergedHighestBefore(id hash.EventHash) HighestBeforeI {
 	vi.InitBranchesInfo()
 
 	if vi.AtLeastOneFork() {

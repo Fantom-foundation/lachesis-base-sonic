@@ -13,10 +13,10 @@ type Event interface {
 	Frame() idx.FrameID
 	Creator() idx.ValidatorID
 	Lamport() idx.Lamport
-	Parents() hash.Events
-	SelfParent() *hash.Event
-	IsSelfParent(hash hash.Event) bool
-	ID() hash.Event
+	Parents() hash.EventHashes
+	SelfParent() *hash.EventHash
+	IsSelfParent(hash hash.EventHash) bool
+	ID() hash.EventHash
 	String() string
 	Size() int
 }
@@ -28,7 +28,7 @@ type MutableEvent interface {
 	SetFrame(idx.FrameID)
 	SetCreator(idx.ValidatorID)
 	SetLamport(idx.Lamport)
-	SetParents(hash.Events)
+	SetParents(hash.EventHashes)
 	SetID(id [24]byte)
 }
 
@@ -41,9 +41,9 @@ type BaseEvent struct {
 	seq     idx.EventID
 	frame   idx.FrameID
 	creator idx.ValidatorID
-	parents hash.Events
+	parents hash.EventHashes
 	lamport idx.Lamport
-	id      hash.Event
+	id      hash.EventHash
 }
 
 type MutableBaseEvent struct {
@@ -65,7 +65,7 @@ func (e *BaseEvent) String() string {
 }
 
 // SelfParent returns event's self-parent, if any
-func (e *BaseEvent) SelfParent() *hash.Event {
+func (e *BaseEvent) SelfParent() *hash.EventHash {
 	if e.seq <= 1 || len(e.parents) == 0 {
 		return nil
 	}
@@ -73,7 +73,7 @@ func (e *BaseEvent) SelfParent() *hash.Event {
 }
 
 // IsSelfParent is true if specified ID is event's self-parent
-func (e *BaseEvent) IsSelfParent(hash hash.Event) bool {
+func (e *BaseEvent) IsSelfParent(hash hash.EventHash) bool {
 	if e.SelfParent() == nil {
 		return false
 	}
@@ -96,7 +96,7 @@ func (e *BaseEvent) Creator() idx.ValidatorID {
 	return e.creator
 }
 
-func (e *BaseEvent) Parents() hash.Events {
+func (e *BaseEvent) Parents() hash.EventHashes {
 	return e.parents
 }
 
@@ -104,7 +104,7 @@ func (e *BaseEvent) Lamport() idx.Lamport {
 	return e.lamport
 }
 
-func (e *BaseEvent) ID() hash.Event {
+func (e *BaseEvent) ID() hash.EventHash {
 	return e.id
 }
 
@@ -128,7 +128,7 @@ func (e *MutableBaseEvent) SetCreator(v idx.ValidatorID) {
 	e.creator = v
 }
 
-func (e *MutableBaseEvent) SetParents(v hash.Events) {
+func (e *MutableBaseEvent) SetParents(v hash.EventHashes) {
 	e.parents = v
 }
 

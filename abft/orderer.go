@@ -9,7 +9,7 @@ import (
 )
 
 type OrdererCallbacks struct {
-	ApplyAtropos func(decidedFrame idx.FrameID, atropos hash.Event) (sealEpoch *ltypes.Validators)
+	ApplyAtropos func(decidedFrame idx.FrameID, atropos hash.EventHash) (sealEpoch *ltypes.Validators)
 
 	EpochDBLoaded func(idx.EpochID)
 }

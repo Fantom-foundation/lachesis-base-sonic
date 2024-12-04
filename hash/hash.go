@@ -25,8 +25,10 @@ var (
 // Hash represents the 32 byte hash of arbitrary data.
 type Hash [HashLength]byte
 
+// Hashes is a slice of hashes.
 type Hashes []Hash
 
+// HashesSet is a set of hashes.
 type HashesSet map[Hash]struct{}
 
 // BytesToHash sets b to hash.

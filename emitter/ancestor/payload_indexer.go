@@ -22,7 +22,7 @@ func (h *PayloadIndexer) ProcessEvent(event ltypes.Event, payloadMetric Metric) 
 	}
 }
 
-func (h *PayloadIndexer) getMetricOf(id hash.Event) Metric {
+func (h *PayloadIndexer) getMetricOf(id hash.EventHash) Metric {
 	parentMetric, ok := h.payloadLamports.Get(id)
 	if !ok {
 		return 0
@@ -30,7 +30,7 @@ func (h *PayloadIndexer) getMetricOf(id hash.Event) Metric {
 	return parentMetric.(Metric)
 }
 
-func (h *PayloadIndexer) GetMetricOf(ids hash.Events) Metric {
+func (h *PayloadIndexer) GetMetricOf(ids hash.EventHashes) Metric {
 	maxMetric := Metric(0)
 	for _, id := range ids {
 		metric := h.getMetricOf(id)

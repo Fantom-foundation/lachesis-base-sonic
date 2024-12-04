@@ -73,7 +73,7 @@ func ForEachRandFork(
 		// make
 		e := &TestEvent{}
 		e.SetCreator(creator)
-		e.SetParents(hash.Events{})
+		e.SetParents(hash.EventHashes{})
 		// first parent is a last creator's event or empty hash
 		var parent ltypes.Event
 		if ee := events[creator]; len(ee) > 0 {

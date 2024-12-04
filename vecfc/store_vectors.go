@@ -5,7 +5,7 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 )
 
-func (vi *Index) getBytes(table kvdb.Store, id hash.Event) []byte {
+func (vi *Index) getBytes(table kvdb.Store, id hash.EventHash) []byte {
 	key := id.Bytes()
 	b, err := table.Get(key)
 	if err != nil {
@@ -14,7 +14,7 @@ func (vi *Index) getBytes(table kvdb.Store, id hash.Event) []byte {
 	return b
 }
 
-func (vi *Index) setBytes(table kvdb.Store, id hash.Event, b []byte) {
+func (vi *Index) setBytes(table kvdb.Store, id hash.EventHash, b []byte) {
 	key := id.Bytes()
 	err := table.Put(key, b)
 	if err != nil {
@@ -23,7 +23,7 @@ func (vi *Index) setBytes(table kvdb.Store, id hash.Event, b []byte) {
 }
 
 // GetLowestAfter reads the vector from DB
-func (vi *Index) GetLowestAfter(id hash.Event) *LowestAfterSeq {
+func (vi *Index) GetLowestAfter(id hash.EventHash) *LowestAfterSeq {
 	if bVal, okGet := vi.cache.LowestAfterSeq.Get(id); okGet {
 		return bVal.(*LowestAfterSeq)
 	}
@@ -37,7 +37,7 @@ func (vi *Index) GetLowestAfter(id hash.Event) *LowestAfterSeq {
 }
 
 // GetHighestBefore reads the vector from DB
-func (vi *Index) GetHighestBefore(id hash.Event) *HighestBeforeSeq {
+func (vi *Index) GetHighestBefore(id hash.EventHash) *HighestBeforeSeq {
 	if bVal, okGet := vi.cache.HighestBeforeSeq.Get(id); okGet {
 		return bVal.(*HighestBeforeSeq)
 	}
@@ -51,14 +51,14 @@ func (vi *Index) GetHighestBefore(id hash.Event) *HighestBeforeSeq {
 }
 
 // SetLowestAfter stores the vector into DB
-func (vi *Index) SetLowestAfter(id hash.Event, seq *LowestAfterSeq) {
+func (vi *Index) SetLowestAfter(id hash.EventHash, seq *LowestAfterSeq) {
 	vi.setBytes(vi.table.LowestAfterSeq, id, *seq)
 
 	vi.cache.LowestAfterSeq.Add(id, seq, uint(len(*seq)))
 }
 
 // SetHighestBefore stores the vectors into DB
-func (vi *Index) SetHighestBefore(id hash.Event, seq *HighestBeforeSeq) {
+func (vi *Index) SetHighestBefore(id hash.EventHash, seq *HighestBeforeSeq) {
 	vi.setBytes(vi.table.HighestBeforeSeq, id, *seq)
 
 	vi.cache.HighestBeforeSeq.Add(id, seq, uint(len(*seq)))

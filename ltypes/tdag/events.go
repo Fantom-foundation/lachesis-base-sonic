@@ -23,12 +23,12 @@ func (ee TestEvents) String() string {
 // Used only for tests.
 func ByParents(ee ltypes.Events) (res ltypes.Events) {
 	unsorted := make(ltypes.Events, len(ee))
-	exists := hash.EventsSet{}
+	exists := hash.EventHashSet{}
 	for i, e := range ee {
 		unsorted[i] = e
 		exists.Add(e.ID())
 	}
-	ready := hash.EventsSet{}
+	ready := hash.EventHashSet{}
 	for len(unsorted) > 0 {
 	EVENTS:
 		for i, e := range unsorted {

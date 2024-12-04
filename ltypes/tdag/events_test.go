@@ -22,7 +22,7 @@ func TestEventsByParents(t *testing.T) {
 	}
 
 	ordered := ByParents(unordered)
-	position := make(map[hash.Event]int)
+	position := make(map[hash.EventHash]int)
 	for i, e := range ordered {
 		position[e.ID()] = i
 	}

@@ -84,7 +84,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 			onKey func(key basestream.Locator) bool, onAppended func(items basestream.Payload) bool) basestream.Payload {
 
 			res := testPayload{
-				IDs:    hash.Events{},
+				IDs:    hash.EventHashes{},
 				Events: ltypes.Events{},
 				Size:   0,
 			}
@@ -174,7 +174,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 	}
 	// check that all the responses were sent in a correct order
 	for _, sessionResponses := range responses.peerSession {
-		prev := hash.Event{}
+		prev := hash.EventHash{}
 		done := false
 		for _, r := range sessionResponses {
 			require.False(t, done)

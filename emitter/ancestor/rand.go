@@ -26,6 +26,6 @@ func NewRandomStrategy(r *rand.Rand) *RandomStrategy {
 }
 
 // Choose chooses the hash from the specified options
-func (st *RandomStrategy) Choose(_ hash.Events, options hash.Events) int {
+func (st *RandomStrategy) Choose(_ hash.EventHashes, options hash.EventHashes) int {
 	return st.r.Intn(len(options))
 }

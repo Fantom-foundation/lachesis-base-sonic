@@ -314,7 +314,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 						selfID := nodes[self]
 						e := &QITestEvent{}
 						e.SetCreator(selfID)
-						e.SetParents(hash.Events{}) // first parent is empty hash
+						e.SetParents(hash.EventHashes{}) // first parent is empty hash
 
 						var parents ltypes.Events
 						if isLeaf[self] { // leaf event

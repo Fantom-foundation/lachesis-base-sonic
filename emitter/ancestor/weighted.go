@@ -7,15 +7,15 @@ import (
 type Metric uint64
 
 type MetricStrategy struct {
-	metricFn func(hash.Events) Metric
+	metricFn func(hash.EventHashes) Metric
 }
 
-func NewMetricStrategy(metricFn func(hash.Events) Metric) *MetricStrategy {
+func NewMetricStrategy(metricFn func(hash.EventHashes) Metric) *MetricStrategy {
 	return &MetricStrategy{metricFn}
 }
 
 // Choose chooses the hash from the specified options
-func (st *MetricStrategy) Choose(existing hash.Events, options hash.Events) int {
+func (st *MetricStrategy) Choose(existing hash.EventHashes, options hash.EventHashes) int {
 	var maxI int
 	var maxWeight Metric
 	// find option with a maximum weight

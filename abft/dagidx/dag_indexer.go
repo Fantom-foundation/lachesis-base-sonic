@@ -30,9 +30,9 @@ type ForklessCause interface {
 	// unless more than 1/3W are Byzantine.
 	// This great property is the reason why this function exists,
 	// providing the base for the BFT algorithm.
-	ForklessCause(aID, bID hash.Event) bool
+	ForklessCause(aID, bID hash.EventHash) bool
 }
 
 type VectorClock interface {
-	GetMergedHighestBefore(id hash.Event) HighestBeforeSeq
+	GetMergedHighestBefore(id hash.EventHash) HighestBeforeSeq
 }

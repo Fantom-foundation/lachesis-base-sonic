@@ -37,8 +37,8 @@ type Processor struct {
 type EventCallback struct {
 	Process         func(e ltypes.Event) error
 	Released        func(e ltypes.Event, peer string, err error)
-	Get             func(hash.Event) ltypes.Event
-	Exists          func(hash.Event) bool
+	Get             func(hash.EventHash) ltypes.Event
+	Exists          func(hash.EventHash) bool
 	CheckParents    func(e ltypes.Event, parents ltypes.Events) error
 	CheckParentless func(e ltypes.Event, checked func(error))
 }
@@ -102,7 +102,7 @@ type checkRes struct {
 	pos idx.EventID
 }
 
-func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, notifyAnnounces func(hash.Events), done func()) error {
+func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, notifyAnnounces func(hash.EventHashes), done func()) error {
 	if !f.eventsSemaphore.Acquire(events.Metric(), f.cfg.EventsSemaphoreTimeout) {
 		return ErrBusy
 	}
@@ -135,7 +135,7 @@ func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, not
 			orderedResults = make([]*checkRes, eventsLen)
 		}
 		var processed int
-		var toRequest hash.Events
+		var toRequest hash.EventHashes
 		for processed < eventsLen {
 			select {
 			case res := <-checkedC:
@@ -164,28 +164,28 @@ func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, not
 	})
 }
 
-func (f *Processor) process(peer string, event ltypes.Event, resErr error) (toRequest hash.Events) {
+func (f *Processor) process(peer string, event ltypes.Event, resErr error) (toRequest hash.EventHashes) {
 	// release event if failed validation
 	if resErr != nil {
 		f.callback.Event.Released(event, peer, resErr)
-		return hash.Events{}
+		return hash.EventHashes{}
 	}
 	// release event if it's too far in future
 	highestLamport := f.callback.HighestLamport()
 	maxLamportDiff := 1 + idx.Lamport(f.cfg.EventsBufferLimit.Num)
 	if event.Lamport() > highestLamport+maxLamportDiff {
 		f.callback.Event.Released(event, peer, eventcheck.ErrSpilledEvent)
-		return hash.Events{}
+		return hash.EventHashes{}
 	}
 	// push event to the ordering buffer
 	complete := f.buffer.PushEvent(event, peer)
 	if !complete && event.Lamport() <= highestLamport+maxLamportDiff/10 {
 		return event.Parents()
 	}
-	return hash.Events{}
+	return hash.EventHashes{}
 }
 
-func (f *Processor) IsBuffered(id hash.Event) bool {
+func (f *Processor) IsBuffered(id hash.EventHash) bool {
 	return f.buffer.IsBuffered(id)
 }
 

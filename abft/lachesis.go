@@ -35,7 +35,7 @@ func NewLachesis(store *Store, input EventSource, dagIndex DagIndex, crit func(e
 	return p
 }
 
-func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.Event, onEventConfirmed func(ltypes.Event)) error {
+func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.EventHash, onEventConfirmed func(ltypes.Event)) error {
 	err := p.dfsSubgraph(atropos, func(e ltypes.Event) bool {
 		decidedFrame := p.store.GetEventConfirmedOn(e.ID())
 		if decidedFrame != 0 {
@@ -51,7 +51,7 @@ func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.Event, onEventC
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.FrameID, atropos hash.Event) *ltypes.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame idx.FrameID, atropos hash.EventHash) *ltypes.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()

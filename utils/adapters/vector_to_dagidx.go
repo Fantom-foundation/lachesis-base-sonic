@@ -35,6 +35,6 @@ type VectorToDagIndexer struct {
 	*vecfc.Index
 }
 
-func (v *VectorToDagIndexer) GetMergedHighestBefore(id hash.Event) dagidx.HighestBeforeSeq {
+func (v *VectorToDagIndexer) GetMergedHighestBefore(id hash.EventHash) dagidx.HighestBeforeSeq {
 	return VectorSeqToDagIndexSeq{v.Index.GetMergedHighestBefore(id)}
 }

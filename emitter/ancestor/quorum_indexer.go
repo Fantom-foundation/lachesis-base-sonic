@@ -117,7 +117,7 @@ func (h *QuorumIndexer) recacheState() {
 	h.dirty = false
 }
 
-func (h *QuorumIndexer) GetMetricOf(parents hash.Events) Metric {
+func (h *QuorumIndexer) GetMetricOf(parents hash.EventHashes) Metric {
 	if h.dirty {
 		h.recacheState()
 	}

@@ -27,8 +27,8 @@ func (ee Events) Metric() (metric Metric) {
 	return metric
 }
 
-func (ee Events) IDs() hash.Events {
-	ids := make(hash.Events, len(ee))
+func (ee Events) IDs() hash.EventHashes {
+	ids := make(hash.EventHashes, len(ee))
 	for i, e := range ee {
 		ids[i] = e.ID()
 	}

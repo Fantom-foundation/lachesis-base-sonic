@@ -17,8 +17,8 @@ import (
 )
 
 type fakeEdge struct {
-	from hash.Event
-	to   hash.Event
+	from hash.EventHash
+	to   hash.EventHash
 }
 
 type (
@@ -185,9 +185,9 @@ func testProcessRoot(
 
 	// events:
 	ordered := make(tdag.TestEvents, 0)
-	events := make(map[hash.Event]*tdag.TestEvent)
+	events := make(map[hash.EventHash]*tdag.TestEvent)
 	frameRoots := make(map[idx.FrameID][]RootAndSlot)
-	vertices := make(map[hash.Event]Slot)
+	vertices := make(map[hash.EventHash]Slot)
 	edges := make(map[fakeEdge]bool)
 
 	nodes, _, _ := tdag.ASCIIschemeForEach(dagAscii, tdag.ForEachEvent{
@@ -235,7 +235,7 @@ func testProcessRoot(
 	}
 	validators := validatorsBuilder.Build()
 
-	forklessCauseFn := func(a hash.Event, b hash.Event) bool {
+	forklessCauseFn := func(a hash.EventHash, b hash.EventHash) bool {
 		edge := fakeEdge{
 			from: a,
 			to:   b,
@@ -276,7 +276,7 @@ func testProcessRoot(
 		if decisive || alreadyDecided {
 			assertar.NotNil(got)
 			assertar.Equal(expected.DecidedFrame, got.Frame)
-			assertar.Equal(expected.DecidedAtropos, got.Atroltypes.String())
+			assertar.Equal(expected.DecidedAtropos, got.Atropos.String())
 			alreadyDecided = true
 		} else {
 			assertar.Nil(got)

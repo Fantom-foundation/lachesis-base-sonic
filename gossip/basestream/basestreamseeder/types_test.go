@@ -28,12 +28,12 @@ func (l testLocator) Inc() basestream.Locator {
 }
 
 type testPayload struct {
-	IDs    hash.Events
+	IDs    hash.EventHashes
 	Events ltypes.Events
 	Size   uint64
 }
 
-func (p testPayload) AddEvent(id hash.Event, event ltypes.Event) {
+func (p testPayload) AddEvent(id hash.EventHash, event ltypes.Event) {
 	p.IDs = append(p.IDs, id)          // nolint:staticcheck
 	p.Events = append(p.Events, event) // nolint:staticcheck
 	p.Size += uint64(event.Size())     // nolint:staticcheck

@@ -39,7 +39,7 @@ func testEventsBuffer(t *testing.T, try int64) {
 
 	checked := 0
 
-	processed := make(map[hash.Event]ltypes.Event)
+	processed := make(map[hash.EventHash]ltypes.Event)
 	limit := ltypes.Metric{
 		Num:  idx.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
@@ -67,11 +67,11 @@ func testEventsBuffer(t *testing.T, try int64) {
 			}
 		},
 
-		Exists: func(id hash.Event) bool {
+		Exists: func(id hash.EventHash) bool {
 			return processed[id] != nil
 		},
 
-		Get: func(id hash.Event) ltypes.Event {
+		Get: func(id hash.EventHash) ltypes.Event {
 			return processed[id]
 		},
 
@@ -126,10 +126,10 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 
 	released := uint32(0)
 
-	processed := make(map[hash.Event]ltypes.Event)
+	processed := make(map[hash.EventHash]ltypes.Event)
 	var mutex sync.Mutex
 	limit := ltypes.Metric{
-		Num:  idx.EventID(rand.Intn(maxEvents)),    // nolint:gosec
+		Num:  idx.EventID(rand.Intn(maxEvents)),  // nolint:gosec
 		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
 	}
 	buffer := New(limit, Callback{
@@ -162,13 +162,13 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 			atomic.AddUint32(&released, 1)
 		},
 
-		Exists: func(e hash.Event) bool {
+		Exists: func(e hash.EventHash) bool {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e] != nil
 		},
 
-		Get: func(e hash.Event) ltypes.Event {
+		Get: func(e hash.EventHash) ltypes.Event {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e]

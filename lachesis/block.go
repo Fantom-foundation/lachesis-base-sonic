@@ -6,6 +6,6 @@ import (
 
 // Block is a part of an ordered chain of batches of events.
 type Block struct {
-	Atropos  hash.Event
+	Atropos  hash.EventHash
 	Cheaters Cheaters
 }

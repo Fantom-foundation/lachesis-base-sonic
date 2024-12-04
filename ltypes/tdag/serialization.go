@@ -15,11 +15,11 @@ type TestEventMarshaling struct {
 
 	Creator idx.ValidatorID
 
-	Parents hash.Events
+	Parents hash.EventHashes
 
 	Lamport idx.Lamport
 
-	ID   hash.Event
+	ID   hash.EventHash
 	Name string
 }
 

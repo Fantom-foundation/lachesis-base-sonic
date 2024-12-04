@@ -11,7 +11,7 @@ const (
 )
 
 type highestEvent struct {
-	id    hash.Event
+	id    hash.EventHash
 	frame idx.FrameID
 }
 
@@ -20,12 +20,12 @@ type FCIndexer struct {
 	validators *ltypes.Validators
 	me         idx.ValidatorID
 
-	prevSelfEvent hash.Event
+	prevSelfEvent hash.EventHash
 	prevSelfFrame idx.FrameID
 
 	TopFrame idx.FrameID
 
-	FrameRoots map[idx.FrameID]hash.Events
+	FrameRoots map[idx.FrameID]hash.EventHashes
 
 	highestEvents map[idx.ValidatorID]highestEvent
 
@@ -33,7 +33,7 @@ type FCIndexer struct {
 }
 
 type DagIndex interface {
-	ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
+	ForklessCauseProgress(aID, bID hash.EventHash, candidateParents, chosenParents hash.EventHashes) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
 }
 
 func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me idx.ValidatorID) *FCIndexer {
@@ -41,7 +41,7 @@ func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me idx.Validator
 		dagi:          dagi,
 		validators:    validators,
 		me:            me,
-		FrameRoots:    make(map[idx.FrameID]hash.Events),
+		FrameRoots:    make(map[idx.FrameID]hash.EventHashes),
 		highestEvents: make(map[idx.ValidatorID]highestEvent),
 	}
 	fc.searchStrategy = NewMetricStrategy(fc.GetMetricOf)
@@ -71,7 +71,7 @@ func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 			}
 			frameRoots := fc.FrameRoots[f]
 			if frameRoots == nil {
-				frameRoots = make(hash.Events, fc.validators.Len())
+				frameRoots = make(hash.EventHashes, fc.validators.Len())
 			}
 			frameRoots[fc.validators.GetIdx(e.Creator())] = e.ID()
 			fc.FrameRoots[f] = frameRoots
@@ -79,7 +79,7 @@ func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 	}
 }
 
-func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.Event, chosenHeads hash.Events) int {
+func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.EventHash, chosenHeads hash.EventHashes) int {
 	// This function computes the knowledge of roots amongst validators by counting which validators known which roots.
 	// Root knowledge is a binary matrix indexed by roots and validators.
 	// The ijth entry of the matrix is 1 if root i is known by validator j in the subgraph of event, and zero otherwise.
@@ -99,7 +99,7 @@ func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.Event, chosenHea
 	return numNonZero
 }
 
-func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.FrameID, bK int, bFrame idx.FrameID) bool {
+func (fc *FCIndexer) greater(aID hash.EventHash, aFrame idx.FrameID, bK int, bFrame idx.FrameID) bool {
 	if aFrame != bFrame {
 		return aFrame > bFrame
 	}
@@ -122,7 +122,7 @@ func (fc *FCIndexer) ValidatorsPastMe() ltypes.Weight {
 	return kGreaterWeight.Sum() // self should not create a new event
 }
 
-func (fc *FCIndexer) GetMetricOf(ids hash.Events) Metric {
+func (fc *FCIndexer) GetMetricOf(ids hash.EventHashes) Metric {
 	if fc.TopFrame == 0 {
 		return 0
 	}

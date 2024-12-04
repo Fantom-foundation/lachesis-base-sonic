@@ -25,8 +25,8 @@ type (
 	Callback struct {
 		Process  func(e ltypes.Event) error
 		Released func(e ltypes.Event, peer string, err error)
-		Get      func(hash.Event) ltypes.Event
-		Exists   func(hash.Event) bool
+		Get      func(hash.EventHash) ltypes.Event
+		Exists   func(hash.EventHash) bool
 		Check    func(e ltypes.Event, parents ltypes.Events) error
 	}
 )
@@ -176,7 +176,7 @@ func (buf *EventsBuffer) releaseEvent(e *event) {
 	e.released = true
 }
 
-func (buf *EventsBuffer) IsBuffered(id hash.Event) bool {
+func (buf *EventsBuffer) IsBuffered(id hash.EventHash) bool {
 	// wlru is thread-safe, no need for a mutex here
 	return buf.incompletes.Contains(id)
 }

@@ -24,7 +24,7 @@ type (
 	}
 
 	// ForklessCauseFn returns true if event A is forkless caused by event B
-	ForklessCauseFn func(a hash.Event, b hash.Event) bool
+	ForklessCauseFn func(a hash.EventHash, b hash.EventHash) bool
 	// GetFrameRootsFn returns all the roots in the specified frame
 	GetFrameRootsFn func(f idx.FrameID) []RootAndSlot
 
@@ -37,7 +37,7 @@ type (
 
 	// RootAndSlot specifies concrete root of slot.
 	RootAndSlot struct {
-		ID   hash.Event
+		ID   hash.EventHash
 		Slot Slot
 	}
 )
@@ -49,13 +49,13 @@ type voteID struct {
 type voteValue struct {
 	decided      bool
 	yes          bool
-	observedRoot hash.Event
+	observedRoot hash.EventHash
 }
 
 // Res defines the final election result, i.e. decided frame
 type Res struct {
 	Frame   idx.FrameID
-	Atropos hash.Event
+	Atropos hash.EventHash
 }
 
 // New election context
@@ -99,7 +99,7 @@ func (el *Election) notDecidedRoots() []idx.ValidatorID {
 }
 
 // observedRoots returns all the roots at the specified frame which do forkless cause the specified root.
-func (el *Election) observedRoots(root hash.Event, frame idx.FrameID) []RootAndSlot {
+func (el *Election) observedRoots(root hash.EventHash, frame idx.FrameID) []RootAndSlot {
 	observedRoots := make([]RootAndSlot, 0, el.validators.Len())
 
 	frameRoots := el.getFrameRoots(frame)
@@ -111,7 +111,7 @@ func (el *Election) observedRoots(root hash.Event, frame idx.FrameID) []RootAndS
 	return observedRoots
 }
 
-func (el *Election) observedRootsMap(root hash.Event, frame idx.FrameID) map[idx.ValidatorID]RootAndSlot {
+func (el *Election) observedRootsMap(root hash.EventHash, frame idx.FrameID) map[idx.ValidatorID]RootAndSlot {
 	observedRootsMap := make(map[idx.ValidatorID]RootAndSlot, el.validators.Len())
 
 	frameRoots := el.getFrameRoots(frame)

@@ -9,7 +9,7 @@ import (
 )
 
 type kv struct {
-	a, b hash.Event
+	a, b hash.EventHash
 }
 
 // ForklessCause calculates "sufficient coherence" between the events.
@@ -26,7 +26,7 @@ type kv struct {
 // unless more than 1/3W are Byzantine.
 // This great property is the reason why this function exists,
 // providing the base for the BFT algorithm.
-func (vi *Index) ForklessCause(aID, bID hash.Event) bool {
+func (vi *Index) ForklessCause(aID, bID hash.EventHash) bool {
 	if res, ok := vi.cache.ForklessCause.Get(kv{aID, bID}); ok {
 		return res.(bool)
 	}
@@ -38,7 +38,7 @@ func (vi *Index) ForklessCause(aID, bID hash.Event) bool {
 	return res
 }
 
-func (vi *Index) forklessCause(aID, bID hash.Event) bool {
+func (vi *Index) forklessCause(aID, bID hash.EventHash) bool {
 	// Get events by hash
 	a := vi.GetHighestBefore(aID)
 	if a == nil {
@@ -82,7 +82,7 @@ func (vi *Index) forklessCause(aID, bID hash.Event) bool {
 	return yes.HasQuorum()
 }
 
-func (vi *Index) ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*ltypes.WeightCounter, []*ltypes.WeightCounter) {
+func (vi *Index) ForklessCauseProgress(aID, bID hash.EventHash, candidateParents, chosenParents hash.EventHashes) (*ltypes.WeightCounter, []*ltypes.WeightCounter) {
 	// This function is used to determine progress of event bID in forkless causing aID.
 	// It may be used to determine progress toward the forkless cause condition for an event not in vi, but whose parents are in vi.
 	// To do so, aID should be the self-parent while chosenParents should be the parents of the not-yet-created event.

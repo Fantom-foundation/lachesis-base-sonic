@@ -37,7 +37,7 @@ func (vi *Engine) getRlp(table kvdb.Store, key []byte, to interface{}) interface
 	return to
 }
 
-func (vi *Engine) getBytes(table kvdb.Store, id hash.Event) []byte {
+func (vi *Engine) getBytes(table kvdb.Store, id hash.EventHash) []byte {
 	key := id.Bytes()
 	b, err := table.Get(key)
 	if err != nil {
@@ -46,7 +46,7 @@ func (vi *Engine) getBytes(table kvdb.Store, id hash.Event) []byte {
 	return b
 }
 
-func (vi *Engine) setBytes(table kvdb.Store, id hash.Event, b []byte) {
+func (vi *Engine) setBytes(table kvdb.Store, id hash.EventHash, b []byte) {
 	key := id.Bytes()
 	err := table.Put(key, b)
 	if err != nil {
@@ -72,12 +72,12 @@ func (vi *Engine) getBranchesInfo() *BranchesInfo {
 }
 
 // SetEventBranchID stores the event's global branch ID
-func (vi *Engine) SetEventBranchID(id hash.Event, branchID idx.Validator) {
+func (vi *Engine) SetEventBranchID(id hash.EventHash, branchID idx.Validator) {
 	vi.setBytes(vi.table.EventBranch, id, branchID.Bytes())
 }
 
 // GetEventBranchID reads the event's global branch ID
-func (vi *Engine) GetEventBranchID(id hash.Event) idx.Validator {
+func (vi *Engine) GetEventBranchID(id hash.EventHash) idx.Validator {
 	b := vi.getBytes(vi.table.EventBranch, id)
 	if b == nil {
 		vi.crit(errors.New("failed to read event's branch ID (inconsistent DB)"))

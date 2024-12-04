@@ -6,7 +6,7 @@ import (
 )
 
 // SetEventConfirmedOn stores confirmed event hash.
-func (s *Store) SetEventConfirmedOn(e hash.Event, on idx.FrameID) {
+func (s *Store) SetEventConfirmedOn(e hash.EventHash, on idx.FrameID) {
 	key := e.Bytes()
 
 	if err := s.epochTable.ConfirmedEvent.Put(key, on.Bytes()); err != nil {
@@ -15,7 +15,7 @@ func (s *Store) SetEventConfirmedOn(e hash.Event, on idx.FrameID) {
 }
 
 // GetEventConfirmedOn returns confirmed event hash.
-func (s *Store) GetEventConfirmedOn(e hash.Event) idx.FrameID {
+func (s *Store) GetEventConfirmedOn(e hash.EventHash) idx.FrameID {
 	key := e.Bytes()
 
 	buf, err := s.epochTable.ConfirmedEvent.Get(key)

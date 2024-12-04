@@ -10,8 +10,8 @@ import (
 // DfsSubgraph iterates all the event which are observed by head, and accepted by a filter
 // Excluding head
 // filter MAY BE called twice for the same event.
-func (vi *Engine) DfsSubgraph(head ltypes.Event, walk func(hash.Event) (godeeper bool)) error {
-	stack := make(hash.EventsStack, 0, vi.validators.Len()*5)
+func (vi *Engine) DfsSubgraph(head ltypes.Event, walk func(hash.EventHash) (godeeper bool)) error {
+	stack := make(hash.EventHashStack, 0, vi.validators.Len()*5)
 
 	// first element
 	stack.PushAll(head.Parents())

@@ -10,7 +10,7 @@ type TestEvent struct {
 	Name string
 }
 
-func (e *TestEvent) AddParent(id hash.Event) {
+func (e *TestEvent) AddParent(id hash.EventHash) {
 	parents := e.Parents()
 	parents.Add(id)
 	e.SetParents(parents)
