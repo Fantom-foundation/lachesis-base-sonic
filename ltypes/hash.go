@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	// Zero is an empty ltypes.
+	// Zero is an empty hash.
 	Zero  = Hash{}
 	hashT = reflect.TypeOf(Hash{})
 )
@@ -31,7 +31,7 @@ type Hashes []Hash
 // HashesSet is a set of hashes.
 type HashesSet map[Hash]struct{}
 
-// BytesToHash sets b to ltypes.
+// BytesToHash sets b to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func BytesToHash(b []byte) Hash {
 	var h Hash
@@ -39,15 +39,15 @@ func BytesToHash(b []byte) Hash {
 	return h
 }
 
-// BigToHash sets byte representation of b to ltypes.
+// BigToHash sets byte representation of b to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func BigToHash(b *big.Int) Hash { return BytesToHash(b.Bytes()) }
 
-// HexToHash sets byte representation of s to ltypes.
+// HexToHash sets byte representation of s to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func HexToHash(s string) Hash { return BytesToHash(hexutil.MustDecode(s)) }
 
-// Bytes gets the byte representation of the underlying ltypes.
+// Bytes gets the byte representation of the underlying hash.
 func (h Hash) Bytes() []byte { return h[:] }
 
 // Big converts a hash to a big integer.
