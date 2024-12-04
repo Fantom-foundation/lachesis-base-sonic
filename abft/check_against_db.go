@@ -86,12 +86,13 @@ func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEv
 	testEvent.SetParents(event.parents)
 	testEvent.SetLamport(event.lamportTs)
 	testEvent.SetEpoch(testLachesis.store.GetEpoch())
-	if err := testLachesis.Build(testEvent); err != nil {
-		return fmt.Errorf("error while building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
-	}
 	testEvent.SetID([24]byte(event.hash[8:]))
 	eventStore.SetEvent(testEvent)
-	if err := testLachesis.Process(testEvent); err != nil {
+	testLachesis.dagIndexer.Add(testEvent)
+	if err := testLachesis.Lachesis.Build(testEvent); err != nil {
+		return fmt.Errorf("error wihile building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
+	}
+	if err := testLachesis.Lachesis.Process(testEvent); err != nil {
 		return fmt.Errorf("error while processing event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
 	}
 	return nil
