@@ -3,7 +3,6 @@ package tdag
 import (
 	"strings"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -23,12 +22,12 @@ func (ee TestEvents) String() string {
 // Used only for tests.
 func ByParents(ee ltypes.Events) (res ltypes.Events) {
 	unsorted := make(ltypes.Events, len(ee))
-	exists := hash.EventHashSet{}
+	exists := ltypes.EventHashSet{}
 	for i, e := range ee {
 		unsorted[i] = e
 		exists.Add(e.ID())
 	}
-	ready := hash.EventHashSet{}
+	ready := ltypes.EventHashSet{}
 	for len(unsorted) > 0 {
 	EVENTS:
 		for i, e := range unsorted {

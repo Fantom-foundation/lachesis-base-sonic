@@ -1,12 +1,11 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-// SetEventConfirmedOn stores confirmed event hash.
-func (s *Store) SetEventConfirmedOn(e hash.EventHash, on idx.FrameID) {
+// SetEventConfirmedOn stores confirmed event ltypes.
+func (s *Store) SetEventConfirmedOn(e ltypes.EventHash, on ltypes.FrameID) {
 	key := e.Bytes()
 
 	if err := s.epochTable.ConfirmedEvent.Put(key, on.Bytes()); err != nil {
@@ -14,8 +13,8 @@ func (s *Store) SetEventConfirmedOn(e hash.EventHash, on idx.FrameID) {
 	}
 }
 
-// GetEventConfirmedOn returns confirmed event hash.
-func (s *Store) GetEventConfirmedOn(e hash.EventHash) idx.FrameID {
+// GetEventConfirmedOn returns confirmed event ltypes.
+func (s *Store) GetEventConfirmedOn(e ltypes.EventHash) ltypes.FrameID {
 	key := e.Bytes()
 
 	buf, err := s.epochTable.ConfirmedEvent.Get(key)
@@ -26,5 +25,5 @@ func (s *Store) GetEventConfirmedOn(e hash.EventHash) idx.FrameID {
 		return 0
 	}
 
-	return idx.BytesToFrame(buf)
+	return ltypes.BytesToFrameID(buf)
 }

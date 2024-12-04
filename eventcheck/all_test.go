@@ -9,15 +9,13 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/basiccheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/epochcheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/parentscheck"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 type testReader struct{}
 
-func (tr *testReader) GetEpochValidators() (*ltypes.Validators, idx.EpochID) {
+func (tr *testReader) GetEpochValidators() (*ltypes.Validators, ltypes.EpochID) {
 	vb := ltypes.NewBuilder()
 	vb.Set(1, 1)
 	return vb.Build(), 1
@@ -115,7 +113,7 @@ func TestParentsEventValidation(t *testing.T) {
 			selfParent := &tdag.TestEvent{}
 			selfParent.SetLamport(1)
 			selfParent.SetID([24]byte{1})
-			e.SetParents(hash.EventHashes{selfParent.ID()})
+			e.SetParents(ltypes.EventHashes{selfParent.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -135,7 +133,7 @@ func TestParentsEventValidation(t *testing.T) {
 			selfParent := &tdag.TestEvent{}
 			selfParent.SetLamport(1)
 			selfParent.SetID([24]byte{2})
-			e.SetParents(hash.EventHashes{selfParent.ID()})
+			e.SetParents(ltypes.EventHashes{selfParent.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -151,7 +149,7 @@ func TestParentsEventValidation(t *testing.T) {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(1)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -165,7 +163,7 @@ func TestParentsEventValidation(t *testing.T) {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(2)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -182,7 +180,7 @@ func TestParentsEventValidation(t *testing.T) {
 			selfParent := &tdag.TestEvent{}
 			selfParent.SetLamport(1)
 			selfParent.SetID([24]byte{1})
-			e.SetParents(hash.EventHashes{selfParent.ID()})
+			e.SetParents(ltypes.EventHashes{selfParent.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -205,7 +203,7 @@ func TestParentsEventValidation(t *testing.T) {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(1)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			nil,
@@ -237,7 +235,7 @@ func TestAllEventValidation(t *testing.T) {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			nil,
@@ -259,7 +257,7 @@ func TestAllEventValidation(t *testing.T) {
 			e.SetCreator(1)
 			e.SetEpoch(1)
 			e.SetFrame(1)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			func() ltypes.Events {
@@ -276,7 +274,7 @@ func TestAllEventValidation(t *testing.T) {
 			e.SetCreator(1)
 			e.SetEpoch(1)
 			e.SetFrame(1)
-			e.SetParents(hash.EventHashes{e.ID()})
+			e.SetParents(ltypes.EventHashes{e.ID()})
 			return e
 		}(),
 			func() ltypes.Events {

@@ -3,7 +3,6 @@ package epochcheck
 import (
 	"errors"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -16,7 +15,7 @@ var (
 
 // Reader returns currents epoch and its validators group.
 type Reader interface {
-	GetEpochValidators() (*ltypes.Validators, idx.EpochID)
+	GetEpochValidators() (*ltypes.Validators, ltypes.EpochID)
 }
 
 // Checker which require only current epoch info

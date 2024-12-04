@@ -1,14 +1,12 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // onFrameDecided moves LastDecidedFrameN to frame.
 // It includes: moving current decided frame, txs ordering and execution, epoch sealing.
-func (p *Orderer) onFrameDecided(frame idx.FrameID, atropos hash.EventHash) (bool, error) {
+func (p *Orderer) onFrameDecided(frame ltypes.FrameID, atropos ltypes.EventHash) (bool, error) {
 	// new checkpoint
 	var newValidators *ltypes.Validators
 	if p.callback.ApplyAtropos != nil {
@@ -31,7 +29,7 @@ func (p *Orderer) onFrameDecided(frame idx.FrameID, atropos hash.EventHash) (boo
 	return newValidators != nil, nil
 }
 
-func (p *Orderer) resetEpochStore(newEpoch idx.EpochID) error {
+func (p *Orderer) resetEpochStore(newEpoch ltypes.EpochID) error {
 	err := p.store.dropEpochDB()
 	if err != nil {
 		return err

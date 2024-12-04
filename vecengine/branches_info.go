@@ -1,15 +1,14 @@
 package vecengine
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // BranchesInfo contains information about global branches of each validator
 type BranchesInfo struct {
-	BranchIDLastSeq     []idx.EventID        // branchID -> highest e.Seq in the branch
-	BranchIDCreatorIdxs []idx.ValidatorIdx   // branchID -> validator idx
-	BranchIDByCreators  [][]idx.ValidatorIdx // validator idx -> list of branch IDs
+	BranchIDLastSeq     []ltypes.EventID        // branchID -> highest e.Seq in the branch
+	BranchIDCreatorIdxs []ltypes.ValidatorIdx   // branchID -> validator idx
+	BranchIDByCreators  [][]ltypes.ValidatorIdx // validator idx -> list of branch IDs
 }
 
 // InitBranchesInfo loads BranchesInfo from store
@@ -26,16 +25,16 @@ func (vi *Engine) InitBranchesInfo() {
 
 func newInitialBranchesInfo(validators *ltypes.Validators) *BranchesInfo {
 	branchIDCreators := validators.SortedIDs()
-	branchIDCreatorIdxs := make([]idx.ValidatorIdx, len(branchIDCreators))
+	branchIDCreatorIdxs := make([]ltypes.ValidatorIdx, len(branchIDCreators))
 	for i := range branchIDCreators {
-		branchIDCreatorIdxs[i] = idx.ValidatorIdx(i)
+		branchIDCreatorIdxs[i] = ltypes.ValidatorIdx(i)
 	}
 
-	branchIDLastSeq := make([]idx.EventID, len(branchIDCreatorIdxs))
-	branchIDByCreators := make([][]idx.ValidatorIdx, validators.Len())
+	branchIDLastSeq := make([]ltypes.EventID, len(branchIDCreatorIdxs))
+	branchIDByCreators := make([][]ltypes.ValidatorIdx, validators.Len())
 	for i := range branchIDByCreators {
-		branchIDByCreators[i] = make([]idx.ValidatorIdx, 1, validators.Len()/2+1)
-		branchIDByCreators[i][0] = idx.ValidatorIdx(i)
+		branchIDByCreators[i] = make([]ltypes.ValidatorIdx, 1, validators.Len()/2+1)
+		branchIDByCreators[i][0] = ltypes.ValidatorIdx(i)
 	}
 	return &BranchesInfo{
 		BranchIDLastSeq:     branchIDLastSeq,
@@ -45,7 +44,7 @@ func newInitialBranchesInfo(validators *ltypes.Validators) *BranchesInfo {
 }
 
 func (vi *Engine) AtLeastOneFork() bool {
-	return idx.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)) > vi.validators.Len()
+	return ltypes.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)) > vi.validators.Len()
 }
 
 func (vi *Engine) BranchesInfo() *BranchesInfo {

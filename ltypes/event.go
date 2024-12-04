@@ -2,33 +2,30 @@ package ltypes
 
 import (
 	"fmt"
-
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type Event interface {
-	Epoch() idx.EpochID
-	Seq() idx.EventID
-	Frame() idx.FrameID
-	Creator() idx.ValidatorID
-	Lamport() idx.Lamport
-	Parents() hash.EventHashes
-	SelfParent() *hash.EventHash
-	IsSelfParent(hash hash.EventHash) bool
-	ID() hash.EventHash
+	Epoch() EpochID
+	Seq() EventID
+	Frame() FrameID
+	Creator() ValidatorID
+	Lamport() Lamport
+	Parents() EventHashes
+	SelfParent() *EventHash
+	IsSelfParent(hash EventHash) bool
+	ID() EventHash
 	String() string
 	Size() int
 }
 
 type MutableEvent interface {
 	Event
-	SetEpoch(idx.EpochID)
-	SetSeq(idx.EventID)
-	SetFrame(idx.FrameID)
-	SetCreator(idx.ValidatorID)
-	SetLamport(idx.Lamport)
-	SetParents(hash.EventHashes)
+	SetEpoch(EpochID)
+	SetSeq(EventID)
+	SetFrame(FrameID)
+	SetCreator(ValidatorID)
+	SetLamport(Lamport)
+	SetParents(EventHashes)
 	SetID(id [24]byte)
 }
 
@@ -37,13 +34,13 @@ type MutableEvent interface {
 // Doesn't contain payload, it should be extended by an app
 // Doesn't contain event signature, it should be extended by an app
 type BaseEvent struct {
-	epoch   idx.EpochID
-	seq     idx.EventID
-	frame   idx.FrameID
-	creator idx.ValidatorID
-	parents hash.EventHashes
-	lamport idx.Lamport
-	id      hash.EventHash
+	epoch   EpochID
+	seq     EventID
+	frame   FrameID
+	creator ValidatorID
+	parents EventHashes
+	lamport Lamport
+	id      EventHash
 }
 
 type MutableBaseEvent struct {
@@ -65,7 +62,7 @@ func (e *BaseEvent) String() string {
 }
 
 // SelfParent returns event's self-parent, if any
-func (e *BaseEvent) SelfParent() *hash.EventHash {
+func (e *BaseEvent) SelfParent() *EventHash {
 	if e.seq <= 1 || len(e.parents) == 0 {
 		return nil
 	}
@@ -73,38 +70,38 @@ func (e *BaseEvent) SelfParent() *hash.EventHash {
 }
 
 // IsSelfParent is true if specified ID is event's self-parent
-func (e *BaseEvent) IsSelfParent(hash hash.EventHash) bool {
+func (e *BaseEvent) IsSelfParent(hash EventHash) bool {
 	if e.SelfParent() == nil {
 		return false
 	}
 	return *e.SelfParent() == hash
 }
 
-func (e *BaseEvent) Epoch() idx.EpochID {
+func (e *BaseEvent) Epoch() EpochID {
 	return e.epoch
 }
 
-func (e *BaseEvent) Seq() idx.EventID {
+func (e *BaseEvent) Seq() EventID {
 	return e.seq
 }
 
-func (e *BaseEvent) Frame() idx.FrameID {
+func (e *BaseEvent) Frame() FrameID {
 	return e.frame
 }
 
-func (e *BaseEvent) Creator() idx.ValidatorID {
+func (e *BaseEvent) Creator() ValidatorID {
 	return e.creator
 }
 
-func (e *BaseEvent) Parents() hash.EventHashes {
+func (e *BaseEvent) Parents() EventHashes {
 	return e.parents
 }
 
-func (e *BaseEvent) Lamport() idx.Lamport {
+func (e *BaseEvent) Lamport() Lamport {
 	return e.lamport
 }
 
-func (e *BaseEvent) ID() hash.EventHash {
+func (e *BaseEvent) ID() EventHash {
 	return e.id
 }
 
@@ -112,27 +109,27 @@ func (e *BaseEvent) Size() int {
 	return 4 + 4 + 4 + 4 + len(e.parents)*32 + 4 + 32
 }
 
-func (e *MutableBaseEvent) SetEpoch(v idx.EpochID) {
+func (e *MutableBaseEvent) SetEpoch(v EpochID) {
 	e.epoch = v
 }
 
-func (e *MutableBaseEvent) SetSeq(v idx.EventID) {
+func (e *MutableBaseEvent) SetSeq(v EventID) {
 	e.seq = v
 }
 
-func (e *MutableBaseEvent) SetFrame(v idx.FrameID) {
+func (e *MutableBaseEvent) SetFrame(v FrameID) {
 	e.frame = v
 }
 
-func (e *MutableBaseEvent) SetCreator(v idx.ValidatorID) {
+func (e *MutableBaseEvent) SetCreator(v ValidatorID) {
 	e.creator = v
 }
 
-func (e *MutableBaseEvent) SetParents(v hash.EventHashes) {
+func (e *MutableBaseEvent) SetParents(v EventHashes) {
 	e.parents = v
 }
 
-func (e *MutableBaseEvent) SetLamport(v idx.Lamport) {
+func (e *MutableBaseEvent) SetLamport(v Lamport) {
 	e.lamport = v
 }
 

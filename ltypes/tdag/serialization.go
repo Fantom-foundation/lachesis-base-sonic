@@ -3,23 +3,22 @@ package tdag
 import (
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type TestEventMarshaling struct {
-	Epoch idx.EpochID
-	Seq   idx.EventID
+	Epoch ltypes.EpochID
+	Seq   ltypes.EventID
 
-	Frame idx.FrameID
+	Frame ltypes.FrameID
 
-	Creator idx.ValidatorID
+	Creator ltypes.ValidatorID
 
-	Parents hash.EventHashes
+	Parents ltypes.EventHashes
 
-	Lamport idx.Lamport
+	Lamport ltypes.Lamport
 
-	ID   hash.EventHash
+	ID   ltypes.EventHash
 	Name string
 }
 

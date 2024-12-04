@@ -3,7 +3,6 @@ package parentscheck
 import (
 	"errors"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -30,9 +29,9 @@ func (v *Checker) Validate(e ltypes.Event, parents ltypes.Events) error {
 	// double parents are checked by basiccheck
 
 	// lamport
-	maxLamport := idx.Lamport(0)
+	maxLamport := ltypes.Lamport(0)
 	for _, p := range parents {
-		maxLamport = idx.MaxLamport(maxLamport, p.Lamport())
+		maxLamport = ltypes.MaxLamport(maxLamport, p.Lamport())
 	}
 	if e.Lamport() != maxLamport+1 {
 		return ErrWrongLamport

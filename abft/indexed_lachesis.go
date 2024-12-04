@@ -6,8 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
@@ -34,7 +32,7 @@ type DagIndexer interface {
 	Flush()
 	DropNotFlushed()
 
-	Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.EventHash) ltypes.Event)
+	Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(ltypes.EventHash) ltypes.Event)
 }
 
 // NewIndexedLachesis creates IndexedLachesis instance.
@@ -85,7 +83,7 @@ func (p *IndexedLachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error 
 	base := p.Lachesis.OrdererCallbacks()
 	ordererCallbacks := OrdererCallbacks{
 		ApplyAtropos: base.ApplyAtropos,
-		EpochDBLoaded: func(epoch idx.EpochID) {
+		EpochDBLoaded: func(epoch ltypes.EpochID) {
 			if base.EpochDBLoaded != nil {
 				base.EpochDBLoaded(epoch)
 			}

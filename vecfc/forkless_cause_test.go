@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
@@ -46,8 +44,8 @@ func benchForklessCauseProcess(b *testing.B, idx *int, inmem bool) {
 	nodes := tdag.GenNodes(10)
 	validators := ltypes.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.EventHash]ltypes.Event)
-	getEvent := func(id hash.EventHash) ltypes.Event {
+	events := make(map[ltypes.EventHash]ltypes.Event)
+	getEvent := func(id ltypes.EventHash) ltypes.Event {
 		return events[id]
 	}
 
@@ -151,8 +149,8 @@ func testForklessCaused(t *testing.T, dagAscii string) {
 	nodes, _, _ := tdag.ASCIIschemeToDAG(dagAscii)
 	validators := ltypes.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.EventHash]ltypes.Event)
-	getEvent := func(id hash.EventHash) ltypes.Event {
+	events := make(map[ltypes.EventHash]ltypes.Event)
+	getEvent := func(id ltypes.EventHash) ltypes.Event {
 		return events[id]
 	}
 
@@ -494,8 +492,8 @@ func testForklessCausedRandom(t *testing.T, dbProducer func() kvdb.FlushableKVSt
 
 	validators := ltypes.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.EventHash]ltypes.Event)
-	getEvent := func(id hash.EventHash) ltypes.Event {
+	events := make(map[ltypes.EventHash]ltypes.Event)
+	getEvent := func(id ltypes.EventHash) ltypes.Event {
 		return events[id]
 	}
 
@@ -528,16 +526,16 @@ func testForklessCausedRandom(t *testing.T, dbProducer func() kvdb.FlushableKVSt
 }
 
 type eventSlot struct {
-	seq     idx.EventID
-	creator idx.ValidatorID
+	seq     ltypes.EventID
+	creator ltypes.ValidatorID
 }
 
 // naive implementation of fork detection, O(n)
-func testForksDetected(vi *Index, head ltypes.Event) (cheaters map[idx.ValidatorID]bool, err error) {
-	cheaters = map[idx.ValidatorID]bool{}
-	visited := hash.EventHashSet{}
+func testForksDetected(vi *Index, head ltypes.Event) (cheaters map[ltypes.ValidatorID]bool, err error) {
+	cheaters = map[ltypes.ValidatorID]bool{}
+	visited := ltypes.EventHashSet{}
 	detected := map[eventSlot]int{}
-	onWalk := func(id hash.EventHash) (godeeper bool) {
+	onWalk := func(id ltypes.EventHash) (godeeper bool) {
 		// ensure visited once
 		if visited.Contains(id) {
 			return false
@@ -564,7 +562,7 @@ func testForksDetected(vi *Index, head ltypes.Event) (cheaters map[idx.Validator
 
 func TestRandomForksSanity(t *testing.T) {
 	nodes := tdag.GenNodes(8)
-	cheaters := []idx.ValidatorID{nodes[0], nodes[1], nodes[2]}
+	cheaters := []ltypes.ValidatorID{nodes[0], nodes[1], nodes[2]}
 
 	validatorsBuilder := ltypes.NewBuilder()
 	for _, peer := range nodes {
@@ -576,8 +574,8 @@ func TestRandomForksSanity(t *testing.T) {
 	validatorsBuilder.Set(nodes[4], ltypes.Weight(3))
 	validators := validatorsBuilder.Build()
 
-	processed := make(map[hash.EventHash]ltypes.Event)
-	getEvent := func(id hash.EventHash) ltypes.Event {
+	processed := make(map[ltypes.EventHash]ltypes.Event)
+	getEvent := func(id ltypes.EventHash) ltypes.Event {
 		return processed[id]
 	}
 
@@ -612,9 +610,9 @@ func TestRandomForksSanity(t *testing.T) {
 			isCheater := n < len(cheaters)
 			assertar.Equal(isCheater, branchSeq.IsForkDetected(), cheater)
 			if isCheater {
-				assertar.Equal(idx.EventID(0), branchSeq.Seq, cheater)
+				assertar.Equal(ltypes.EventID(0), branchSeq.Seq, cheater)
 			} else {
-				assertar.NotEqual(idx.EventID(0), branchSeq.Seq, cheater)
+				assertar.NotEqual(ltypes.EventID(0), branchSeq.Seq, cheater)
 			}
 		}
 	}
@@ -703,8 +701,8 @@ func TestRandomForks(t *testing.T) {
 			validators := ltypes.EqualWeightValidators(nodes, 1)
 
 			processedArr := ltypes.Events{}
-			processed := make(map[hash.EventHash]ltypes.Event)
-			getEvent := func(id hash.EventHash) ltypes.Event {
+			processed := make(map[ltypes.EventHash]ltypes.Event)
+			getEvent := func(id ltypes.EventHash) ltypes.Event {
 				return processed[id]
 			}
 
@@ -738,7 +736,7 @@ func TestRandomForks(t *testing.T) {
 					branchSeq := highestBefore.Get(idxs[cheater])
 					assertar.Equal(expectedCheater, branchSeq.IsForkDetected(), e.String())
 					if expectedCheater {
-						assertar.Equal(idx.EventID(0), branchSeq.Seq, e.String())
+						assertar.Equal(ltypes.EventID(0), branchSeq.Seq, e.String())
 					}
 				}
 			}
@@ -803,7 +801,7 @@ func codegen4ForklessCausedStability() {
 	}
 	vi := NewIndex(validators, memorydb.New())
 
-	processed := make(map[hash.Event]*inter.Event)
+	processed := make(map[ltypes.Event]*inter.Event)
 	orderThenProcess := ordering.EventsBuffer(ordering.Callback{
 
 		Process: func(e *inter.Event) {
@@ -815,7 +813,7 @@ func codegen4ForklessCausedStability() {
 			panic(err)
 		},
 
-		Exists: func(h hash.Event) *inter.Event {
+		Exists: func(h ltypes.Event) *inter.Event {
 			return processed[h]
 		},
 	})

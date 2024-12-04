@@ -1,7 +1,7 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 const dsKey = "d"
@@ -30,6 +30,6 @@ func (s *Store) GetLastDecidedState() *LastDecidedState {
 	return w
 }
 
-func (s *Store) GetLastDecidedFrame() idx.FrameID {
+func (s *Store) GetLastDecidedFrame() ltypes.FrameID {
 	return s.GetLastDecidedState().LastDecidedFrame
 }

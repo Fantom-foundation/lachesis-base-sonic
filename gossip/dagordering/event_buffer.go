@@ -5,8 +5,6 @@ import (
 	"sync"
 
 	"github.com/Fantom-foundation/lachesis-base/eventcheck"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
@@ -25,8 +23,8 @@ type (
 	Callback struct {
 		Process  func(e ltypes.Event) error
 		Released func(e ltypes.Event, peer string, err error)
-		Get      func(hash.EventHash) ltypes.Event
-		Exists   func(hash.EventHash) bool
+		Get      func(ltypes.EventHash) ltypes.Event
+		Exists   func(ltypes.EventHash) bool
 		Check    func(e ltypes.Event, parents ltypes.Events) error
 	}
 )
@@ -152,7 +150,7 @@ func (buf *EventsBuffer) processCompleteEvent(e *event, parents ltypes.Events) b
 }
 
 func (buf *EventsBuffer) spillIncompletes(limit ltypes.Metric) {
-	for idx.EventID(buf.incompletes.Len()) > limit.Num || uint64(buf.incompletes.Weight()) > limit.Size {
+	for ltypes.EventID(buf.incompletes.Len()) > limit.Num || uint64(buf.incompletes.Weight()) > limit.Size {
 		_, val, ok := buf.incompletes.RemoveOldest()
 		if !ok {
 			break
@@ -176,7 +174,7 @@ func (buf *EventsBuffer) releaseEvent(e *event) {
 	e.released = true
 }
 
-func (buf *EventsBuffer) IsBuffered(id hash.EventHash) bool {
+func (buf *EventsBuffer) IsBuffered(id ltypes.EventHash) bool {
 	// wlru is thread-safe, no need for a mutex here
 	return buf.incompletes.Contains(id)
 }
@@ -192,7 +190,7 @@ func (buf *EventsBuffer) Total() ltypes.Metric {
 	// wlru is thread-safe, no need for a mutex here
 	weight, num := buf.incompletes.Total()
 	return ltypes.Metric{
-		Num:  idx.EventID(num),
+		Num:  ltypes.EventID(num),
 		Size: uint64(weight),
 	}
 }

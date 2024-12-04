@@ -1,21 +1,21 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // SearchStrategy defines a criteria used to estimate the "best" subset of parents to emit event with.
 type SearchStrategy interface {
 	// Choose chooses the hash from the specified options
-	Choose(existingParents hash.EventHashes, options hash.EventHashes) int
+	Choose(existingParents ltypes.EventHashes, options ltypes.EventHashes) int
 }
 
 // ChooseParents returns estimated parents subset, according to provided strategy
 // max is max num of parents to link with (including self-parent)
 // returns set of parents to link, len(res) <= max
-func ChooseParents(existingParents hash.EventHashes, options hash.EventHashes, strategies []SearchStrategy) hash.EventHashes {
+func ChooseParents(existingParents ltypes.EventHashes, options ltypes.EventHashes, strategies []SearchStrategy) ltypes.EventHashes {
 	optionsSet := options.Set()
-	parents := make(hash.EventHashes, 0, len(strategies)+len(existingParents))
+	parents := make(ltypes.EventHashes, 0, len(strategies)+len(existingParents))
 	parents = append(parents, existingParents...)
 	for _, p := range existingParents {
 		optionsSet.Erase(p)

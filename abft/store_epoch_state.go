@@ -1,7 +1,6 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -39,7 +38,7 @@ func (s *Store) getEpochState(key []byte) *EpochState {
 }
 
 // GetEpoch returns current epoch
-func (s *Store) GetEpoch() idx.EpochID {
+func (s *Store) GetEpoch() ltypes.EpochID {
 	return s.GetEpochState().Epoch
 }
 

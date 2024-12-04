@@ -9,16 +9,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/utils"
 )
 
 type fakeEdge struct {
-	from hash.EventHash
-	to   hash.EventHash
+	from ltypes.EventHash
+	to   ltypes.EventHash
 }
 
 type (
@@ -26,7 +24,7 @@ type (
 )
 
 type testExpected struct {
-	DecidedFrame   idx.FrameID
+	DecidedFrame   ltypes.FrameID
 	DecidedAtropos string
 	DecisiveRoots  map[string]bool
 }
@@ -185,9 +183,9 @@ func testProcessRoot(
 
 	// events:
 	ordered := make(tdag.TestEvents, 0)
-	events := make(map[hash.EventHash]*tdag.TestEvent)
-	frameRoots := make(map[idx.FrameID][]RootAndSlot)
-	vertices := make(map[hash.EventHash]Slot)
+	events := make(map[ltypes.EventHash]*tdag.TestEvent)
+	frameRoots := make(map[ltypes.FrameID][]RootAndSlot)
+	vertices := make(map[ltypes.EventHash]Slot)
 	edges := make(map[fakeEdge]bool)
 
 	nodes, _, _ := tdag.ASCIIschemeForEach(dagAscii, tdag.ForEachEvent{
@@ -235,14 +233,14 @@ func testProcessRoot(
 	}
 	validators := validatorsBuilder.Build()
 
-	forklessCauseFn := func(a hash.EventHash, b hash.EventHash) bool {
+	forklessCauseFn := func(a ltypes.EventHash, b ltypes.EventHash) bool {
 		edge := fakeEdge{
 			from: a,
 			to:   b,
 		}
 		return edges[edge]
 	}
-	getFrameRootsFn := func(f idx.FrameID) []RootAndSlot {
+	getFrameRootsFn := func(f ltypes.FrameID) []RootAndSlot {
 		return frameRoots[f]
 	}
 
@@ -284,11 +282,11 @@ func testProcessRoot(
 	}
 }
 
-func frameOf(dsc string) idx.FrameID {
+func frameOf(dsc string) ltypes.FrameID {
 	s := strings.Split(dsc, "_")[1]
 	h, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
 		panic(err)
 	}
-	return idx.FrameID(h)
+	return ltypes.FrameID(h)
 }

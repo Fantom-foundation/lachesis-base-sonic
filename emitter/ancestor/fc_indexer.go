@@ -1,8 +1,6 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -11,38 +9,38 @@ const (
 )
 
 type highestEvent struct {
-	id    hash.EventHash
-	frame idx.FrameID
+	id    ltypes.EventHash
+	frame ltypes.FrameID
 }
 
 type FCIndexer struct {
 	dagi       DagIndex
 	validators *ltypes.Validators
-	me         idx.ValidatorID
+	me         ltypes.ValidatorID
 
-	prevSelfEvent hash.EventHash
-	prevSelfFrame idx.FrameID
+	prevSelfEvent ltypes.EventHash
+	prevSelfFrame ltypes.FrameID
 
-	TopFrame idx.FrameID
+	TopFrame ltypes.FrameID
 
-	FrameRoots map[idx.FrameID]hash.EventHashes
+	FrameRoots map[ltypes.FrameID]ltypes.EventHashes
 
-	highestEvents map[idx.ValidatorID]highestEvent
+	highestEvents map[ltypes.ValidatorID]highestEvent
 
 	searchStrategy SearchStrategy
 }
 
 type DagIndex interface {
-	ForklessCauseProgress(aID, bID hash.EventHash, candidateParents, chosenParents hash.EventHashes) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
+	ForklessCauseProgress(aID, bID ltypes.EventHash, candidateParents, chosenParents ltypes.EventHashes) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
 }
 
-func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me idx.ValidatorID) *FCIndexer {
+func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me ltypes.ValidatorID) *FCIndexer {
 	fc := &FCIndexer{
 		dagi:          dagi,
 		validators:    validators,
 		me:            me,
-		FrameRoots:    make(map[idx.FrameID]hash.EventHashes),
-		highestEvents: make(map[idx.ValidatorID]highestEvent),
+		FrameRoots:    make(map[ltypes.FrameID]ltypes.EventHashes),
+		highestEvents: make(map[ltypes.ValidatorID]highestEvent),
 	}
 	fc.searchStrategy = NewMetricStrategy(fc.GetMetricOf)
 	return fc
@@ -71,7 +69,7 @@ func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 			}
 			frameRoots := fc.FrameRoots[f]
 			if frameRoots == nil {
-				frameRoots = make(hash.EventHashes, fc.validators.Len())
+				frameRoots = make(ltypes.EventHashes, fc.validators.Len())
 			}
 			frameRoots[fc.validators.GetIdx(e.Creator())] = e.ID()
 			fc.FrameRoots[f] = frameRoots
@@ -79,7 +77,7 @@ func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 	}
 }
 
-func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.EventHash, chosenHeads hash.EventHashes) int {
+func (fc *FCIndexer) rootProgress(frame ltypes.FrameID, event ltypes.EventHash, chosenHeads ltypes.EventHashes) int {
 	// This function computes the knowledge of roots amongst validators by counting which validators known which roots.
 	// Root knowledge is a binary matrix indexed by roots and validators.
 	// The ijth entry of the matrix is 1 if root i is known by validator j in the subgraph of event, and zero otherwise.
@@ -90,7 +88,7 @@ func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.EventHash, chose
 	}
 	numNonZero := 0 // number of non-zero entries in the root knowledge matrix
 	for _, root := range roots {
-		if root == hash.ZeroEvent {
+		if root == ltypes.ZeroEvent {
 			continue
 		}
 		FCProgress, _ := fc.dagi.ForklessCauseProgress(event, root, nil, chosenHeads)
@@ -99,7 +97,7 @@ func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.EventHash, chose
 	return numNonZero
 }
 
-func (fc *FCIndexer) greater(aID hash.EventHash, aFrame idx.FrameID, bK int, bFrame idx.FrameID) bool {
+func (fc *FCIndexer) greater(aID ltypes.EventHash, aFrame ltypes.FrameID, bK int, bFrame ltypes.FrameID) bool {
 	if aFrame != bFrame {
 		return aFrame > bFrame
 	}
@@ -122,7 +120,7 @@ func (fc *FCIndexer) ValidatorsPastMe() ltypes.Weight {
 	return kGreaterWeight.Sum() // self should not create a new event
 }
 
-func (fc *FCIndexer) GetMetricOf(ids hash.EventHashes) Metric {
+func (fc *FCIndexer) GetMetricOf(ids ltypes.EventHashes) Metric {
 	if fc.TopFrame == 0 {
 		return 0
 	}

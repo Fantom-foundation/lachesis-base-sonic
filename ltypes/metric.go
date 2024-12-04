@@ -2,12 +2,10 @@ package ltypes
 
 import (
 	"fmt"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type Metric struct {
-	Num  idx.EventID
+	Num  EventID
 	Size uint64
 }
 

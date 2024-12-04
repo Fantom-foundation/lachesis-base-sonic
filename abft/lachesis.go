@@ -2,8 +2,6 @@ package abft
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
@@ -35,7 +33,7 @@ func NewLachesis(store *Store, input EventSource, dagIndex DagIndex, crit func(e
 	return p
 }
 
-func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.EventHash, onEventConfirmed func(ltypes.Event)) error {
+func (p *Lachesis) confirmEvents(frame ltypes.FrameID, atropos ltypes.EventHash, onEventConfirmed func(ltypes.Event)) error {
 	err := p.dfsSubgraph(atropos, func(e ltypes.Event) bool {
 		decidedFrame := p.store.GetEventConfirmedOn(e.ID())
 		if decidedFrame != 0 {
@@ -51,14 +49,14 @@ func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.EventHash, onEv
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.FrameID, atropos hash.EventHash) *ltypes.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame ltypes.FrameID, atropos ltypes.EventHash) *ltypes.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()
 	// cheaters are ordered deterministically
-	cheaters := make([]idx.ValidatorID, 0, validators.Len())
+	cheaters := make([]ltypes.ValidatorID, 0, validators.Len())
 	for creatorIdx, creator := range validators.SortedIDs() {
-		if atroposVecClock.Get(idx.ValidatorIdx(creatorIdx)).IsForkDetected() {
+		if atroposVecClock.Get(ltypes.ValidatorIdx(creatorIdx)).IsForkDetected() {
 			cheaters = append(cheaters, creator)
 		}
 	}
@@ -96,11 +94,11 @@ func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, or
 	return nil
 }
 
-func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.EpochID, validators *ltypes.Validators) error {
+func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators) error {
 	return p.StartFromWithOrderer(callback, epoch, validators, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.StartFrom(ordererCallbacks, epoch, validators)
 	if err != nil {
 		return err

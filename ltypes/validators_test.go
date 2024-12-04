@@ -8,8 +8,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 func TestNewValidators(t *testing.T) {
@@ -18,7 +16,7 @@ func TestNewValidators(t *testing.T) {
 	assert.NotNil(t, b)
 	assert.NotNil(t, b.Build())
 
-	assert.Equal(t, idx.ValidatorIdx(0), b.Build().Len())
+	assert.Equal(t, ValidatorIdx(0), b.Build().Len())
 }
 
 func TestValidators_Set(t *testing.T) {
@@ -32,7 +30,7 @@ func TestValidators_Set(t *testing.T) {
 
 	v := b.Build()
 
-	assert.Equal(t, idx.ValidatorIdx(5), v.Len())
+	assert.Equal(t, ValidatorIdx(5), v.Len())
 	assert.Equal(t, Weight(15), v.TotalWeight())
 
 	b.Set(1, 10)
@@ -40,7 +38,7 @@ func TestValidators_Set(t *testing.T) {
 
 	v = b.Build()
 
-	assert.Equal(t, idx.ValidatorIdx(5), v.Len())
+	assert.Equal(t, ValidatorIdx(5), v.Len())
 	assert.Equal(t, Weight(51), v.TotalWeight())
 
 	b.Set(2, 0)
@@ -48,7 +46,7 @@ func TestValidators_Set(t *testing.T) {
 
 	v = b.Build()
 
-	assert.Equal(t, idx.ValidatorIdx(3), v.Len())
+	assert.Equal(t, ValidatorIdx(3), v.Len())
 	assert.Equal(t, Weight(44), v.TotalWeight())
 
 	b.Set(4, 0)
@@ -57,7 +55,7 @@ func TestValidators_Set(t *testing.T) {
 
 	v = b.Build()
 
-	assert.Equal(t, idx.ValidatorIdx(0), v.Len())
+	assert.Equal(t, ValidatorIdx(0), v.Len())
 	assert.Equal(t, Weight(0), v.TotalWeight())
 }
 
@@ -184,7 +182,7 @@ func TestValidators_Big(t *testing.T) {
 	assert.Equal(t, Weight(0x7ffff), v.Get(4))
 	assert.Equal(t, Weight(0x3fffffff), v.Get(5))
 
-	for v := idx.ValidatorID(1); v <= 5000; v++ {
+	for v := ValidatorID(1); v <= 5000; v++ {
 		b.Set(v, new(big.Int).Mul(big.NewInt(int64(v)), maxBig(400)))
 	}
 	v = b.Build()

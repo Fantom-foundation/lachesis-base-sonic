@@ -3,13 +3,12 @@ package abft
 import (
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // Genesis stores genesis state
 type Genesis struct {
-	Epoch      idx.EpochID
+	Epoch      ltypes.EpochID
 	Validators *ltypes.Validators
 }
 
@@ -30,7 +29,7 @@ func (s *Store) ApplyGenesis(g *Genesis) error {
 }
 
 // applyGenesis switches epoch state to a new empty epoch.
-func (s *Store) applyGenesis(epoch idx.EpochID, validators *ltypes.Validators) {
+func (s *Store) applyGenesis(epoch ltypes.EpochID, validators *ltypes.Validators) {
 	es := &EpochState{}
 	ds := &LastDecidedState{}
 

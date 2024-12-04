@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
@@ -95,7 +94,7 @@ func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bo
 	for _, _lch := range lchs {
 		lch := _lch // capture
 		lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
-			if lch.store.GetLastDecidedFrame()+1 == idx.FrameID(maxEpochBlocks) {
+			if lch.store.GetLastDecidedFrame()+1 == ltypes.FrameID(maxEpochBlocks) {
 				// seal epoch
 				if mutateWeights {
 					return mutateValidators(lch.store.GetValidators())
@@ -111,9 +110,9 @@ func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bo
 	if parentCount > len(nodes) {
 		parentCount = len(nodes)
 	}
-	epochStates := map[idx.EpochID]*EpochState{}
+	epochStates := map[ltypes.EpochID]*EpochState{}
 	r := rand.New(rand.NewSource(int64(len(nodes) + cheatersCount))) // nolint:gosec
-	for epoch := idx.EpochID(1); epoch <= idx.EpochID(epochs); epoch++ {
+	for epoch := ltypes.EpochID(1); epoch <= ltypes.EpochID(epochs); epoch++ {
 		tdag.ForEachRandFork(nodes, nodes[:cheatersCount], eventCount, parentCount, 10, r, tdag.ForEachEvent{
 			Process: func(e ltypes.Event, name string) {
 				inputs[GENERATOR].SetEvent(e)
@@ -136,7 +135,7 @@ func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bo
 		return
 	}
 
-	resetEpoch := idx.EpochID(0)
+	resetEpoch := ltypes.EpochID(0)
 
 	// use pre-ordered events, call consensus(es) directly
 	for _, e := range ordered {
@@ -175,7 +174,7 @@ func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bo
 				it.Release()
 			}
 			restartEpoch := prev.store.GetEpoch()
-			store.getEpochDB = func(epoch idx.EpochID) kvdb.Store {
+			store.getEpochDB = func(epoch ltypes.EpochID) kvdb.Store {
 				if epoch == restartEpoch {
 					return restartEpochDB
 				}
@@ -226,9 +225,9 @@ func compareStates(assertar *assert.Assertions, expected, restored *CoreLachesis
 
 func compareBlocks(assertar *assert.Assertions, expected, restored *CoreLachesis) {
 	assertar.Equal(expected.lastBlock, restored.lastBlock)
-	for e := idx.EpochID(1); e <= expected.lastBlock.Epoch; e++ {
+	for e := ltypes.EpochID(1); e <= expected.lastBlock.Epoch; e++ {
 		assertar.Equal(expected.epochBlocks[e], restored.epochBlocks[e])
-		for f := idx.FrameID(1); f < expected.epochBlocks[e]; f++ {
+		for f := ltypes.FrameID(1); f < expected.epochBlocks[e]; f++ {
 			key := BlockKey{e, f}
 			if !assertar.NotNil(restored.blocks[key]) ||
 				!assertar.Equal(expected.blocks[key], restored.blocks[key]) {

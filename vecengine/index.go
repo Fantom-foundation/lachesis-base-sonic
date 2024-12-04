@@ -4,31 +4,29 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/table"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type Callbacks struct {
-	GetHighestBefore func(hash.EventHash) HighestBeforeI
-	GetLowestAfter   func(hash.EventHash) LowestAfterI
-	SetHighestBefore func(hash.EventHash, HighestBeforeI)
-	SetLowestAfter   func(hash.EventHash, LowestAfterI)
-	NewHighestBefore func(idx.ValidatorIdx) HighestBeforeI
-	NewLowestAfter   func(idx.ValidatorIdx) LowestAfterI
+	GetHighestBefore func(ltypes.EventHash) HighestBeforeI
+	GetLowestAfter   func(ltypes.EventHash) LowestAfterI
+	SetHighestBefore func(ltypes.EventHash, HighestBeforeI)
+	SetLowestAfter   func(ltypes.EventHash, LowestAfterI)
+	NewHighestBefore func(ltypes.ValidatorIdx) HighestBeforeI
+	NewLowestAfter   func(ltypes.ValidatorIdx) LowestAfterI
 	OnDropNotFlushed func()
 }
 
 type Engine struct {
 	crit          func(error)
 	validators    *ltypes.Validators
-	validatorIdxs map[idx.ValidatorID]idx.ValidatorIdx
+	validatorIdxs map[ltypes.ValidatorID]ltypes.ValidatorIdx
 
 	bi *BranchesInfo
 
-	getEvent func(hash.EventHash) ltypes.Event
+	getEvent func(ltypes.EventHash) ltypes.Event
 
 	callback Callbacks
 
@@ -50,7 +48,7 @@ func NewIndex(crit func(error), callbacks Callbacks) *Engine {
 }
 
 // Reset resets buffers.
-func (vi *Engine) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.EventHash) ltypes.Event) {
+func (vi *Engine) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(ltypes.EventHash) ltypes.Event) {
 	// use wrapper to be able to drop failed events by dropping cache
 	vi.getEvent = getEvent
 	vi.vecDb = db
@@ -89,19 +87,19 @@ func (vi *Engine) DropNotFlushed() {
 	}
 }
 
-func (vi *Engine) setForkDetected(before HighestBeforeI, branchID idx.ValidatorIdx) {
+func (vi *Engine) setForkDetected(before HighestBeforeI, branchID ltypes.ValidatorIdx) {
 	creatorIdx := vi.bi.BranchIDCreatorIdxs[branchID]
 	for _, branchID := range vi.bi.BranchIDByCreators[creatorIdx] {
 		before.SetForkDetected(branchID)
 	}
 }
 
-func (vi *Engine) fillGlobalBranchID(e ltypes.Event, meIdx idx.ValidatorIdx) (idx.ValidatorIdx, error) {
+func (vi *Engine) fillGlobalBranchID(e ltypes.Event, meIdx ltypes.ValidatorIdx) (ltypes.ValidatorIdx, error) {
 	// sanity checks
 	if len(vi.bi.BranchIDCreatorIdxs) != len(vi.bi.BranchIDLastSeq) {
 		return 0, errors.New("inconsistent BranchIDCreators len (inconsistent DB)")
 	}
-	if idx.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)) < vi.validators.Len() {
+	if ltypes.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)) < vi.validators.Len() {
 		return 0, errors.New("inconsistent BranchIDCreators len (inconsistent DB)")
 	}
 
@@ -129,7 +127,7 @@ func (vi *Engine) fillGlobalBranchID(e ltypes.Event, meIdx idx.ValidatorIdx) (id
 	// if we're here, then new fork is observed (only globally), create new branchID due to a new fork
 	vi.bi.BranchIDLastSeq = append(vi.bi.BranchIDLastSeq, e.Seq())
 	vi.bi.BranchIDCreatorIdxs = append(vi.bi.BranchIDCreatorIdxs, meIdx)
-	newBranchID := idx.ValidatorIdx(len(vi.bi.BranchIDLastSeq) - 1)
+	newBranchID := ltypes.ValidatorIdx(len(vi.bi.BranchIDLastSeq) - 1)
 	vi.bi.BranchIDByCreators[meIdx] = append(vi.bi.BranchIDByCreators[meIdx], newBranchID)
 	return newBranchID, nil
 }
@@ -138,8 +136,8 @@ func (vi *Engine) fillGlobalBranchID(e ltypes.Event, meIdx idx.ValidatorIdx) (id
 func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	meIdx := vi.validatorIdxs[e.Creator()]
 	myVecs := allVecs{
-		before: vi.callback.NewHighestBefore(idx.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs))),
-		after:  vi.callback.NewLowestAfter(idx.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs))),
+		before: vi.callback.NewHighestBefore(ltypes.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs))),
+		after:  vi.callback.NewLowestAfter(ltypes.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs))),
 	}
 
 	meBranchID, err := vi.fillGlobalBranchID(e, meIdx)
@@ -149,7 +147,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 
 	// pre-load parents into RAM for quick access
 	parentsVecs := make([]HighestBeforeI, len(e.Parents()))
-	parentsBranchIDs := make([]idx.ValidatorIdx, len(e.Parents()))
+	parentsBranchIDs := make([]ltypes.ValidatorIdx, len(e.Parents()))
 	for i, p := range e.Parents() {
 		parentsBranchIDs[i] = vi.GetEventBranchID(p)
 		parentsVecs[i] = vi.callback.GetHighestBefore(p)
@@ -164,11 +162,11 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 
 	for _, pVec := range parentsVecs {
 		// calculate HighestBefore  Detect forks for a case when parent observes a fork
-		myVecs.before.CollectFrom(pVec, idx.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)))
+		myVecs.before.CollectFrom(pVec, ltypes.ValidatorIdx(len(vi.bi.BranchIDCreatorIdxs)))
 	}
 	// Detect forks, which were not observed by parents
 	if vi.AtLeastOneFork() {
-		for n := idx.ValidatorIdx(0); n < vi.validators.Len(); n++ {
+		for n := ltypes.ValidatorIdx(0); n < vi.validators.Len(); n++ {
 			if len(vi.bi.BranchIDByCreators[n]) <= 1 {
 				continue
 			}
@@ -182,7 +180,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 		}
 
 	nextCreator:
-		for n := idx.ValidatorIdx(0); n < vi.validators.Len(); n++ {
+		for n := ltypes.ValidatorIdx(0); n < vi.validators.Len(); n++ {
 			if myVecs.before.IsForkDetected(n) {
 				continue
 			}
@@ -207,7 +205,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	}
 
 	// graph traversal starting from e, but excluding e
-	onWalk := func(walk hash.EventHash) (godeeper bool) {
+	onWalk := func(walk ltypes.EventHash) (godeeper bool) {
 		wLowestAfterSeq := vi.callback.GetLowestAfter(walk)
 
 		// update LowestAfter vector of the old event, because newly-connected event observes it
@@ -230,7 +228,7 @@ func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	return myVecs, nil
 }
 
-func (vi *Engine) GetMergedHighestBefore(id hash.EventHash) HighestBeforeI {
+func (vi *Engine) GetMergedHighestBefore(id ltypes.EventHash) HighestBeforeI {
 	vi.InitBranchesInfo()
 
 	if vi.AtLeastOneFork() {
@@ -239,7 +237,7 @@ func (vi *Engine) GetMergedHighestBefore(id hash.EventHash) HighestBeforeI {
 		mergedBefore := vi.callback.NewHighestBefore(vi.validators.Len())
 
 		for creatorIdx, branches := range vi.bi.BranchIDByCreators {
-			mergedBefore.GatherFrom(idx.ValidatorIdx(creatorIdx), scatteredBefore, branches)
+			mergedBefore.GatherFrom(ltypes.ValidatorIdx(creatorIdx), scatteredBefore, branches)
 		}
 
 		return mergedBefore

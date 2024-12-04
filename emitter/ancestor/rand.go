@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 /*
@@ -26,6 +26,6 @@ func NewRandomStrategy(r *rand.Rand) *RandomStrategy {
 }
 
 // Choose chooses the hash from the specified options
-func (st *RandomStrategy) Choose(_ hash.EventHashes, options hash.EventHashes) int {
+func (st *RandomStrategy) Choose(_ ltypes.EventHashes, options ltypes.EventHashes) int {
 	return st.r.Intn(len(options))
 }

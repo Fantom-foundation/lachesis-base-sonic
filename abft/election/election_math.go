@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // ProcessRoot calculates Atropos votes only for the new root.
@@ -29,7 +28,7 @@ func (el *Election) ProcessRoot(newRoot RootAndSlot) (*Res, error) {
 	notDecidedRoots := el.notDecidedRoots()
 
 	var observedRoots []RootAndSlot
-	var observedRootsMap map[idx.ValidatorID]RootAndSlot
+	var observedRootsMap map[ltypes.ValidatorID]RootAndSlot
 	if round == 1 {
 		observedRootsMap = el.observedRootsMap(newRoot.ID, newRoot.Slot.Frame-1)
 	} else {
@@ -55,7 +54,7 @@ func (el *Election) ProcessRoot(newRoot RootAndSlot) (*Res, error) {
 			)
 
 			// calc number of "yes" and "no", weighted by validator's weight
-			var subjectHash *hash.EventHash
+			var subjectHash *ltypes.EventHash
 			for _, observedRoot := range observedRoots {
 				vid := voteID{
 					fromRoot:     observedRoot,

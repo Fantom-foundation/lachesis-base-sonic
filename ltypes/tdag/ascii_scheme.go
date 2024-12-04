@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -26,11 +24,11 @@ func ASCIIschemeForEach(
 	scheme string,
 	callback ForEachEvent,
 ) (
-	nodes []idx.ValidatorID,
-	events map[idx.ValidatorID]ltypes.Events,
+	nodes []ltypes.ValidatorID,
+	events map[ltypes.ValidatorID]ltypes.Events,
 	names map[string]ltypes.Event,
 ) {
-	events = make(map[idx.ValidatorID]ltypes.Events)
+	events = make(map[ltypes.ValidatorID]ltypes.Events)
 	names = make(map[string]ltypes.Event)
 	var (
 		prevFarRefs map[int]int
@@ -121,7 +119,7 @@ func ASCIIschemeForEach(
 		for i, name := range nNames {
 			// make node if don't exist
 			if len(nodes) <= nCreators[i] {
-				validator := idx.BytesToValidatorID(hash.Of([]byte(name)).Bytes()[:4])
+				validator := ltypes.BytesToValidatorID(ltypes.Of([]byte(name)).Bytes()[:4])
 				nodes = append(nodes, validator)
 				events[validator] = nil
 			}
@@ -129,9 +127,9 @@ func ASCIIschemeForEach(
 			creator := nodes[nCreators[i]]
 			// find creator's parent
 			var (
-				index      idx.EventID
-				parents    = hash.EventHashes{}
-				maxLamport idx.Lamport
+				index      ltypes.EventID
+				parents    = ltypes.EventHashes{}
+				maxLamport ltypes.Lamport
 			)
 			if last := len(events[creator]) - prevRef - 1; last >= 0 {
 				parent := events[creator][last]
@@ -186,7 +184,7 @@ func ASCIIschemeForEach(
 			// save event
 			events[creator] = append(events[creator], e)
 			names[name] = e
-			hash.SetEventName(e.ID(), name)
+			ltypes.SetEventName(e.ID(), name)
 			// callback
 			if callback.Process != nil {
 				callback.Process(e, name)
@@ -201,9 +199,9 @@ func ASCIIschemeForEach(
 		}
 		name := []rune(ee[0].ID().String())
 		if strings.HasPrefix(string(name), "node") {
-			hash.SetNodeName(node, "node"+strings.ToUpper(string(name[4:5])))
+			ltypes.SetNodeName(node, "node"+strings.ToUpper(string(name[4:5])))
 		} else {
-			hash.SetNodeName(node, "node"+strings.ToUpper(string(name[0:1])))
+			ltypes.SetNodeName(node, "node"+strings.ToUpper(string(name[0:1])))
 		}
 	}
 
@@ -213,8 +211,8 @@ func ASCIIschemeForEach(
 func ASCIIschemeToDAG(
 	scheme string,
 ) (
-	nodes []idx.ValidatorID,
-	events map[idx.ValidatorID]ltypes.Events,
+	nodes []ltypes.ValidatorID,
+	events map[ltypes.ValidatorID]ltypes.Events,
 	names map[string]ltypes.Event,
 ) {
 	return ASCIIschemeForEach(scheme, ForEachEvent{})
@@ -227,20 +225,20 @@ func DAGtoASCIIscheme(events ltypes.Events) (string, error) {
 	var (
 		scheme rows
 
-		processed = make(map[hash.EventHash]ltypes.Event)
-		nodeCols  = make(map[idx.ValidatorID]int)
+		processed = make(map[ltypes.EventHash]ltypes.Event)
+		nodeCols  = make(map[ltypes.ValidatorID]int)
 		ok        bool
 
-		eventIndex       = make(map[idx.ValidatorID]map[hash.EventHash]int)
-		creatorLastIndex = make(map[idx.ValidatorID]int)
+		eventIndex       = make(map[ltypes.ValidatorID]map[ltypes.EventHash]int)
+		creatorLastIndex = make(map[ltypes.ValidatorID]int)
 
-		seqCount = make(map[idx.ValidatorID]map[idx.EventID]int)
+		seqCount = make(map[ltypes.ValidatorID]map[ltypes.EventID]int)
 	)
 	for _, e := range events {
 		// if count of unique seq > 1 -> fork
 		if _, exist := seqCount[e.Creator()]; !exist {
-			seqCount[e.Creator()] = map[idx.EventID]int{}
-			eventIndex[e.Creator()] = map[hash.EventHash]int{}
+			seqCount[e.Creator()] = map[ltypes.EventID]int{}
+			eventIndex[e.Creator()] = map[ltypes.EventHash]int{}
 		}
 		if _, exist := seqCount[e.Creator()][e.Seq()]; !exist {
 			seqCount[e.Creator()][e.Seq()] = 1
@@ -262,9 +260,9 @@ func DAGtoASCIIscheme(events ltypes.Events) (string, error) {
 			nodeCols[e.Creator()] = r.Self
 		}
 		// name
-		r.Name = hash.GetEventName(ehash)
+		r.Name = ltypes.GetEventName(ehash)
 		if len(r.Name) < 1 {
-			r.Name = hash.GetNodeName(e.Creator())
+			r.Name = ltypes.GetNodeName(e.Creator())
 			if len(r.Name) < 1 {
 				r.Name = string('a' + rune(r.Self))
 			}

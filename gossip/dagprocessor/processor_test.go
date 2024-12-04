@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/utils/cachescale"
@@ -59,13 +57,13 @@ func testProcessor(t *testing.T) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.FrameID(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	limit := ltypes.Metric{
-		Num:  idx.EventID(len(ordered)),
+		Num:  ltypes.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
 	semaphore := datasemaphore.New(limit, func(received ltypes.Metric, processing ltypes.Metric, releasing ltypes.Metric) {
@@ -76,8 +74,8 @@ func testProcessor(t *testing.T) {
 
 	checked := 0
 
-	highestLamport := idx.Lamport(0)
-	processed := make(map[hash.EventHash]ltypes.Event)
+	highestLamport := ltypes.Lamport(0)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	mu := sync.RWMutex{}
 	processor := New(semaphore, config, Callback{
 		Event: EventCallback{
@@ -107,13 +105,13 @@ func testProcessor(t *testing.T) {
 				}
 			},
 
-			Exists: func(e hash.EventHash) bool {
+			Exists: func(e ltypes.EventHash) bool {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[e] != nil
 			},
 
-			Get: func(id hash.EventHash) ltypes.Event {
+			Get: func(id ltypes.EventHash) ltypes.Event {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[id]
@@ -123,7 +121,7 @@ func testProcessor(t *testing.T) {
 				mu.RLock()
 				defer mu.RUnlock()
 				checked++
-				if e.Frame() != idx.FrameID(e.Seq()) {
+				if e.Frame() != ltypes.FrameID(e.Seq()) {
 					return errors.New("malformed event frame")
 				}
 				return nil
@@ -132,7 +130,7 @@ func testProcessor(t *testing.T) {
 				checked(nil)
 			},
 		},
-		HighestLamport: func() idx.Lamport {
+		HighestLamport: func() ltypes.Lamport {
 			return highestLamport
 		},
 	})
@@ -144,7 +142,7 @@ func testProcessor(t *testing.T) {
 	wg := sync.WaitGroup{}
 	for _, chunk := range chunks {
 		wg.Add(1)
-		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events hash.EventHashes) {}, func() { // nolint:gosec
+		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events ltypes.EventHashes) {}, func() { // nolint:gosec
 			wg.Done()
 		})
 		if err != nil {
@@ -182,14 +180,14 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.FrameID(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	limit := ltypes.Metric{
-		Num:  idx.EventID(rand.Intn(maxEvents)),  // nolint:gosec
-		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
+		Num:  ltypes.EventID(rand.Intn(maxEvents)), // nolint:gosec
+		Size: uint64(rand.Intn(maxEvents * 100)),   // nolint:gosec
 	}
 	limitPlus1group := ltypes.Metric{
 		Num:  limit.Num + maxGroupSize.Num,
@@ -203,8 +201,8 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 
 	released := uint32(0)
 
-	highestLamport := idx.Lamport(0)
-	processed := make(map[hash.EventHash]ltypes.Event)
+	highestLamport := ltypes.Lamport(0)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	mu := sync.RWMutex{}
 	processor := New(semaphore, config, Callback{
 		Event: EventCallback{
@@ -240,13 +238,13 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 				atomic.AddUint32(&released, 1)
 			},
 
-			Exists: func(e hash.EventHash) bool {
+			Exists: func(e ltypes.EventHash) bool {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[e] != nil
 			},
 
-			Get: func(id hash.EventHash) ltypes.Event {
+			Get: func(id ltypes.EventHash) ltypes.Event {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[id]
@@ -272,7 +270,7 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 				checked(err)
 			},
 		},
-		HighestLamport: func() idx.Lamport {
+		HighestLamport: func() ltypes.Lamport {
 			return highestLamport
 		},
 	})
@@ -286,7 +284,7 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 	wg := sync.WaitGroup{}
 	for _, chunk := range chunks {
 		wg.Add(1)
-		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events hash.EventHashes) {}, func() { // nolint:gosec
+		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events ltypes.EventHashes) {}, func() { // nolint:gosec
 			wg.Done()
 		})
 		if err != nil {

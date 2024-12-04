@@ -1,7 +1,6 @@
 package tdag
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -10,7 +9,7 @@ type TestEvent struct {
 	Name string
 }
 
-func (e *TestEvent) AddParent(id hash.EventHash) {
+func (e *TestEvent) AddParent(id ltypes.EventHash) {
 	parents := e.Parents()
 	parents.Add(id)
 	e.SetParents(parents)

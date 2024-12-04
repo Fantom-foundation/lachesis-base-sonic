@@ -1,21 +1,21 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type Metric uint64
 
 type MetricStrategy struct {
-	metricFn func(hash.EventHashes) Metric
+	metricFn func(ltypes.EventHashes) Metric
 }
 
-func NewMetricStrategy(metricFn func(hash.EventHashes) Metric) *MetricStrategy {
+func NewMetricStrategy(metricFn func(ltypes.EventHashes) Metric) *MetricStrategy {
 	return &MetricStrategy{metricFn}
 }
 
 // Choose chooses the hash from the specified options
-func (st *MetricStrategy) Choose(existing hash.EventHashes, options hash.EventHashes) int {
+func (st *MetricStrategy) Choose(existing ltypes.EventHashes, options ltypes.EventHashes) int {
 	var maxI int
 	var maxWeight Metric
 	// find option with a maximum weight

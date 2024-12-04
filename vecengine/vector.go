@@ -1,24 +1,23 @@
 package vecengine
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type LowestAfterI interface {
-	InitWithEvent(i idx.ValidatorIdx, e ltypes.Event)
-	Visit(i idx.ValidatorIdx, e ltypes.Event) bool
+	InitWithEvent(i ltypes.ValidatorIdx, e ltypes.Event)
+	Visit(i ltypes.ValidatorIdx, e ltypes.Event) bool
 }
 
 type HighestBeforeI interface {
-	InitWithEvent(i idx.ValidatorIdx, e ltypes.Event)
-	IsEmpty(i idx.ValidatorIdx) bool
-	IsForkDetected(i idx.ValidatorIdx) bool
-	Seq(i idx.ValidatorIdx) idx.EventID
-	MinSeq(i idx.ValidatorIdx) idx.EventID
-	SetForkDetected(i idx.ValidatorIdx)
-	CollectFrom(other HighestBeforeI, branches idx.ValidatorIdx)
-	GatherFrom(to idx.ValidatorIdx, other HighestBeforeI, from []idx.ValidatorIdx)
+	InitWithEvent(i ltypes.ValidatorIdx, e ltypes.Event)
+	IsEmpty(i ltypes.ValidatorIdx) bool
+	IsForkDetected(i ltypes.ValidatorIdx) bool
+	Seq(i ltypes.ValidatorIdx) ltypes.EventID
+	MinSeq(i ltypes.ValidatorIdx) ltypes.EventID
+	SetForkDetected(i ltypes.ValidatorIdx)
+	CollectFrom(other HighestBeforeI, branches ltypes.ValidatorIdx)
+	GatherFrom(to ltypes.ValidatorIdx, other HighestBeforeI, from []ltypes.ValidatorIdx)
 }
 
 type allVecs struct {

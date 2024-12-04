@@ -3,8 +3,6 @@ package abft
 import (
 	"testing"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
@@ -19,23 +17,23 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 	// Give one validator quorum power to advance the frames on it's own
 	lch, _, store, _ := NewCoreLachesis(nodes, []ltypes.Weight{1, 3})
 
-	laggyGenesis := processTestEvent(t, lch, store, nodes[0], 1, hash.EventHashes{})
-	parentEvent := processTestEvent(t, lch, store, nodes[1], 1, hash.EventHashes{})
+	laggyGenesis := processTestEvent(t, lch, store, nodes[0], 1, ltypes.EventHashes{})
+	parentEvent := processTestEvent(t, lch, store, nodes[1], 1, ltypes.EventHashes{})
 	for i := 0; i < gap; i++ {
-		parentEvent = processTestEvent(t, lch, store, nodes[1], idx.EventID(parentEvent.Seq()+1), hash.EventHashes{parentEvent.ID()})
+		parentEvent = processTestEvent(t, lch, store, nodes[1], ltypes.EventID(parentEvent.Seq()+1), ltypes.EventHashes{parentEvent.ID()})
 	}
 	// Lagging validator creates an event after a frame gap
-	finalEvent := processTestEvent(t, lch, store, nodes[0], laggyGenesis.Seq()+1, hash.EventHashes{laggyGenesis.ID(), parentEvent.ID()})
+	finalEvent := processTestEvent(t, lch, store, nodes[0], laggyGenesis.Seq()+1, ltypes.EventHashes{laggyGenesis.ID(), parentEvent.ID()})
 
-	if want, got := laggyGenesis.Frame()+idx.FrameID(gap)+1, finalEvent.Frame(); want != got {
+	if want, got := laggyGenesis.Frame()+ltypes.FrameID(gap)+1, finalEvent.Frame(); want != got {
 		t.Errorf("expected calculated frame number of lagging validator to be: %d, got: %d", gap, finalEvent.Frame())
 	}
 }
 
-var maxLamport idx.Lamport = 0
+var maxLamport ltypes.Lamport = 0
 
 // processTestEvent builds and pipes the event through main Lacehsis' DAG manipulation pipeline
-func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.EventID, parents hash.EventHashes) *tdag.TestEvent {
+func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId ltypes.ValidatorID, seq ltypes.EventID, parents ltypes.EventHashes) *tdag.TestEvent {
 	event := &tdag.TestEvent{}
 	event.SetSeq(seq)
 	event.SetCreator(validatorId)

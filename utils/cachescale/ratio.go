@@ -1,7 +1,7 @@
 package cachescale
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // Ratio alters the cache sizes proportionally to a ratio
@@ -51,14 +51,14 @@ func (r Ratio) I64(v int64) int64 {
 	return int64(r.U64(uint64(v)))
 }
 
-func (r Ratio) Events(v idx.EventID) idx.EventID {
-	return idx.EventID(r.U64(uint64(v)))
+func (r Ratio) Events(v ltypes.EventID) ltypes.EventID {
+	return ltypes.EventID(r.U64(uint64(v)))
 }
 
-func (r Ratio) Blocks(v idx.BlockID) idx.BlockID {
-	return idx.BlockID(r.U64(uint64(v)))
+func (r Ratio) Blocks(v ltypes.BlockID) ltypes.BlockID {
+	return ltypes.BlockID(r.U64(uint64(v)))
 }
 
-func (r Ratio) Frames(v idx.FrameID) idx.FrameID {
-	return idx.FrameID(r.U64(uint64(v)))
+func (r Ratio) Frames(v ltypes.FrameID) ltypes.FrameID {
+	return ltypes.FrameID(r.U64(uint64(v)))
 }

@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -22,7 +21,7 @@ func TestEventsByParents(t *testing.T) {
 	}
 
 	ordered := ByParents(unordered)
-	position := make(map[hash.EventHash]int)
+	position := make(map[ltypes.EventHash]int)
 	for i, e := range ordered {
 		position[e.ID()] = i
 	}

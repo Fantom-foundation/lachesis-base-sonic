@@ -5,15 +5,15 @@ import (
 	"io"
 
 	"github.com/Fantom-foundation/lachesis-base/abft"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
 )
 
 func main() {
-	openEDB := func(epoch idx.EpochID) kvdb.Store {
+	openEDB := func(epoch ltypes.EpochID) kvdb.Store {
 		return memorydb.New()
 	}
 

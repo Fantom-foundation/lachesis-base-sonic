@@ -5,10 +5,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/table"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/simplewlru"
 )
 
@@ -42,7 +42,7 @@ var (
 	ErrNoGenesis = errors.New("genesis not applied")
 )
 
-type EpochDBProducer func(epoch idx.EpochID) kvdb.Store
+type EpochDBProducer func(epoch ltypes.EpochID) kvdb.Store
 
 // NewStore creates store over key-value db.
 func NewStore(mainDB kvdb.Store, getDB EpochDBProducer, crit func(error), cfg StoreConfig) *Store {
@@ -67,7 +67,7 @@ func (s *Store) initCache() {
 // NewMemStore creates store over memory map.
 // Store is always blank.
 func NewMemStore() *Store {
-	getDb := func(epoch idx.EpochID) kvdb.Store {
+	getDb := func(epoch ltypes.EpochID) kvdb.Store {
 		return memorydb.New()
 	}
 	cfg := LiteStoreConfig()
@@ -114,7 +114,7 @@ func (s *Store) dropEpochDB() error {
 }
 
 // openEpochDB makes new epoch DB
-func (s *Store) openEpochDB(n idx.EpochID) error {
+func (s *Store) openEpochDB(n ltypes.EpochID) error {
 	// Clear full LRU cache.
 	s.cache.FrameRoots.Purge()
 

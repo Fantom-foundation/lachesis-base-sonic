@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
@@ -91,7 +90,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []ltypes.Weight, mutateWei
 	for _, _lch := range lchs {
 		lch := _lch // capture
 		lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
-			if lch.store.GetLastDecidedFrame()+1 == idx.FrameID(maxEpochBlocks) {
+			if lch.store.GetLastDecidedFrame()+1 == ltypes.FrameID(maxEpochBlocks) {
 				// seal epoch
 				if mutateWeights {
 					return mutateValidators(lch.store.GetValidators())
@@ -103,14 +102,14 @@ func testLachesisRandomAndReset(t *testing.T, weights []ltypes.Weight, mutateWei
 	}
 
 	// create events on lch0
-	ordered := map[idx.EpochID]ltypes.Events{}
+	ordered := map[ltypes.EpochID]ltypes.Events{}
 	parentCount := 5
 	if parentCount > len(nodes) {
 		parentCount = len(nodes)
 	}
-	epochStates := map[idx.EpochID]*EpochState{}
+	epochStates := map[ltypes.EpochID]*EpochState{}
 	r := rand.New(rand.NewSource(int64(len(nodes) + cheatersCount))) // nolint:gosec
-	for epoch := idx.EpochID(1); epoch <= idx.EpochID(epochs); epoch++ {
+	for epoch := ltypes.EpochID(1); epoch <= ltypes.EpochID(epochs); epoch++ {
 		tdag.ForEachRandFork(nodes, nodes[:cheatersCount], eventCount, parentCount, 10, r, tdag.ForEachEvent{
 			Process: func(e ltypes.Event, name string) {
 				ordered[epoch] = append(ordered[epoch], e)
@@ -134,7 +133,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []ltypes.Weight, mutateWei
 	}
 
 	// connect events to other instances
-	for epoch := idx.EpochID(1); epoch <= idx.EpochID(epochs); epoch++ {
+	for epoch := ltypes.EpochID(1); epoch <= ltypes.EpochID(epochs); epoch++ {
 		for i := 1; i < len(lchs); i++ {
 			if reset && epoch != epochs-1 && r.Intn(2) == 0 {
 				// never reset last epoch to be able to compare latest state
@@ -186,12 +185,12 @@ func compareResults(t *testing.T, lchs []*CoreLachesis) {
 			assertar.Equal(*(lchs[j].store.GetLastDecidedState()), *(lchs[i].store.GetLastDecidedState()))
 			assertar.Equal(*(lchs[j].store.GetEpochState()), *(lchs[i].store.GetEpochState()))
 
-			for e := idx.EpochID(1); e <= lch0.store.GetEpoch(); e++ {
+			for e := ltypes.EpochID(1); e <= lch0.store.GetEpoch(); e++ {
 				both := lch0.epochBlocks[e]
 				if both > lch1.epochBlocks[e] {
 					both = lch1.epochBlocks[e]
 				}
-				for f := idx.FrameID(1); f < both; f++ {
+				for f := ltypes.FrameID(1); f < both; f++ {
 					key := BlockKey{e, f}
 					if !assertar.Equal(
 						lch0.blocks[key], lch1.blocks[key],

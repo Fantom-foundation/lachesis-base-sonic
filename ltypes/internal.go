@@ -1,4 +1,4 @@
-package idx
+package ltypes
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/common/bigendian"

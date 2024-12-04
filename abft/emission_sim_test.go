@@ -13,14 +13,12 @@ import (
 	"time"
 
 	"github.com/Fantom-foundation/lachesis-base/emitter/ancestor"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 type Results struct {
-	maxFrame  idx.FrameID
+	maxFrame  ltypes.FrameID
 	numEvents int
 }
 
@@ -196,7 +194,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 	sortWeights := validators.SortedWeights()
 	sortedIDs := validators.SortedIDs()
 	onlineStake := validators.TotalWeight()
-	online := make(map[idx.ValidatorID]bool)
+	online := make(map[ltypes.ValidatorID]bool)
 	for i := len(sortWeights) - 1; i >= 0; i-- {
 		online[sortedIDs[i]] = true
 		if offlineNodes {
@@ -314,7 +312,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 						selfID := nodes[self]
 						e := &QITestEvent{}
 						e.SetCreator(selfID)
-						e.SetParents(hash.EventHashes{}) // first parent is empty hash
+						e.SetParents(ltypes.EventHashes{}) // first parent is empty hash
 
 						var parents ltypes.Events
 						if isLeaf[self] { // leaf event
@@ -388,7 +386,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 						var id [24]byte
 						copy(id[:], hasher.Sum(nil)[:24])
 						e.SetID(id)
-						hash.SetEventName(e.ID(), fmt.Sprintf("%03d%04d", self, e.Seq()))
+						ltypes.SetEventName(e.ID(), fmt.Sprintf("%03d%04d", self, e.Seq()))
 						e.creationTime = simTime
 
 						createRandEvent := randEvRNG[self].Float64() < randEvRate // used for introducing randomly created events
@@ -459,7 +457,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 		totalEventsComplete += nEv
 		// fmt.Println("Stake: ", weights[i], "event rate: ", float64(nEv)*1000/float64(simTime), " events/stake: ", float64(nEv)/float64(weights[i]))
 	}
-	var maxFrame idx.FrameID = 0
+	var maxFrame ltypes.FrameID = 0
 	for _, events := range headsAll {
 		for _, event := range events {
 			if event.Frame() > maxFrame {
@@ -496,7 +494,7 @@ func updateHeads(newEvent ltypes.Event, heads *ltypes.Events) {
 	*heads = append(*heads, newEvent) //add newEvent to heads
 }
 
-func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *ltypes.Events, self idx.ValidatorID, time int) (frame idx.FrameID) {
+func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *ltypes.Events, self ltypes.ValidatorID, time int) (frame ltypes.FrameID) {
 	input.SetEvent(e)
 
 	lchs.dagIndexer.Add(e)

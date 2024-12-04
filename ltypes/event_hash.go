@@ -1,4 +1,4 @@
-package hash
+package ltypes
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Fantom-foundation/lachesis-base/common/bigendian"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type (
@@ -52,19 +51,19 @@ func (h *EventHash) Big() *big.Int {
 	return (*Hash)(h).Big()
 }
 
-// setBytes converts bytes to event hash.
+// setBytes converts bytes to event ltypes.
 // If b is larger than len(h), b will be cropped from the left.
 func (h *EventHash) SetBytes(raw []byte) {
 	(*Hash)(h).SetBytes(raw)
 }
 
-// BytesToEvent converts bytes to event hash.
+// BytesToEvent converts bytes to event ltypes.
 // If b is larger than len(h), b will be cropped from the left.
 func BytesToEvent(b []byte) EventHash {
 	return EventHash(FromBytes(b))
 }
 
-// FromBytes converts bytes to hash.
+// FromBytes converts bytes to ltypes.
 // If b is larger than len(h), b will be cropped from the left.
 func FromBytes(b []byte) Hash {
 	var h Hash
@@ -72,7 +71,7 @@ func FromBytes(b []byte) Hash {
 	return h
 }
 
-// HexToEventHash sets byte representation of s to hash.
+// HexToEventHash sets byte representation of s to ltypes.
 // If b is larger than len(h), b will be cropped from the left.
 func HexToEventHash(s string) EventHash {
 	return EventHash(HexToHash(s))
@@ -84,13 +83,13 @@ func (h EventHash) Hex() string {
 }
 
 // Lamport returns [4:8] bytes, which store event's Lamport.
-func (h EventHash) Lamport() idx.Lamport {
-	return idx.BytesToLamport(h[4:8])
+func (h EventHash) Lamport() Lamport {
+	return BytesToLamport(h[4:8])
 }
 
 // Epoch returns [0:4] bytes, which store event's Epoch.
-func (h EventHash) Epoch() idx.EpochID {
-	return idx.BytesToEpoch(h[0:4])
+func (h EventHash) Epoch() EpochID {
+	return BytesToEpochID(h[0:4])
 }
 
 // String returns human readable string representation.
@@ -296,12 +295,12 @@ func Of(data ...[]byte) (hash Hash) {
  */
 
 // FakePeer generates random fake peer id for testing purpose.
-func FakePeer() idx.ValidatorID {
-	return idx.BytesToValidatorID(FakeHash().Bytes()[:4])
+func FakePeer() ValidatorID {
+	return BytesToValidatorID(FakeHash().Bytes()[:4])
 }
 
 // FakeEpoch gives fixed value of fake epoch for testing purpose.
-func FakeEpoch() idx.EpochID {
+func FakeEpoch() EpochID {
 	return 123456
 }
 

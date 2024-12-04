@@ -1,4 +1,4 @@
-package idx
+package ltypes
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/common/bigendian"
@@ -63,17 +63,17 @@ func (f FrameID) Bytes() []byte {
 }
 
 // BytesToEpoch converts bytes to epoch index.
-func BytesToEpoch(b []byte) EpochID {
+func BytesToEpochID(b []byte) EpochID {
 	return EpochID(bigendian.BytesToUint32(b))
 }
 
 // BytesToEvent converts bytes to event index.
-func BytesToEvent(b []byte) EventID {
+func BytesToEventID(b []byte) EventID {
 	return EventID(bigendian.BytesToUint32(b))
 }
 
 // BytesToBlock converts bytes to block index.
-func BytesToBlock(b []byte) BlockID {
+func BytesToBlockID(b []byte) BlockID {
 	return BlockID(bigendian.BytesToUint64(b))
 }
 
@@ -83,7 +83,7 @@ func BytesToLamport(b []byte) Lamport {
 }
 
 // BytesToFrame converts bytes to block index.
-func BytesToFrame(b []byte) FrameID {
+func BytesToFrameID(b []byte) FrameID {
 	return FrameID(bigendian.BytesToUint32(b))
 }
 

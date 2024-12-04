@@ -1,7 +1,6 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
@@ -22,7 +21,7 @@ func (h *PayloadIndexer) ProcessEvent(event ltypes.Event, payloadMetric Metric) 
 	}
 }
 
-func (h *PayloadIndexer) getMetricOf(id hash.EventHash) Metric {
+func (h *PayloadIndexer) getMetricOf(id ltypes.EventHash) Metric {
 	parentMetric, ok := h.payloadLamports.Get(id)
 	if !ok {
 		return 0
@@ -30,7 +29,7 @@ func (h *PayloadIndexer) getMetricOf(id hash.EventHash) Metric {
 	return parentMetric.(Metric)
 }
 
-func (h *PayloadIndexer) GetMetricOf(ids hash.EventHashes) Metric {
+func (h *PayloadIndexer) GetMetricOf(ids ltypes.EventHashes) Metric {
 	maxMetric := Metric(0)
 	for _, id := range ids {
 		metric := h.getMetricOf(id)

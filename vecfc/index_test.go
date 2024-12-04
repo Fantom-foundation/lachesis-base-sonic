@@ -7,7 +7,6 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/leveldb"
@@ -62,8 +61,8 @@ func benchmark_Index_Add(b *testing.B, dbProducer func() kvdb.FlushableKVStore) 
 		validatorsBuilder.Set(peer, 1)
 	}
 	validators := validatorsBuilder.Build()
-	events := make(map[hash.EventHash]ltypes.Event)
-	getEvent := func(id hash.EventHash) ltypes.Event {
+	events := make(map[ltypes.EventHash]ltypes.Event)
+	getEvent := func(id ltypes.EventHash) ltypes.Event {
 		return events[id]
 	}
 	for _, e := range ordered {

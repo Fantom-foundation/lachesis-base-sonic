@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
@@ -32,16 +30,16 @@ func testEventsBuffer(t *testing.T, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.FrameID(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	checked := 0
 
-	processed := make(map[hash.EventHash]ltypes.Event)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	limit := ltypes.Metric{
-		Num:  idx.EventID(len(ordered)),
+		Num:  ltypes.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
 	buffer := New(limit, Callback{
@@ -67,17 +65,17 @@ func testEventsBuffer(t *testing.T, try int64) {
 			}
 		},
 
-		Exists: func(id hash.EventHash) bool {
+		Exists: func(id ltypes.EventHash) bool {
 			return processed[id] != nil
 		},
 
-		Get: func(id hash.EventHash) ltypes.Event {
+		Get: func(id ltypes.EventHash) ltypes.Event {
 			return processed[id]
 		},
 
 		Check: func(e ltypes.Event, parents ltypes.Events) error {
 			checked++
-			if e.Frame() != idx.FrameID(e.Seq()) {
+			if e.Frame() != ltypes.FrameID(e.Seq()) {
 				return errors.New("malformed event frame")
 			}
 			return nil
@@ -119,18 +117,18 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.FrameID(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	released := uint32(0)
 
-	processed := make(map[hash.EventHash]ltypes.Event)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	var mutex sync.Mutex
 	limit := ltypes.Metric{
-		Num:  idx.EventID(rand.Intn(maxEvents)),  // nolint:gosec
-		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
+		Num:  ltypes.EventID(rand.Intn(maxEvents)), // nolint:gosec
+		Size: uint64(rand.Intn(maxEvents * 100)),   // nolint:gosec
 	}
 	buffer := New(limit, Callback{
 		Process: func(e ltypes.Event) error {
@@ -162,13 +160,13 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 			atomic.AddUint32(&released, 1)
 		},
 
-		Exists: func(e hash.EventHash) bool {
+		Exists: func(e ltypes.EventHash) bool {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e] != nil
 		},
 
-		Get: func(e hash.EventHash) ltypes.Event {
+		Get: func(e ltypes.EventHash) ltypes.Event {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e]

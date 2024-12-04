@@ -1,7 +1,6 @@
 package lachesis
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
@@ -12,7 +11,7 @@ type Consensus interface {
 	// Build sets consensus fields. Returns an error if event should be dropped.
 	Build(e ltypes.MutableEvent) error
 	// Reset switches epoch state to a new empty epoch.
-	Reset(epoch idx.EpochID, validators *ltypes.Validators) error
+	Reset(epoch ltypes.EpochID, validators *ltypes.Validators) error
 }
 
 type ApplyEventFn func(event ltypes.Event)

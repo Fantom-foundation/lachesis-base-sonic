@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/Fantom-foundation/lachesis-base/abft"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/urfave/cli/v2"
 )
@@ -57,10 +57,10 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 	if ctx.IsSet(EpochMinFlag.Name) {
-		epochMin = max(epochMin, idx.EpochID(ctx.Uint(EpochMinFlag.Name)))
+		epochMin = max(epochMin, ltypes.EpochID(ctx.Uint(EpochMinFlag.Name)))
 	}
 	if ctx.IsSet(EpochMaxFlag.Name) {
-		epochMax = min(epochMax, idx.EpochID(ctx.Uint(EpochMaxFlag.Name)))
+		epochMax = min(epochMax, ltypes.EpochID(ctx.Uint(EpochMaxFlag.Name)))
 	}
 	if epochMin > epochMax {
 		return fmt.Errorf("invalid range of epochs requested: [%d, %d]", epochMin, epochMax)

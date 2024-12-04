@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
@@ -61,7 +60,7 @@ func testConfirmBlocks(t *testing.T, weights []ltypes.Weight, cheatersCount int)
 	lch, _, input, _ := NewCoreLachesis(nodes, weights)
 
 	var (
-		frames []idx.FrameID
+		frames []ltypes.FrameID
 		blocks []*lachesis.Block
 	)
 	lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
