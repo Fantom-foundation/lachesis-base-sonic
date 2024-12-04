@@ -14,7 +14,7 @@ import (
 type DagIndexQ interface {
 	dagidx.VectorClock
 }
-type DiffMetricFn func(median, current, update idx.EventID, validatorIdx idx.Validator) Metric
+type DiffMetricFn func(median, current, update idx.EventID, validatorIdx idx.ValidatorIdx) Metric
 
 type QuorumIndexer struct {
 	dagi       DagIndexQ
@@ -43,17 +43,17 @@ func NewQuorumIndexer(validators *ltypes.Validators, dagi DagIndexQ, diffMetricF
 
 type Matrix struct {
 	buffer  []idx.EventID
-	columns idx.Validator
+	columns idx.ValidatorIdx
 }
 
-func NewMatrix(rows, cols idx.Validator) Matrix {
+func NewMatrix(rows, cols idx.ValidatorIdx) Matrix {
 	return Matrix{
 		buffer:  make([]idx.EventID, rows*cols),
 		columns: cols,
 	}
 }
 
-func (m Matrix) Row(i idx.Validator) []idx.EventID {
+func (m Matrix) Row(i idx.ValidatorIdx) []idx.EventID {
 	return m.buffer[i*m.columns : (i+1)*m.columns]
 }
 
@@ -86,7 +86,7 @@ func (h *QuorumIndexer) ProcessEvent(event ltypes.Event, selfEvent bool) {
 	vecClock := h.dagi.GetMergedHighestBefore(event.ID())
 	creatorIdx := h.validators.GetIdx(event.Creator())
 	// update global matrix
-	for validatorIdx := idx.Validator(0); validatorIdx < h.validators.Len(); validatorIdx++ {
+	for validatorIdx := idx.ValidatorIdx(0); validatorIdx < h.validators.Len(); validatorIdx++ {
 		seq := seqOf(vecClock.Get(validatorIdx))
 		h.globalMatrix.Row(validatorIdx)[creatorIdx] = seq
 		if selfEvent {
@@ -98,12 +98,12 @@ func (h *QuorumIndexer) ProcessEvent(event ltypes.Event, selfEvent bool) {
 
 func (h *QuorumIndexer) recacheState() {
 	// update median seqs
-	for validatorIdx := idx.Validator(0); validatorIdx < h.validators.Len(); validatorIdx++ {
+	for validatorIdx := idx.ValidatorIdx(0); validatorIdx < h.validators.Len(); validatorIdx++ {
 		pairs := make([]wmedian.WeightedValue, h.validators.Len())
 		for i := range pairs {
 			pairs[i] = weightedSeq{
 				seq:    h.globalMatrix.Row(validatorIdx)[i],
-				weight: h.validators.GetWeightByIdx(idx.Validator(i)),
+				weight: h.validators.GetWeightByIdx(idx.ValidatorIdx(i)),
 			}
 		}
 		sort.Slice(pairs, func(i, j int) bool {
@@ -126,7 +126,7 @@ func (h *QuorumIndexer) GetMetricOf(parents hash.EventHashes) Metric {
 		vecClock[i] = h.dagi.GetMergedHighestBefore(parent)
 	}
 	var metric Metric
-	for validatorIdx := idx.Validator(0); validatorIdx < h.validators.Len(); validatorIdx++ {
+	for validatorIdx := idx.ValidatorIdx(0); validatorIdx < h.validators.Len(); validatorIdx++ {
 
 		//find the Highest of all the parents
 		var update idx.EventID

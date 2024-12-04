@@ -13,7 +13,7 @@ import (
 
 type (
 	cache struct {
-		indexes     map[idx.ValidatorID]idx.Validator
+		indexes     map[idx.ValidatorID]idx.ValidatorIdx
 		weights     []Weight
 		ids         []idx.ValidatorID
 		totalWeight Weight
@@ -82,20 +82,20 @@ func newValidators(values ValidatorsBuilder) *Validators {
 }
 
 // Len returns count of validators in Validators objects
-func (vv *Validators) Len() idx.Validator {
-	return idx.Validator(len(vv.values))
+func (vv *Validators) Len() idx.ValidatorIdx {
+	return idx.ValidatorIdx(len(vv.values))
 }
 
 // calcCaches calculates internal caches for validators
 func (vv *Validators) calcCaches() cache {
 	cache := cache{
-		indexes: make(map[idx.ValidatorID]idx.Validator),
+		indexes: make(map[idx.ValidatorID]idx.ValidatorIdx),
 		weights: make([]Weight, vv.Len()),
 		ids:     make([]idx.ValidatorID, vv.Len()),
 	}
 
 	for i, v := range vv.sortedArray() {
-		cache.indexes[v.ID] = idx.Validator(i)
+		cache.indexes[v.ID] = idx.ValidatorIdx(i)
 		cache.weights[i] = v.Weight
 		cache.ids[i] = v.ID
 		totalWeightBefore := cache.totalWeight
@@ -118,17 +118,17 @@ func (vv *Validators) Get(id idx.ValidatorID) Weight {
 }
 
 // GetIdx returns index (offset) of validator in the group
-func (vv *Validators) GetIdx(id idx.ValidatorID) idx.Validator {
+func (vv *Validators) GetIdx(id idx.ValidatorID) idx.ValidatorIdx {
 	return vv.cache.indexes[id]
 }
 
 // GetID returns index validator ID by index (offset) of validator in the group
-func (vv *Validators) GetID(i idx.Validator) idx.ValidatorID {
+func (vv *Validators) GetID(i idx.ValidatorIdx) idx.ValidatorID {
 	return vv.cache.ids[i]
 }
 
 // GetWeightByIdx returns weight for validator by index
-func (vv *Validators) GetWeightByIdx(i idx.Validator) Weight {
+func (vv *Validators) GetWeightByIdx(i idx.ValidatorIdx) Weight {
 	return vv.cache.weights[i]
 }
 
@@ -156,7 +156,7 @@ func (vv *Validators) SortedWeights() []Weight {
 }
 
 // Idxs gets deterministic total order of validators.
-func (vv *Validators) Idxs() map[idx.ValidatorID]idx.Validator {
+func (vv *Validators) Idxs() map[idx.ValidatorID]idx.ValidatorIdx {
 	return vv.cache.indexes
 }
 
@@ -220,7 +220,7 @@ func (vv *Validators) String() string {
 		if len(str) != 0 {
 			str += ","
 		}
-		str += fmt.Sprintf("[%d:%d]", vid, vv.GetWeightByIdx(idx.Validator(i)))
+		str += fmt.Sprintf("[%d:%d]", vid, vv.GetWeightByIdx(idx.ValidatorIdx(i)))
 	}
 	return str
 }

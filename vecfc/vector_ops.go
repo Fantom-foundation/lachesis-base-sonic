@@ -6,11 +6,11 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/vecengine"
 )
 
-func (b *LowestAfterSeq) InitWithEvent(i idx.Validator, e ltypes.Event) {
+func (b *LowestAfterSeq) InitWithEvent(i idx.ValidatorIdx, e ltypes.Event) {
 	b.Set(i, e.Seq())
 }
 
-func (b *LowestAfterSeq) Visit(i idx.Validator, e ltypes.Event) bool {
+func (b *LowestAfterSeq) Visit(i idx.ValidatorIdx, e ltypes.Event) bool {
 	if b.Get(i) != 0 {
 		return false
 	}
@@ -19,36 +19,36 @@ func (b *LowestAfterSeq) Visit(i idx.Validator, e ltypes.Event) bool {
 	return true
 }
 
-func (b *HighestBeforeSeq) InitWithEvent(i idx.Validator, e ltypes.Event) {
+func (b *HighestBeforeSeq) InitWithEvent(i idx.ValidatorIdx, e ltypes.Event) {
 	b.Set(i, BranchSeq{Seq: e.Seq(), MinSeq: e.Seq()})
 }
 
-func (b *HighestBeforeSeq) IsEmpty(i idx.Validator) bool {
+func (b *HighestBeforeSeq) IsEmpty(i idx.ValidatorIdx) bool {
 	seq := b.Get(i)
 	return !seq.IsForkDetected() && seq.Seq == 0
 }
 
-func (b *HighestBeforeSeq) IsForkDetected(i idx.Validator) bool {
+func (b *HighestBeforeSeq) IsForkDetected(i idx.ValidatorIdx) bool {
 	return b.Get(i).IsForkDetected()
 }
 
-func (b *HighestBeforeSeq) Seq(i idx.Validator) idx.EventID {
+func (b *HighestBeforeSeq) Seq(i idx.ValidatorIdx) idx.EventID {
 	val := b.Get(i)
 	return val.Seq
 }
 
-func (b *HighestBeforeSeq) MinSeq(i idx.Validator) idx.EventID {
+func (b *HighestBeforeSeq) MinSeq(i idx.ValidatorIdx) idx.EventID {
 	val := b.Get(i)
 	return val.MinSeq
 }
 
-func (b *HighestBeforeSeq) SetForkDetected(i idx.Validator) {
+func (b *HighestBeforeSeq) SetForkDetected(i idx.ValidatorIdx) {
 	b.Set(i, forkDetectedSeq)
 }
 
-func (self *HighestBeforeSeq) CollectFrom(_other vecengine.HighestBeforeI, num idx.Validator) {
+func (self *HighestBeforeSeq) CollectFrom(_other vecengine.HighestBeforeI, num idx.ValidatorIdx) {
 	other := _other.(*HighestBeforeSeq)
-	for branchID := idx.Validator(0); branchID < num; branchID++ {
+	for branchID := idx.ValidatorIdx(0); branchID < num; branchID++ {
 		hisSeq := other.Get(branchID)
 		if hisSeq.Seq == 0 && !hisSeq.IsForkDetected() {
 			// hisSeq doesn't observe anything about this branchID
@@ -78,7 +78,7 @@ func (self *HighestBeforeSeq) CollectFrom(_other vecengine.HighestBeforeI, num i
 	}
 }
 
-func (self *HighestBeforeSeq) GatherFrom(to idx.Validator, _other vecengine.HighestBeforeI, from []idx.Validator) {
+func (self *HighestBeforeSeq) GatherFrom(to idx.ValidatorIdx, _other vecengine.HighestBeforeI, from []idx.ValidatorIdx) {
 	other := _other.(*HighestBeforeSeq)
 	// read all branches to find highest event
 	highestBranchSeq := BranchSeq{}

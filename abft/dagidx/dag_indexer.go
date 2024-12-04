@@ -12,7 +12,7 @@ type Seq interface {
 
 type HighestBeforeSeq interface {
 	Size() int
-	Get(i idx.Validator) Seq
+	Get(i idx.ValidatorIdx) Seq
 }
 
 type ForklessCause interface {

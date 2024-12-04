@@ -25,19 +25,19 @@ type (
 )
 
 // NewLowestAfterSeq creates new LowestAfterSeq vector.
-func NewLowestAfterSeq(size idx.Validator) *LowestAfterSeq {
+func NewLowestAfterSeq(size idx.ValidatorIdx) *LowestAfterSeq {
 	b := make(LowestAfterSeq, size*4)
 	return &b
 }
 
 // NewHighestBeforeSeq creates new HighestBeforeSeq vector.
-func NewHighestBeforeSeq(size idx.Validator) *HighestBeforeSeq {
+func NewHighestBeforeSeq(size idx.ValidatorIdx) *HighestBeforeSeq {
 	b := make(HighestBeforeSeq, size*8)
 	return &b
 }
 
 // Get i's position in the byte-encoded vector clock
-func (b LowestAfterSeq) Get(i idx.Validator) idx.EventID {
+func (b LowestAfterSeq) Get(i idx.ValidatorIdx) idx.EventID {
 	for i >= b.Size() {
 		return 0
 	}
@@ -45,12 +45,12 @@ func (b LowestAfterSeq) Get(i idx.Validator) idx.EventID {
 }
 
 // Size of the vector clock
-func (b LowestAfterSeq) Size() idx.Validator {
-	return idx.Validator(len(b)) / 4
+func (b LowestAfterSeq) Size() idx.ValidatorIdx {
+	return idx.ValidatorIdx(len(b)) / 4
 }
 
 // Set i's position in the byte-encoded vector clock
-func (b *LowestAfterSeq) Set(i idx.Validator, seq idx.EventID) {
+func (b *LowestAfterSeq) Set(i idx.ValidatorIdx, seq idx.EventID) {
 	for i >= b.Size() {
 		// append zeros if exceeds size
 		*b = append(*b, []byte{0, 0, 0, 0}...)
@@ -65,7 +65,7 @@ func (b HighestBeforeSeq) Size() int {
 }
 
 // Get i's position in the byte-encoded vector clock
-func (b HighestBeforeSeq) Get(i idx.Validator) BranchSeq {
+func (b HighestBeforeSeq) Get(i idx.ValidatorIdx) BranchSeq {
 	for int(i) >= b.Size() {
 		return BranchSeq{}
 	}
@@ -79,7 +79,7 @@ func (b HighestBeforeSeq) Get(i idx.Validator) BranchSeq {
 }
 
 // Set i's position in the byte-encoded vector clock
-func (b *HighestBeforeSeq) Set(i idx.Validator, seq BranchSeq) {
+func (b *HighestBeforeSeq) Set(i idx.ValidatorIdx, seq BranchSeq) {
 	for int(i) >= b.Size() {
 		// append zeros if exceeds size
 		*b = append(*b, []byte{0, 0, 0, 0, 0, 0, 0, 0}...)

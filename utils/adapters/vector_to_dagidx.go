@@ -26,7 +26,7 @@ func (b *BranchSeq) MinSeq() idx.EventID {
 }
 
 // Get i's position in the byte-encoded vector clock
-func (b VectorSeqToDagIndexSeq) Get(i idx.Validator) dagidx.Seq {
+func (b VectorSeqToDagIndexSeq) Get(i idx.ValidatorIdx) dagidx.Seq {
 	seq := b.HighestBeforeSeq.Get(i)
 	return &BranchSeq{seq}
 }

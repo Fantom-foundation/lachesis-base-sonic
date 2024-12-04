@@ -6,19 +6,19 @@ import (
 )
 
 type LowestAfterI interface {
-	InitWithEvent(i idx.Validator, e ltypes.Event)
-	Visit(i idx.Validator, e ltypes.Event) bool
+	InitWithEvent(i idx.ValidatorIdx, e ltypes.Event)
+	Visit(i idx.ValidatorIdx, e ltypes.Event) bool
 }
 
 type HighestBeforeI interface {
-	InitWithEvent(i idx.Validator, e ltypes.Event)
-	IsEmpty(i idx.Validator) bool
-	IsForkDetected(i idx.Validator) bool
-	Seq(i idx.Validator) idx.EventID
-	MinSeq(i idx.Validator) idx.EventID
-	SetForkDetected(i idx.Validator)
-	CollectFrom(other HighestBeforeI, branches idx.Validator)
-	GatherFrom(to idx.Validator, other HighestBeforeI, from []idx.Validator)
+	InitWithEvent(i idx.ValidatorIdx, e ltypes.Event)
+	IsEmpty(i idx.ValidatorIdx) bool
+	IsForkDetected(i idx.ValidatorIdx) bool
+	Seq(i idx.ValidatorIdx) idx.EventID
+	MinSeq(i idx.ValidatorIdx) idx.EventID
+	SetForkDetected(i idx.ValidatorIdx)
+	CollectFrom(other HighestBeforeI, branches idx.ValidatorIdx)
+	GatherFrom(to idx.ValidatorIdx, other HighestBeforeI, from []idx.ValidatorIdx)
 }
 
 type allVecs struct {

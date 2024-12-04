@@ -65,7 +65,7 @@ func (vi *Index) forklessCause(aID, bID hash.EventHash) bool {
 	// calculate forkless causing using the indexes
 	branchIDs := vi.Engine.BranchesInfo().BranchIDCreatorIdxs
 	for branchIDint, creatorIdx := range branchIDs {
-		branchID := idx.Validator(branchIDint)
+		branchID := idx.ValidatorIdx(branchIDint)
 
 		// bLowestAfter := vi.GetLowestAfterSeq_(bID, branchID)   // lowest event from creator on branchID, which observes B
 		bLowestAfter := b.Get(branchID)   // lowest event from creator on branchID, which observes B
@@ -163,7 +163,7 @@ func (vi *Index) ForklessCauseProgress(aID, bID hash.EventHash, candidateParents
 	// calculate forkless causing using the indexes
 	branchIDs := vi.Engine.BranchesInfo().BranchIDCreatorIdxs
 	for branchIDint, creatorIdx := range branchIDs {
-		branchID := idx.Validator(branchIDint)
+		branchID := idx.ValidatorIdx(branchIDint)
 
 		// bLowestAfter := vi.GetLowestAfterSeq_(bID, branchID)   // lowest event from creator on branchID, which observes B
 		bLowestAfter := bLA.Get(branchID)  // lowest event from creator on branchID, which observes B
