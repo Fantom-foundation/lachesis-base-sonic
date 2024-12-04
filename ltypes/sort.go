@@ -1,4 +1,4 @@
-package pos
+package ltypes
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"

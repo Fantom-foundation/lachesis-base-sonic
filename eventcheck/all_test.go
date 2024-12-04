@@ -10,16 +10,15 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/epochcheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/parentscheck"
 	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
 
 type testReader struct{}
 
-func (tr *testReader) GetEpochValidators() (*pos.Validators, idx.Epoch) {
-	vb := pos.NewBuilder()
+func (tr *testReader) GetEpochValidators() (*ltypes.Validators, idx.Epoch) {
+	vb := ltypes.NewBuilder()
 	vb.Set(1, 1)
 	return vb.Build(), 1
 }

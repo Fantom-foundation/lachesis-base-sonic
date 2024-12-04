@@ -8,58 +8,57 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
-	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
 )
 
 func TestRestart_1(t *testing.T) {
-	testRestart(t, []pos.Weight{1}, 0)
+	testRestart(t, []ltypes.Weight{1}, 0)
 }
 
 func TestRestart_big1(t *testing.T) {
-	testRestart(t, []pos.Weight{math.MaxUint32 / 2}, 0)
+	testRestart(t, []ltypes.Weight{math.MaxUint32 / 2}, 0)
 }
 
 func TestRestart_big2(t *testing.T) {
-	testRestart(t, []pos.Weight{math.MaxUint32 / 4, math.MaxUint32 / 4}, 0)
+	testRestart(t, []ltypes.Weight{math.MaxUint32 / 4, math.MaxUint32 / 4}, 0)
 }
 
 func TestRestart_big3(t *testing.T) {
-	testRestart(t, []pos.Weight{math.MaxUint32 / 8, math.MaxUint32 / 8, math.MaxUint32 / 4}, 0)
+	testRestart(t, []ltypes.Weight{math.MaxUint32 / 8, math.MaxUint32 / 8, math.MaxUint32 / 4}, 0)
 }
 
 func TestRestart_4(t *testing.T) {
-	testRestart(t, []pos.Weight{1, 2, 3, 4}, 0)
+	testRestart(t, []ltypes.Weight{1, 2, 3, 4}, 0)
 }
 
 func TestRestart_3_1(t *testing.T) {
-	testRestart(t, []pos.Weight{1, 1, 1, 1}, 1)
+	testRestart(t, []ltypes.Weight{1, 1, 1, 1}, 1)
 }
 
 func TestRestart_67_33(t *testing.T) {
-	testRestart(t, []pos.Weight{33, 67}, 1)
+	testRestart(t, []ltypes.Weight{33, 67}, 1)
 }
 
 func TestRestart_67_33_4(t *testing.T) {
-	testRestart(t, []pos.Weight{11, 11, 11, 67}, 3)
+	testRestart(t, []ltypes.Weight{11, 11, 11, 67}, 3)
 }
 
 func TestRestart_67_33_5(t *testing.T) {
-	testRestart(t, []pos.Weight{11, 11, 11, 33, 34}, 3)
+	testRestart(t, []ltypes.Weight{11, 11, 11, 33, 34}, 3)
 }
 
 func TestRestart_2_8_10(t *testing.T) {
-	testRestart(t, []pos.Weight{1, 2, 1, 2, 1, 2, 1, 2, 1, 2}, 3)
+	testRestart(t, []ltypes.Weight{1, 2, 1, 2, 1, 2, 1, 2, 1, 2}, 3)
 }
 
-func testRestart(t *testing.T, weights []pos.Weight, cheatersCount int) {
+func testRestart(t *testing.T, weights []ltypes.Weight, cheatersCount int) {
 	t.Helper()
 	testRestartAndReset(t, weights, false, cheatersCount, false)
 	testRestartAndReset(t, weights, false, cheatersCount, true)
@@ -67,7 +66,7 @@ func testRestart(t *testing.T, weights []pos.Weight, cheatersCount int) {
 	testRestartAndReset(t, weights, true, 0, true)
 }
 
-func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool, cheatersCount int, resets bool) {
+func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bool, cheatersCount int, resets bool) {
 	t.Helper()
 	assertar := assert.New(t)
 
@@ -95,7 +94,7 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 	// seal epoch on decided frame == maxEpochBlocks
 	for _, _lch := range lchs {
 		lch := _lch // capture
-		lch.applyBlock = func(block *lachesis.Block) *pos.Validators {
+		lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
 			if lch.store.GetLastDecidedFrame()+1 == idx.Frame(maxEpochBlocks) {
 				// seal epoch
 				if mutateWeights {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type kv struct {
@@ -82,7 +82,7 @@ func (vi *Index) forklessCause(aID, bID hash.Event) bool {
 	return yes.HasQuorum()
 }
 
-func (vi *Index) ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*pos.WeightCounter, []*pos.WeightCounter) {
+func (vi *Index) ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*ltypes.WeightCounter, []*ltypes.WeightCounter) {
 	// This function is used to determine progress of event bID in forkless causing aID.
 	// It may be used to determine progress toward the forkless cause condition for an event not in vi, but whose parents are in vi.
 	// To do so, aID should be the self-parent while chosenParents should be the parents of the not-yet-created event.
@@ -95,7 +95,7 @@ func (vi *Index) ForklessCauseProgress(aID, bID hash.Event, candidateParents, ch
 	// slice corresponding to each candidate parent in candidateParents.
 
 	// create the counters that measure the forkless cause progress
-	candidateParentsFCProgress := make([]*pos.WeightCounter, len(candidateParents))
+	candidateParentsFCProgress := make([]*ltypes.WeightCounter, len(candidateParents))
 	for i, _ := range candidateParentsFCProgress {
 		candidateParentsFCProgress[i] = vi.validators.NewCounter() // initialise the counter for each candidate parent
 	}

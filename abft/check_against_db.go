@@ -7,8 +7,8 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
@@ -26,7 +26,7 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 
 	recalculatedAtropoi := make([]hash.Event, 0)
 	// Capture the elected atropoi by planting the `applyBlock` callback (nil by default)
-	testLachesis.applyBlock = func(block *lachesis.Block) *pos.Validators {
+	testLachesis.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
 		recalculatedAtropoi = append(recalculatedAtropoi, block.Atropos)
 		return nil
 	}
@@ -97,7 +97,7 @@ func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEv
 	return nil
 }
 
-func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []pos.Weight, error) {
+func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []ltypes.Weight, error) {
 	rows, err := conn.Query(`
 		SELECT ValidatorId, Weight
 		FROM Validator
@@ -109,10 +109,10 @@ func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []pos.Weigh
 	defer rows.Close()
 
 	validators := make([]idx.ValidatorID, 0)
-	weights := make([]pos.Weight, 0)
+	weights := make([]ltypes.Weight, 0)
 	for rows.Next() {
 		var validatorId idx.ValidatorID
-		var weight pos.Weight
+		var weight ltypes.Weight
 
 		err = rows.Scan(&validatorId, &weight)
 		if err != nil {

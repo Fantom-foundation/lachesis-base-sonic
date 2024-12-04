@@ -10,13 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
-	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/vecengine/vecflushable"
 )
 
@@ -45,7 +44,7 @@ func benchForklessCauseProcess(b *testing.B, idx *int, inmem bool) {
 	b.Helper()
 	b.StopTimer()
 	nodes := tdag.GenNodes(10)
-	validators := pos.EqualWeightValidators(nodes, 1)
+	validators := ltypes.EqualWeightValidators(nodes, 1)
 
 	events := make(map[hash.Event]ltypes.Event)
 	getEvent := func(id hash.Event) ltypes.Event {
@@ -150,7 +149,7 @@ func testForklessCaused(t *testing.T, dagAscii string) {
 	assertar := assert.New(t)
 
 	nodes, _, _ := tdag.ASCIIschemeToDAG(dagAscii)
-	validators := pos.EqualWeightValidators(nodes, 1)
+	validators := ltypes.EqualWeightValidators(nodes, 1)
 
 	events := make(map[hash.Event]ltypes.Event)
 	getEvent := func(id hash.Event) ltypes.Event {
@@ -493,7 +492,7 @@ func testForklessCausedRandom(t *testing.T, dbProducer func() kvdb.FlushableKVSt
 		},
 	})
 
-	validators := pos.EqualWeightValidators(nodes, 1)
+	validators := ltypes.EqualWeightValidators(nodes, 1)
 
 	events := make(map[hash.Event]ltypes.Event)
 	getEvent := func(id hash.Event) ltypes.Event {
@@ -567,14 +566,14 @@ func TestRandomForksSanity(t *testing.T) {
 	nodes := tdag.GenNodes(8)
 	cheaters := []idx.ValidatorID{nodes[0], nodes[1], nodes[2]}
 
-	validatorsBuilder := pos.NewBuilder()
+	validatorsBuilder := ltypes.NewBuilder()
 	for _, peer := range nodes {
-		validatorsBuilder.Set(peer, pos.Weight(1))
+		validatorsBuilder.Set(peer, ltypes.Weight(1))
 	}
 
-	validatorsBuilder.Set(cheaters[0], pos.Weight(2))
-	validatorsBuilder.Set(nodes[3], pos.Weight(2))
-	validatorsBuilder.Set(nodes[4], pos.Weight(3))
+	validatorsBuilder.Set(cheaters[0], ltypes.Weight(2))
+	validatorsBuilder.Set(nodes[3], ltypes.Weight(2))
+	validatorsBuilder.Set(nodes[4], ltypes.Weight(3))
 	validators := validatorsBuilder.Build()
 
 	processed := make(map[hash.Event]ltypes.Event)
@@ -701,7 +700,7 @@ func TestRandomForks(t *testing.T) {
 			nodes := tdag.GenNodes(test.nodesNum)
 			cheaters := nodes[:test.cheatersNum]
 
-			validators := pos.EqualWeightValidators(nodes, 1)
+			validators := ltypes.EqualWeightValidators(nodes, 1)
 
 			processedArr := ltypes.Events{}
 			processed := make(map[hash.Event]ltypes.Event)
@@ -798,9 +797,9 @@ func codegen4ForklessCausedStability() {
 	peers := inter.GenNodes(4)
 	events := inter.GenEventsByNode(peers, 20, 2, nil, nil, nil)
 
-	validators := make(pos.Validators, len(peers))
+	validators := make(ltypes.Validators, len(peers))
 	for _, peer := range peers {
-		validators.Set(peer, pos.Weight(1))
+		validators.Set(peer, ltypes.Weight(1))
 	}
 	vi := NewIndex(validators, memorydb.New())
 

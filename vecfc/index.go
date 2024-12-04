@@ -2,11 +2,10 @@ package vecfc
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/table"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/cachescale"
 	"github.com/Fantom-foundation/lachesis-base/utils/simplewlru"
 	"github.com/Fantom-foundation/lachesis-base/vecengine"
@@ -29,7 +28,7 @@ type Index struct {
 	*vecengine.Engine
 
 	crit          func(error)
-	validators    *pos.Validators
+	validators    *ltypes.Validators
 	validatorIdxs map[idx.ValidatorID]idx.Validator
 
 	getEvent func(hash.Event) ltypes.Event
@@ -95,7 +94,7 @@ func (vi *Index) initCaches() {
 }
 
 // Reset resets buffers.
-func (vi *Index) Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
+func (vi *Index) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
 	vi.Engine.Reset(validators, db, getEvent)
 	vi.vecDb = db
 	table.MigrateTables(&vi.table, vi.vecDb)

@@ -10,10 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/utils"
 )
 
@@ -23,7 +22,7 @@ type fakeEdge struct {
 }
 
 type (
-	weights map[string]pos.Weight
+	weights map[string]ltypes.Weight
 )
 
 type testExpected struct {
@@ -230,7 +229,7 @@ func testProcessRoot(
 		},
 	})
 
-	validatorsBuilder := pos.NewBuilder()
+	validatorsBuilder := ltypes.NewBuilder()
 	for _, node := range nodes {
 		validatorsBuilder.Set(node, weights[utils.NameOf(node)])
 	}
@@ -277,7 +276,7 @@ func testProcessRoot(
 		if decisive || alreadyDecided {
 			assertar.NotNil(got)
 			assertar.Equal(expected.DecidedFrame, got.Frame)
-			assertar.Equal(expected.DecidedAtropos, got.Atropos.String())
+			assertar.Equal(expected.DecidedAtropos, got.Atroltypes.String())
 			alreadyDecided = true
 		} else {
 			assertar.Nil(got)

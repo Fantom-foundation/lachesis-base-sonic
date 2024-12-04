@@ -1,4 +1,4 @@
-package pos
+package ltypes
 
 import (
 	"math/big"

@@ -2,7 +2,7 @@ package vecengine
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // BranchesInfo contains information about global branches of each validator
@@ -24,7 +24,7 @@ func (vi *Engine) InitBranchesInfo() {
 	}
 }
 
-func newInitialBranchesInfo(validators *pos.Validators) *BranchesInfo {
+func newInitialBranchesInfo(validators *ltypes.Validators) *BranchesInfo {
 	branchIDCreators := validators.SortedIDs()
 	branchIDCreatorIdxs := make([]idx.Validator, len(branchIDCreators))
 	for i := range branchIDCreators {

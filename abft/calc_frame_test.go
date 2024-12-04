@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 func TestCalFrameIdx_10000(t *testing.T) {
@@ -17,7 +17,7 @@ func TestCalFrameIdx_10000(t *testing.T) {
 func testCalcFrameIdx(t *testing.T, gap int) {
 	nodes := tdag.GenNodes(2)
 	// Give one validator quorum power to advance the frames on it's own
-	lch, _, store, _ := NewCoreLachesis(nodes, []pos.Weight{1, 3})
+	lch, _, store, _ := NewCoreLachesis(nodes, []ltypes.Weight{1, 3})
 
 	laggyGenesis := processTestEvent(t, lch, store, nodes[0], 1, hash.Events{})
 	parentEvent := processTestEvent(t, lch, store, nodes[1], 1, hash.Events{})

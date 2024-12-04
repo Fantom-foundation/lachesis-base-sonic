@@ -14,10 +14,9 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/emitter/ancestor"
 	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
 
 type Results struct {
@@ -57,11 +56,11 @@ func Benchmark_Emission(b *testing.B) {
 	stakeDist := stakeCumDist()             // for stakes drawn from distribution
 	stakeRNG := rand.New(rand.NewSource(0)) // for stakes drawn from distribution
 
-	weights := make([]pos.Weight, numNodes)
+	weights := make([]ltypes.Weight, numNodes)
 	for i, _ := range weights {
 		// uncomment one of the below options for valiator stake distribution
-		weights[i] = pos.Weight(1)                               //for equal stake
-		weights[i] = pos.Weight(sampleDist(stakeRNG, stakeDist)) // for non-equal stake sample from Fantom main net validator stake distribution
+		weights[i] = ltypes.Weight(1)                               //for equal stake
+		weights[i] = ltypes.Weight(sampleDist(stakeRNG, stakeDist)) // for non-equal stake sample from Fantom main net validator stake distribution
 	}
 	sort.Slice(weights, func(i, j int) bool { return weights[i] > weights[j] }) // sort weights in order
 	QIParentCount := 12                                                         // maximum number of parents selected by FC indexer
@@ -135,7 +134,7 @@ func Benchmark_Emission(b *testing.B) {
 
 }
 
-func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offlineNodes bool, latency latency, maxLatency int, simulationDuration int) Results {
+func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, offlineNodes bool, latency latency, maxLatency int, simulationDuration int) Results {
 
 	numValidators := len(weights)
 
@@ -178,7 +177,7 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 
 	//setup nodes
 	nodes := tdag.GenNodes(numValidators)
-	validators := pos.ArrayToValidators(nodes, weights)
+	validators := ltypes.ArrayToValidators(nodes, weights)
 
 	var input *EventStore
 	var lch *CoreLachesis

@@ -8,13 +8,12 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
-	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/leveldb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/vecengine/vecflushable"
 )
 
@@ -58,7 +57,7 @@ func benchmark_Index_Add(b *testing.B, dbProducer func() kvdb.FlushableKVStore) 
 		},
 	})
 
-	validatorsBuilder := pos.NewBuilder()
+	validatorsBuilder := ltypes.NewBuilder()
 	for _, peer := range nodes {
 		validatorsBuilder.Set(peer, 1)
 	}

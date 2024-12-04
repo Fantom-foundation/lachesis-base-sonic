@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/table"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type Callbacks struct {
@@ -24,7 +23,7 @@ type Callbacks struct {
 
 type Engine struct {
 	crit          func(error)
-	validators    *pos.Validators
+	validators    *ltypes.Validators
 	validatorIdxs map[idx.ValidatorID]idx.Validator
 
 	bi *BranchesInfo
@@ -51,7 +50,7 @@ func NewIndex(crit func(error), callbacks Callbacks) *Engine {
 }
 
 // Reset resets buffers.
-func (vi *Engine) Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
+func (vi *Engine) Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
 	// use wrapper to be able to drop failed events by dropping cache
 	vi.getEvent = getEvent
 	vi.vecDb = db

@@ -4,8 +4,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var (

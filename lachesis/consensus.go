@@ -1,9 +1,8 @@
 package lachesis
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // Consensus is a consensus interface.
@@ -13,11 +12,11 @@ type Consensus interface {
 	// Build sets consensus fields. Returns an error if event should be dropped.
 	Build(e ltypes.MutableEvent) error
 	// Reset switches epoch state to a new empty epoch.
-	Reset(epoch idx.Epoch, validators *pos.Validators) error
+	Reset(epoch idx.Epoch, validators *ltypes.Validators) error
 }
 
 type ApplyEventFn func(event ltypes.Event)
-type EndBlockFn func() (sealEpoch *pos.Validators)
+type EndBlockFn func() (sealEpoch *ltypes.Validators)
 
 type BlockCallbacks struct {
 	// ApplyEvent is called on confirmation of each event during block processing.

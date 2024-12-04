@@ -2,9 +2,8 @@ package ancestor
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 const (
@@ -18,7 +17,7 @@ type highestEvent struct {
 
 type FCIndexer struct {
 	dagi       DagIndex
-	validators *pos.Validators
+	validators *ltypes.Validators
 	me         idx.ValidatorID
 
 	prevSelfEvent hash.Event
@@ -34,10 +33,10 @@ type FCIndexer struct {
 }
 
 type DagIndex interface {
-	ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*pos.WeightCounter, []*pos.WeightCounter)
+	ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
 }
 
-func NewFCIndexer(validators *pos.Validators, dagi DagIndex, me idx.ValidatorID) *FCIndexer {
+func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me idx.ValidatorID) *FCIndexer {
 	fc := &FCIndexer{
 		dagi:          dagi,
 		validators:    validators,
@@ -109,7 +108,7 @@ func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.Frame, bK int, bFrame id
 
 // ValidatorsPastMe returns total weight of validators which exceeded knowledge of "my" previous event
 // Typically node shouldn't emit an event until the value >= quorum, which happens to lead to an almost optimal events timing
-func (fc *FCIndexer) ValidatorsPastMe() pos.Weight {
+func (fc *FCIndexer) ValidatorsPastMe() ltypes.Weight {
 	selfFrame := fc.prevSelfFrame
 
 	kGreaterWeight := fc.validators.NewCounter()

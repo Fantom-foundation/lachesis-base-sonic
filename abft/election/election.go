@@ -3,7 +3,7 @@ package election
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type (
@@ -12,7 +12,7 @@ type (
 		// election params
 		frameToDecide idx.Frame
 
-		validators *pos.Validators
+		validators *ltypes.Validators
 
 		// election state
 		decidedRoots map[idx.ValidatorID]voteValue // decided roots at "frameToDecide"
@@ -60,7 +60,7 @@ type Res struct {
 
 // New election context
 func New(
-	validators *pos.Validators,
+	validators *ltypes.Validators,
 	frameToDecide idx.Frame,
 	forklessCauseFn ForklessCauseFn,
 	getFrameRoots GetFrameRootsFn,
@@ -76,7 +76,7 @@ func New(
 }
 
 // Reset erases the current election state, prepare for new election frame
-func (el *Election) Reset(validators *pos.Validators, frameToDecide idx.Frame) {
+func (el *Election) Reset(validators *ltypes.Validators, frameToDecide idx.Frame) {
 	el.validators = validators
 	el.frameToDecide = frameToDecide
 	el.votes = make(map[voteID]voteValue)

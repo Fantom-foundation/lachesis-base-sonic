@@ -6,8 +6,8 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/eventcheck"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
 

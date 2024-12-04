@@ -3,10 +3,9 @@ package abft
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var _ lachesis.Consensus = (*Lachesis)(nil)
@@ -52,7 +51,7 @@ func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventCon
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *ltypes.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()
@@ -97,11 +96,11 @@ func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, or
 	return nil
 }
 
-func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *pos.Validators) error {
+func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *ltypes.Validators) error {
 	return p.StartFromWithOrderer(callback, epoch, validators, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *pos.Validators, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.StartFrom(ordererCallbacks, epoch, validators)
 	if err != nil {
 		return err

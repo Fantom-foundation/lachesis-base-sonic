@@ -4,12 +4,11 @@ import (
 	"math/rand"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
 )
@@ -23,7 +22,7 @@ type dbEvent struct {
 	parents     []hash.Event
 }
 
-type applyBlockFn func(block *lachesis.Block) *pos.Validators
+type applyBlockFn func(block *lachesis.Block) *ltypes.Validators
 
 type BlockKey struct {
 	Epoch idx.Epoch
@@ -33,7 +32,7 @@ type BlockKey struct {
 type BlockResult struct {
 	Atropos    hash.Event
 	Cheaters   lachesis.Cheaters
-	Validators *pos.Validators
+	Validators *ltypes.Validators
 }
 
 // CoreLachesis extends Indexed Orderer for tests.
@@ -48,8 +47,8 @@ type CoreLachesis struct {
 }
 
 // NewCoreLachesis creates empty abft consensus with mem store and optional node weights w.o. some callbacks usually instantiated by Client
-func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memorydb.Mod) (*CoreLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
-	validators := make(pos.ValidatorsBuilder, len(nodes))
+func NewCoreLachesis(nodes []idx.ValidatorID, weights []ltypes.Weight, mods ...memorydb.Mod) (*CoreLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
+	validators := make(ltypes.ValidatorsBuilder, len(nodes))
 	for i, v := range nodes {
 		if weights == nil {
 			validators[v] = 1
@@ -89,7 +88,7 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memo
 	err = extended.Bootstrap(lachesis.ConsensusCallbacks{
 		BeginBlock: func(block *lachesis.Block) lachesis.BlockCallbacks {
 			return lachesis.BlockCallbacks{
-				EndBlock: func() (sealEpoch *pos.Validators) {
+				EndBlock: func() (sealEpoch *ltypes.Validators) {
 					// track blocks
 					key := BlockKey{
 						Epoch: extended.store.GetEpoch(),
@@ -121,12 +120,12 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memo
 	return extended, store, input, dagIndexer
 }
 
-func mutateValidators(validators *pos.Validators) *pos.Validators {
+func mutateValidators(validators *ltypes.Validators) *ltypes.Validators {
 	r := rand.New(rand.NewSource(int64(validators.TotalWeight()))) // nolint:gosec
-	builder := pos.NewBuilder()
+	builder := ltypes.NewBuilder()
 	for _, vid := range validators.IDs() {
 		stake := uint64(validators.Get(vid))*uint64(500+r.Intn(500))/1000 + 1
-		builder.Set(vid, pos.Weight(stake))
+		builder.Set(vid, ltypes.Weight(stake))
 	}
 	return builder.Build()
 }

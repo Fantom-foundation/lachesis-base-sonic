@@ -6,7 +6,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 const (
@@ -24,7 +24,7 @@ type EpochState struct {
 	// stored values
 	// these values change only after a change of epoch
 	Epoch      idx.Epoch
-	Validators *pos.Validators
+	Validators *ltypes.Validators
 }
 
 func (es EpochState) String() string {
@@ -55,7 +55,7 @@ func (p *Orderer) Bootstrap(callback OrdererCallbacks) error {
 }
 
 // StartFrom initiates Orderer with specified parameters
-func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.Epoch, validators *pos.Validators) error {
+func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.Epoch, validators *ltypes.Validators) error {
 	if p.election != nil {
 		return errors.New("already bootstrapped")
 	}
@@ -76,7 +76,7 @@ func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.Epoch, validato
 }
 
 // Reset switches epoch state to a new empty epoch.
-func (p *Orderer) Reset(epoch idx.Epoch, validators *pos.Validators) error {
+func (p *Orderer) Reset(epoch idx.Epoch, validators *ltypes.Validators) error {
 	p.store.applyGenesis(epoch, validators)
 	// reset internal epoch DB
 	err := p.resetEpochStore(epoch)

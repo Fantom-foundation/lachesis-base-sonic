@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // Genesis stores genesis state
 type Genesis struct {
 	Epoch      idx.Epoch
-	Validators *pos.Validators
+	Validators *ltypes.Validators
 }
 
 // ApplyGenesis writes initial state.
@@ -30,7 +30,7 @@ func (s *Store) ApplyGenesis(g *Genesis) error {
 }
 
 // applyGenesis switches epoch state to a new empty epoch.
-func (s *Store) applyGenesis(epoch idx.Epoch, validators *pos.Validators) {
+func (s *Store) applyGenesis(epoch idx.Epoch, validators *ltypes.Validators) {
 	es := &EpochState{}
 	ds := &LastDecidedState{}
 

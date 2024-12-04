@@ -6,9 +6,8 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/wmedian"
 )
 
@@ -19,7 +18,7 @@ type DiffMetricFn func(median, current, update idx.Event, validatorIdx idx.Valid
 
 type QuorumIndexer struct {
 	dagi       DagIndexQ
-	validators *pos.Validators
+	validators *ltypes.Validators
 
 	globalMatrix     Matrix
 	selfParentSeqs   []idx.Event
@@ -30,7 +29,7 @@ type QuorumIndexer struct {
 	diffMetricFn DiffMetricFn
 }
 
-func NewQuorumIndexer(validators *pos.Validators, dagi DagIndexQ, diffMetricFn DiffMetricFn) *QuorumIndexer {
+func NewQuorumIndexer(validators *ltypes.Validators, dagi DagIndexQ, diffMetricFn DiffMetricFn) *QuorumIndexer {
 	return &QuorumIndexer{
 		globalMatrix:     NewMatrix(validators.Len(), validators.Len()),
 		globalMedianSeqs: make([]idx.Event, validators.Len()),
@@ -76,10 +75,10 @@ func seqOf(seq dagidx.Seq) idx.Event {
 
 type weightedSeq struct {
 	seq    idx.Event
-	weight pos.Weight
+	weight ltypes.Weight
 }
 
-func (ws weightedSeq) Weight() pos.Weight {
+func (ws weightedSeq) Weight() ltypes.Weight {
 	return ws.weight
 }
 

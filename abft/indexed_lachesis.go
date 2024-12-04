@@ -7,12 +7,11 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var _ lachesis.Consensus = (*IndexedLachesis)(nil)
@@ -35,7 +34,7 @@ type DagIndexer interface {
 	Flush()
 	DropNotFlushed()
 
-	Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event)
+	Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event)
 }
 
 // NewIndexedLachesis creates IndexedLachesis instance.

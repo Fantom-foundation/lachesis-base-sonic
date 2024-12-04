@@ -8,11 +8,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 )
 
 const (
@@ -20,46 +19,46 @@ const (
 )
 
 func TestLachesisRandom_1(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{1}, 0)
+	testLachesisRandom(t, []ltypes.Weight{1}, 0)
 }
 
 func TestLachesisRandom_big1(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{math.MaxUint32 / 2}, 0)
+	testLachesisRandom(t, []ltypes.Weight{math.MaxUint32 / 2}, 0)
 }
 
 func TestLachesisRandom_big2(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{math.MaxUint32 / 4, math.MaxUint32 / 4}, 0)
+	testLachesisRandom(t, []ltypes.Weight{math.MaxUint32 / 4, math.MaxUint32 / 4}, 0)
 }
 
 func TestLachesisRandom_big3(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{math.MaxUint32 / 8, math.MaxUint32 / 8, math.MaxUint32 / 4}, 0)
+	testLachesisRandom(t, []ltypes.Weight{math.MaxUint32 / 8, math.MaxUint32 / 8, math.MaxUint32 / 4}, 0)
 }
 
 func TestLachesisRandom_4(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{1, 2, 3, 4}, 0)
+	testLachesisRandom(t, []ltypes.Weight{1, 2, 3, 4}, 0)
 }
 
 func TestLachesisRandom_3_1(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{1, 1, 1, 1}, 1)
+	testLachesisRandom(t, []ltypes.Weight{1, 1, 1, 1}, 1)
 }
 
 func TestLachesisRandom_67_33(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{33, 67}, 1)
+	testLachesisRandom(t, []ltypes.Weight{33, 67}, 1)
 }
 
 func TestLachesisRandom_67_33_4(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{11, 11, 11, 67}, 3)
+	testLachesisRandom(t, []ltypes.Weight{11, 11, 11, 67}, 3)
 }
 
 func TestLachesisRandom_67_33_5(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{11, 11, 11, 33, 34}, 3)
+	testLachesisRandom(t, []ltypes.Weight{11, 11, 11, 33, 34}, 3)
 }
 
 func TestLachesisRandom_2_8_10(t *testing.T) {
-	testLachesisRandom(t, []pos.Weight{1, 2, 1, 2, 1, 2, 1, 2, 1, 2}, 3)
+	testLachesisRandom(t, []ltypes.Weight{1, 2, 1, 2, 1, 2, 1, 2, 1, 2}, 3)
 }
 
-func testLachesisRandom(t *testing.T, weights []pos.Weight, cheatersCount int) {
+func testLachesisRandom(t *testing.T, weights []ltypes.Weight, cheatersCount int) {
 	t.Helper()
 	testLachesisRandomAndReset(t, weights, false, cheatersCount, false)
 	testLachesisRandomAndReset(t, weights, false, cheatersCount, true)
@@ -68,7 +67,7 @@ func testLachesisRandom(t *testing.T, weights []pos.Weight, cheatersCount int) {
 }
 
 // TestLachesis 's possibility to get consensus in general on any event order.
-func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool, cheatersCount int, reset bool) {
+func testLachesisRandomAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bool, cheatersCount int, reset bool) {
 	t.Helper()
 	assertar := assert.New(t)
 
@@ -91,7 +90,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 	// seal epoch on decided frame == maxEpochBlocks
 	for _, _lch := range lchs {
 		lch := _lch // capture
-		lch.applyBlock = func(block *lachesis.Block) *pos.Validators {
+		lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
 			if lch.store.GetLastDecidedFrame()+1 == idx.Frame(maxEpochBlocks) {
 				// seal epoch
 				if mutateWeights {
