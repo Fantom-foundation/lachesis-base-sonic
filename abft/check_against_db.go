@@ -12,7 +12,7 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
-func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
+func CheckEpochAgainstDB(conn *sql.DB, epoch idx.EpochID) error {
 	validators, weights, err := getValidator(conn, epoch)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch idx.Epoch) error {
 	return nil
 }
 
-func GetEpochRange(conn *sql.DB) (idx.Epoch, idx.Epoch, error) {
+func GetEpochRange(conn *sql.DB) (idx.EpochID, idx.EpochID, error) {
 	// Query the `Event` table as `Validator` table may include future (empty) epochs
 	rows, err := conn.Query(`
 		SELECT MIN(e.EpochId), MAX(e.EpochId)
@@ -68,7 +68,7 @@ func GetEpochRange(conn *sql.DB) (idx.Epoch, idx.Epoch, error) {
 	}
 	defer rows.Close()
 
-	var epochMin, epochMax idx.Epoch
+	var epochMin, epochMax idx.EpochID
 	if !rows.Next() {
 		return 0, 0, fmt.Errorf("no non-empty epochs in database")
 	}
@@ -97,7 +97,7 @@ func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEv
 	return nil
 }
 
-func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []ltypes.Weight, error) {
+func getValidator(conn *sql.DB, epoch idx.EpochID) ([]idx.ValidatorID, []ltypes.Weight, error) {
 	rows, err := conn.Query(`
 		SELECT ValidatorId, Weight
 		FROM Validator
@@ -125,7 +125,7 @@ func getValidator(conn *sql.DB, epoch idx.Epoch) ([]idx.ValidatorID, []ltypes.We
 	return validators, weights, nil
 }
 
-func getEvents(conn *sql.DB, epoch idx.Epoch) ([]*dbEvent, map[hash.Event]*dbEvent, error) {
+func getEvents(conn *sql.DB, epoch idx.EpochID) ([]*dbEvent, map[hash.Event]*dbEvent, error) {
 	rows, err := conn.Query(`
 		SELECT e.EventHash, e.ValidatorId, e.SequenceNumber, e.FrameId, e.LamportNumber
 		FROM Event e
@@ -142,8 +142,8 @@ func getEvents(conn *sql.DB, epoch idx.Epoch) ([]*dbEvent, map[hash.Event]*dbEve
 	for rows.Next() {
 		var hashStr string
 		var validatorId idx.ValidatorID
-		var seq idx.Event
-		var frame idx.Frame
+		var seq idx.EventID
+		var frame idx.FrameID
 		var lamportTs idx.Lamport
 		err = rows.Scan(&hashStr, &validatorId, &seq, &frame, &lamportTs)
 		if err != nil {
@@ -168,7 +168,7 @@ func getEvents(conn *sql.DB, epoch idx.Epoch) ([]*dbEvent, map[hash.Event]*dbEve
 	return eventsOrdered, eventMap, appointParents(conn, eventMap, epoch)
 }
 
-func appointParents(conn *sql.DB, eventMap map[hash.Event]*dbEvent, epoch idx.Epoch) error {
+func appointParents(conn *sql.DB, eventMap map[hash.Event]*dbEvent, epoch idx.EpochID) error {
 	rows, err := conn.Query(`
 		SELECT e.EventHash, eParent.EventHash
 		FROM Event e JOIN Parent p ON e.EventId = p.EventId JOIN Event eParent ON eParent.EventId = p.ParentId
@@ -217,7 +217,7 @@ func appointParents(conn *sql.DB, eventMap map[hash.Event]*dbEvent, epoch idx.Ep
 	return nil
 }
 
-func getAtropoi(conn *sql.DB, epoch idx.Epoch) ([]hash.Event, error) {
+func getAtropoi(conn *sql.DB, epoch idx.EpochID) ([]hash.Event, error) {
 	rows, err := conn.Query(`
 		SELECT e.EventHash
 		FROM Atropos a JOIN Event e ON a.AtroposId = e.EventId

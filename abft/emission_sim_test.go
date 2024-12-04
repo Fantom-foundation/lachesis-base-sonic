@@ -20,7 +20,7 @@ import (
 )
 
 type Results struct {
-	maxFrame  idx.Frame
+	maxFrame  idx.FrameID
 	numEvents int
 }
 
@@ -459,7 +459,7 @@ func simulate(weights []ltypes.Weight, QIParentCount int, randParentCount int, o
 		totalEventsComplete += nEv
 		// fmt.Println("Stake: ", weights[i], "event rate: ", float64(nEv)*1000/float64(simTime), " events/stake: ", float64(nEv)/float64(weights[i]))
 	}
-	var maxFrame idx.Frame = 0
+	var maxFrame idx.FrameID = 0
 	for _, events := range headsAll {
 		for _, event := range events {
 			if event.Frame() > maxFrame {
@@ -496,7 +496,7 @@ func updateHeads(newEvent ltypes.Event, heads *ltypes.Events) {
 	*heads = append(*heads, newEvent) //add newEvent to heads
 }
 
-func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *ltypes.Events, self idx.ValidatorID, time int) (frame idx.Frame) {
+func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *ltypes.Events, self idx.ValidatorID, time int) (frame idx.FrameID) {
 	input.SetEvent(e)
 
 	lchs.dagIndexer.Add(e)

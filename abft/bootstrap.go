@@ -10,20 +10,20 @@ import (
 )
 
 const (
-	FirstFrame = idx.Frame(1)
-	FirstEpoch = idx.Epoch(1)
+	FirstFrame = idx.FrameID(1)
+	FirstEpoch = idx.EpochID(1)
 )
 
 // LastDecidedState is for persistent storing.
 type LastDecidedState struct {
 	// fields can change only after a frame is decided
-	LastDecidedFrame idx.Frame
+	LastDecidedFrame idx.FrameID
 }
 
 type EpochState struct {
 	// stored values
 	// these values change only after a change of epoch
-	Epoch      idx.Epoch
+	Epoch      idx.EpochID
 	Validators *ltypes.Validators
 }
 
@@ -55,7 +55,7 @@ func (p *Orderer) Bootstrap(callback OrdererCallbacks) error {
 }
 
 // StartFrom initiates Orderer with specified parameters
-func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.Epoch, validators *ltypes.Validators) error {
+func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.EpochID, validators *ltypes.Validators) error {
 	if p.election != nil {
 		return errors.New("already bootstrapped")
 	}
@@ -76,7 +76,7 @@ func (p *Orderer) StartFrom(callback OrdererCallbacks, epoch idx.Epoch, validato
 }
 
 // Reset switches epoch state to a new empty epoch.
-func (p *Orderer) Reset(epoch idx.Epoch, validators *ltypes.Validators) error {
+func (p *Orderer) Reset(epoch idx.EpochID, validators *ltypes.Validators) error {
 	p.store.applyGenesis(epoch, validators)
 	// reset internal epoch DB
 	err := p.resetEpochStore(epoch)

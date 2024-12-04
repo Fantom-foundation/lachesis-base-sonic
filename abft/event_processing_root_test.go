@@ -254,12 +254,12 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 	assertar := assert.New(t)
 
 	// decode is a event name parser
-	decode := func(name string) (frameN idx.Frame, isRoot bool) {
+	decode := func(name string) (frameN idx.FrameID, isRoot bool) {
 		n, err := strconv.ParseUint(strings.Split(name, ".")[0][1:2], 10, 64)
 		if err != nil {
 			panic(err.Error() + ". Name event " + name + " properly: <UpperCaseForRoot><FrameN><Engine>")
 		}
-		frameN = idx.Frame(n)
+		frameN = idx.FrameID(n)
 
 		isRoot = name == strings.ToUpper(name)
 		return
@@ -286,7 +286,7 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 	// check each
 	for name, event := range names {
 		mustBeFrame, mustBeRoot := decode(name)
-		var selfParentFrame idx.Frame
+		var selfParentFrame idx.FrameID
 		if event.SelfParent() != nil {
 			selfParentFrame = input.GetEvent(*event.SelfParent()).Frame()
 		}

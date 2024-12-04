@@ -26,7 +26,7 @@ type (
 )
 
 type testExpected struct {
-	DecidedFrame   idx.Frame
+	DecidedFrame   idx.FrameID
 	DecidedAtropos string
 	DecisiveRoots  map[string]bool
 }
@@ -186,7 +186,7 @@ func testProcessRoot(
 	// events:
 	ordered := make(tdag.TestEvents, 0)
 	events := make(map[hash.Event]*tdag.TestEvent)
-	frameRoots := make(map[idx.Frame][]RootAndSlot)
+	frameRoots := make(map[idx.FrameID][]RootAndSlot)
 	vertices := make(map[hash.Event]Slot)
 	edges := make(map[fakeEdge]bool)
 
@@ -242,7 +242,7 @@ func testProcessRoot(
 		}
 		return edges[edge]
 	}
-	getFrameRootsFn := func(f idx.Frame) []RootAndSlot {
+	getFrameRootsFn := func(f idx.FrameID) []RootAndSlot {
 		return frameRoots[f]
 	}
 
@@ -284,11 +284,11 @@ func testProcessRoot(
 	}
 }
 
-func frameOf(dsc string) idx.Frame {
+func frameOf(dsc string) idx.FrameID {
 	s := strings.Split(dsc, "_")[1]
 	h, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
 		panic(err)
 	}
-	return idx.Frame(h)
+	return idx.FrameID(h)
 }

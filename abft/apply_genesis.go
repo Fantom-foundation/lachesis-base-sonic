@@ -9,7 +9,7 @@ import (
 
 // Genesis stores genesis state
 type Genesis struct {
-	Epoch      idx.Epoch
+	Epoch      idx.EpochID
 	Validators *ltypes.Validators
 }
 
@@ -30,7 +30,7 @@ func (s *Store) ApplyGenesis(g *Genesis) error {
 }
 
 // applyGenesis switches epoch state to a new empty epoch.
-func (s *Store) applyGenesis(epoch idx.Epoch, validators *ltypes.Validators) {
+func (s *Store) applyGenesis(epoch idx.EpochID, validators *ltypes.Validators) {
 	es := &EpochState{}
 	ds := &LastDecidedState{}
 

@@ -35,7 +35,7 @@ func NewLachesis(store *Store, input EventSource, dagIndex DagIndex, crit func(e
 	return p
 }
 
-func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventConfirmed func(ltypes.Event)) error {
+func (p *Lachesis) confirmEvents(frame idx.FrameID, atropos hash.Event, onEventConfirmed func(ltypes.Event)) error {
 	err := p.dfsSubgraph(atropos, func(e ltypes.Event) bool {
 		decidedFrame := p.store.GetEventConfirmedOn(e.ID())
 		if decidedFrame != 0 {
@@ -51,7 +51,7 @@ func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventCon
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *ltypes.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame idx.FrameID, atropos hash.Event) *ltypes.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()
@@ -96,11 +96,11 @@ func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, or
 	return nil
 }
 
-func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *ltypes.Validators) error {
+func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.EpochID, validators *ltypes.Validators) error {
 	return p.StartFromWithOrderer(callback, epoch, validators, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.StartFrom(ordererCallbacks, epoch, validators)
 	if err != nil {
 		return err

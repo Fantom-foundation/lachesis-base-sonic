@@ -9,9 +9,9 @@ import (
 )
 
 type OrdererCallbacks struct {
-	ApplyAtropos func(decidedFrame idx.Frame, atropos hash.Event) (sealEpoch *ltypes.Validators)
+	ApplyAtropos func(decidedFrame idx.FrameID, atropos hash.Event) (sealEpoch *ltypes.Validators)
 
-	EpochDBLoaded func(idx.Epoch)
+	EpochDBLoaded func(idx.EpochID)
 }
 
 type OrdererDagIndex interface {

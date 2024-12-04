@@ -66,7 +66,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 	events := make(ltypes.Events, maxEvents)
 	for i := range events {
 		e := &tdag.TestEvent{}
-		e.SetEpoch(idx.Epoch(i / 10))
+		e.SetEpoch(idx.EpochID(i / 10))
 		e.SetLamport(idx.Lamport(i / 2))
 		var rID [24]byte
 		copy(rID[:], big.NewInt(int64(i+1)).Bytes())

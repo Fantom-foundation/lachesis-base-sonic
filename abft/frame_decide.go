@@ -8,7 +8,7 @@ import (
 
 // onFrameDecided moves LastDecidedFrameN to frame.
 // It includes: moving current decided frame, txs ordering and execution, epoch sealing.
-func (p *Orderer) onFrameDecided(frame idx.Frame, atropos hash.Event) (bool, error) {
+func (p *Orderer) onFrameDecided(frame idx.FrameID, atropos hash.Event) (bool, error) {
 	// new checkpoint
 	var newValidators *ltypes.Validators
 	if p.callback.ApplyAtropos != nil {
@@ -31,7 +31,7 @@ func (p *Orderer) onFrameDecided(frame idx.Frame, atropos hash.Event) (bool, err
 	return newValidators != nil, nil
 }
 
-func (p *Orderer) resetEpochStore(newEpoch idx.Epoch) error {
+func (p *Orderer) resetEpochStore(newEpoch idx.EpochID) error {
 	err := p.store.dropEpochDB()
 	if err != nil {
 		return err

@@ -59,13 +59,13 @@ func testProcessor(t *testing.T) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(idx.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	limit := ltypes.Metric{
-		Num:  idx.Event(len(ordered)),
+		Num:  idx.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
 	semaphore := datasemaphore.New(limit, func(received ltypes.Metric, processing ltypes.Metric, releasing ltypes.Metric) {
@@ -123,7 +123,7 @@ func testProcessor(t *testing.T) {
 				mu.RLock()
 				defer mu.RUnlock()
 				checked++
-				if e.Frame() != idx.Frame(e.Seq()) {
+				if e.Frame() != idx.FrameID(e.Seq()) {
 					return errors.New("malformed event frame")
 				}
 				return nil
@@ -182,13 +182,13 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(idx.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	limit := ltypes.Metric{
-		Num:  idx.Event(rand.Intn(maxEvents)),    // nolint:gosec
+		Num:  idx.EventID(rand.Intn(maxEvents)),    // nolint:gosec
 		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
 	}
 	limitPlus1group := ltypes.Metric{

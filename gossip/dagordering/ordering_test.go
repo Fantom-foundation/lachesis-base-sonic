@@ -32,7 +32,7 @@ func testEventsBuffer(t *testing.T, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(idx.FrameID(e.Seq()))
 			return nil
 		},
 	})
@@ -41,7 +41,7 @@ func testEventsBuffer(t *testing.T, try int64) {
 
 	processed := make(map[hash.Event]ltypes.Event)
 	limit := ltypes.Metric{
-		Num:  idx.Event(len(ordered)),
+		Num:  idx.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
 	buffer := New(limit, Callback{
@@ -77,7 +77,7 @@ func testEventsBuffer(t *testing.T, try int64) {
 
 		Check: func(e ltypes.Event, parents ltypes.Events) error {
 			checked++
-			if e.Frame() != idx.Frame(e.Seq()) {
+			if e.Frame() != idx.FrameID(e.Seq()) {
 				return errors.New("malformed event frame")
 			}
 			return nil
@@ -119,7 +119,7 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 		},
 		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(idx.FrameID(e.Seq()))
 			return nil
 		},
 	})
@@ -129,7 +129,7 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 	processed := make(map[hash.Event]ltypes.Event)
 	var mutex sync.Mutex
 	limit := ltypes.Metric{
-		Num:  idx.Event(rand.Intn(maxEvents)),    // nolint:gosec
+		Num:  idx.EventID(rand.Intn(maxEvents)),    // nolint:gosec
 		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
 	}
 	buffer := New(limit, Callback{

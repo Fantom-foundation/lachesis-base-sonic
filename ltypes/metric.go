@@ -7,7 +7,7 @@ import (
 )
 
 type Metric struct {
-	Num  idx.Event
+	Num  idx.EventID
 	Size uint64
 }
 

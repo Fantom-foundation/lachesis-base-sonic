@@ -30,6 +30,6 @@ func (s *Store) GetLastDecidedState() *LastDecidedState {
 	return w
 }
 
-func (s *Store) GetLastDecidedFrame() idx.Frame {
+func (s *Store) GetLastDecidedFrame() idx.FrameID {
 	return s.GetLastDecidedState().LastDecidedFrame
 }

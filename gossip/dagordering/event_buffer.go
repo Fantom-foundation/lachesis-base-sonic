@@ -152,7 +152,7 @@ func (buf *EventsBuffer) processCompleteEvent(e *event, parents ltypes.Events) b
 }
 
 func (buf *EventsBuffer) spillIncompletes(limit ltypes.Metric) {
-	for idx.Event(buf.incompletes.Len()) > limit.Num || uint64(buf.incompletes.Weight()) > limit.Size {
+	for idx.EventID(buf.incompletes.Len()) > limit.Num || uint64(buf.incompletes.Weight()) > limit.Size {
 		_, val, ok := buf.incompletes.RemoveOldest()
 		if !ok {
 			break
@@ -192,7 +192,7 @@ func (buf *EventsBuffer) Total() ltypes.Metric {
 	// wlru is thread-safe, no need for a mutex here
 	weight, num := buf.incompletes.Total()
 	return ltypes.Metric{
-		Num:  idx.Event(num),
+		Num:  idx.EventID(num),
 		Size: uint64(weight),
 	}
 }

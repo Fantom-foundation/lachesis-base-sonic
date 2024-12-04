@@ -99,7 +99,7 @@ func (f *Processor) Overloaded() bool {
 type checkRes struct {
 	e   ltypes.Event
 	err error
-	pos idx.Event
+	pos idx.EventID
 }
 
 func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, notifyAnnounces func(hash.Events), done func()) error {
@@ -110,7 +110,7 @@ func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, not
 	checkedC := make(chan *checkRes, len(events))
 	err := f.checker.Enqueue(func() {
 		for i, e := range events {
-			pos := idx.Event(i)
+			pos := idx.EventID(i)
 			event := e
 			f.callback.Event.CheckParentless(event, func(err error) {
 				checkedC <- &checkRes{

@@ -32,12 +32,12 @@ func (b *HighestBeforeSeq) IsForkDetected(i idx.Validator) bool {
 	return b.Get(i).IsForkDetected()
 }
 
-func (b *HighestBeforeSeq) Seq(i idx.Validator) idx.Event {
+func (b *HighestBeforeSeq) Seq(i idx.Validator) idx.EventID {
 	val := b.Get(i)
 	return val.Seq
 }
 
-func (b *HighestBeforeSeq) MinSeq(i idx.Validator) idx.Event {
+func (b *HighestBeforeSeq) MinSeq(i idx.Validator) idx.EventID {
 	val := b.Get(i)
 	return val.MinSeq
 }

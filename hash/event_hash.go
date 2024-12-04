@@ -88,7 +88,7 @@ func (h Event) Lamport() idx.Lamport {
 }
 
 // Epoch returns [0:4] bytes, which store event's Epoch.
-func (h Event) Epoch() idx.Epoch {
+func (h Event) Epoch() idx.EpochID {
 	return idx.BytesToEpoch(h[0:4])
 }
 
@@ -300,7 +300,7 @@ func FakePeer() idx.ValidatorID {
 }
 
 // FakeEpoch gives fixed value of fake epoch for testing purpose.
-func FakeEpoch() idx.Epoch {
+func FakeEpoch() idx.EpochID {
 	return 123456
 }
 

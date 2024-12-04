@@ -12,7 +12,7 @@ const (
 
 type highestEvent struct {
 	id    hash.Event
-	frame idx.Frame
+	frame idx.FrameID
 }
 
 type FCIndexer struct {
@@ -21,11 +21,11 @@ type FCIndexer struct {
 	me         idx.ValidatorID
 
 	prevSelfEvent hash.Event
-	prevSelfFrame idx.Frame
+	prevSelfFrame idx.FrameID
 
-	TopFrame idx.Frame
+	TopFrame idx.FrameID
 
-	FrameRoots map[idx.Frame]hash.Events
+	FrameRoots map[idx.FrameID]hash.Events
 
 	highestEvents map[idx.ValidatorID]highestEvent
 
@@ -41,7 +41,7 @@ func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me idx.Validator
 		dagi:          dagi,
 		validators:    validators,
 		me:            me,
-		FrameRoots:    make(map[idx.Frame]hash.Events),
+		FrameRoots:    make(map[idx.FrameID]hash.Events),
 		highestEvents: make(map[idx.ValidatorID]highestEvent),
 	}
 	fc.searchStrategy = NewMetricStrategy(fc.GetMetricOf)
@@ -79,7 +79,7 @@ func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 	}
 }
 
-func (fc *FCIndexer) rootProgress(frame idx.Frame, event hash.Event, chosenHeads hash.Events) int {
+func (fc *FCIndexer) rootProgress(frame idx.FrameID, event hash.Event, chosenHeads hash.Events) int {
 	// This function computes the knowledge of roots amongst validators by counting which validators known which roots.
 	// Root knowledge is a binary matrix indexed by roots and validators.
 	// The ijth entry of the matrix is 1 if root i is known by validator j in the subgraph of event, and zero otherwise.
@@ -99,7 +99,7 @@ func (fc *FCIndexer) rootProgress(frame idx.Frame, event hash.Event, chosenHeads
 	return numNonZero
 }
 
-func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.Frame, bK int, bFrame idx.Frame) bool {
+func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.FrameID, bK int, bFrame idx.FrameID) bool {
 	if aFrame != bFrame {
 		return aFrame > bFrame
 	}

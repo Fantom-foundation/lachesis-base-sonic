@@ -17,7 +17,7 @@ import (
 
 type testReader struct{}
 
-func (tr *testReader) GetEpochValidators() (*ltypes.Validators, idx.Epoch) {
+func (tr *testReader) GetEpochValidators() (*ltypes.Validators, idx.EpochID) {
 	vb := ltypes.NewBuilder()
 	vb.Set(1, 1)
 	return vb.Build(), 1

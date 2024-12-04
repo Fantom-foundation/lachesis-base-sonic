@@ -6,7 +6,7 @@ import (
 )
 
 type Seq interface {
-	Seq() idx.Event
+	Seq() idx.EventID
 	IsForkDetected() bool
 }
 

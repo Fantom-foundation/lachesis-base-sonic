@@ -16,7 +16,7 @@ var (
 
 // Reader returns currents epoch and its validators group.
 type Reader interface {
-	GetEpochValidators() (*ltypes.Validators, idx.Epoch)
+	GetEpochValidators() (*ltypes.Validators, idx.EpochID)
 }
 
 // Checker which require only current epoch info

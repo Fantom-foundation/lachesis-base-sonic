@@ -22,12 +22,12 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 	laggyGenesis := processTestEvent(t, lch, store, nodes[0], 1, hash.Events{})
 	parentEvent := processTestEvent(t, lch, store, nodes[1], 1, hash.Events{})
 	for i := 0; i < gap; i++ {
-		parentEvent = processTestEvent(t, lch, store, nodes[1], idx.Event(parentEvent.Seq()+1), hash.Events{parentEvent.ID()})
+		parentEvent = processTestEvent(t, lch, store, nodes[1], idx.EventID(parentEvent.Seq()+1), hash.Events{parentEvent.ID()})
 	}
 	// Lagging validator creates an event after a frame gap
 	finalEvent := processTestEvent(t, lch, store, nodes[0], laggyGenesis.Seq()+1, hash.Events{laggyGenesis.ID(), parentEvent.ID()})
 
-	if want, got := laggyGenesis.Frame()+idx.Frame(gap)+1, finalEvent.Frame(); want != got {
+	if want, got := laggyGenesis.Frame()+idx.FrameID(gap)+1, finalEvent.Frame(); want != got {
 		t.Errorf("expected calculated frame number of lagging validator to be: %d, got: %d", gap, finalEvent.Frame())
 	}
 }
@@ -35,7 +35,7 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 var maxLamport idx.Lamport = 0
 
 // processTestEvent builds and pipes the event through main Lacehsis' DAG manipulation pipeline
-func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.Event, parents hash.Events) *tdag.TestEvent {
+func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.EventID, parents hash.Events) *tdag.TestEvent {
 	event := &tdag.TestEvent{}
 	event.SetSeq(seq)
 	event.SetCreator(validatorId)

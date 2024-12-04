@@ -12,7 +12,7 @@ type Consensus interface {
 	// Build sets consensus fields. Returns an error if event should be dropped.
 	Build(e ltypes.MutableEvent) error
 	// Reset switches epoch state to a new empty epoch.
-	Reset(epoch idx.Epoch, validators *ltypes.Validators) error
+	Reset(epoch idx.EpochID, validators *ltypes.Validators) error
 }
 
 type ApplyEventFn func(event ltypes.Event)

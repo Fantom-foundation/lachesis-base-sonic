@@ -209,7 +209,7 @@ func (vi *Index) ForklessCauseProgress(aID, bID hash.Event, candidateParents, ch
 	return chosenParentsFCProgress, candidateParentsFCProgress
 }
 
-func maxEvent(a idx.Event, b idx.Event) idx.Event {
+func maxEvent(a idx.EventID, b idx.EventID) idx.EventID {
 	if a > b {
 		return a
 	}

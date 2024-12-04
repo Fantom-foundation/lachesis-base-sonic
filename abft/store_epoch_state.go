@@ -39,7 +39,7 @@ func (s *Store) getEpochState(key []byte) *EpochState {
 }
 
 // GetEpoch returns current epoch
-func (s *Store) GetEpoch() idx.Epoch {
+func (s *Store) GetEpoch() idx.EpochID {
 	return s.GetEpochState().Epoch
 }
 

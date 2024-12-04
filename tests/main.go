@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	openEDB := func(epoch idx.Epoch) kvdb.Store {
+	openEDB := func(epoch idx.EpochID) kvdb.Store {
 		return memorydb.New()
 	}
 

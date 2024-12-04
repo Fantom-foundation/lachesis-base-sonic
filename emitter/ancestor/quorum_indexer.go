@@ -14,15 +14,15 @@ import (
 type DagIndexQ interface {
 	dagidx.VectorClock
 }
-type DiffMetricFn func(median, current, update idx.Event, validatorIdx idx.Validator) Metric
+type DiffMetricFn func(median, current, update idx.EventID, validatorIdx idx.Validator) Metric
 
 type QuorumIndexer struct {
 	dagi       DagIndexQ
 	validators *ltypes.Validators
 
 	globalMatrix     Matrix
-	selfParentSeqs   []idx.Event
-	globalMedianSeqs []idx.Event
+	selfParentSeqs   []idx.EventID
+	globalMedianSeqs []idx.EventID
 	dirty            bool
 	searchStrategy   SearchStrategy
 
@@ -32,8 +32,8 @@ type QuorumIndexer struct {
 func NewQuorumIndexer(validators *ltypes.Validators, dagi DagIndexQ, diffMetricFn DiffMetricFn) *QuorumIndexer {
 	return &QuorumIndexer{
 		globalMatrix:     NewMatrix(validators.Len(), validators.Len()),
-		globalMedianSeqs: make([]idx.Event, validators.Len()),
-		selfParentSeqs:   make([]idx.Event, validators.Len()),
+		globalMedianSeqs: make([]idx.EventID, validators.Len()),
+		selfParentSeqs:   make([]idx.EventID, validators.Len()),
 		dagi:             dagi,
 		validators:       validators,
 		diffMetricFn:     diffMetricFn,
@@ -42,23 +42,23 @@ func NewQuorumIndexer(validators *ltypes.Validators, dagi DagIndexQ, diffMetricF
 }
 
 type Matrix struct {
-	buffer  []idx.Event
+	buffer  []idx.EventID
 	columns idx.Validator
 }
 
 func NewMatrix(rows, cols idx.Validator) Matrix {
 	return Matrix{
-		buffer:  make([]idx.Event, rows*cols),
+		buffer:  make([]idx.EventID, rows*cols),
 		columns: cols,
 	}
 }
 
-func (m Matrix) Row(i idx.Validator) []idx.Event {
+func (m Matrix) Row(i idx.Validator) []idx.EventID {
 	return m.buffer[i*m.columns : (i+1)*m.columns]
 }
 
 func (m Matrix) Clone() Matrix {
-	buffer := make([]idx.Event, len(m.buffer))
+	buffer := make([]idx.EventID, len(m.buffer))
 	copy(buffer, m.buffer)
 	return Matrix{
 		buffer,
@@ -66,7 +66,7 @@ func (m Matrix) Clone() Matrix {
 	}
 }
 
-func seqOf(seq dagidx.Seq) idx.Event {
+func seqOf(seq dagidx.Seq) idx.EventID {
 	if seq.IsForkDetected() {
 		return math.MaxUint32/2 - 1
 	}
@@ -74,7 +74,7 @@ func seqOf(seq dagidx.Seq) idx.Event {
 }
 
 type weightedSeq struct {
-	seq    idx.Event
+	seq    idx.EventID
 	weight ltypes.Weight
 }
 
@@ -129,7 +129,7 @@ func (h *QuorumIndexer) GetMetricOf(parents hash.Events) Metric {
 	for validatorIdx := idx.Validator(0); validatorIdx < h.validators.Len(); validatorIdx++ {
 
 		//find the Highest of all the parents
-		var update idx.Event
+		var update idx.EventID
 		for i, _ := range parents {
 			if seqOf(vecClock[i].Get(validatorIdx)) > update {
 				update = seqOf(vecClock[i].Get(validatorIdx))
@@ -149,7 +149,7 @@ func (h *QuorumIndexer) SearchStrategy() SearchStrategy {
 	return h.searchStrategy
 }
 
-func (h *QuorumIndexer) GetGlobalMedianSeqs() []idx.Event {
+func (h *QuorumIndexer) GetGlobalMedianSeqs() []idx.EventID {
 	if h.dirty {
 		h.recacheState()
 	}
@@ -160,6 +160,6 @@ func (h *QuorumIndexer) GetGlobalMatrix() Matrix {
 	return h.globalMatrix
 }
 
-func (h *QuorumIndexer) GetSelfParentSeqs() []idx.Event {
+func (h *QuorumIndexer) GetSelfParentSeqs() []idx.EventID {
 	return h.selfParentSeqs
 }

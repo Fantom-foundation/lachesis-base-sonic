@@ -8,9 +8,9 @@ import (
 )
 
 type Event interface {
-	Epoch() idx.Epoch
-	Seq() idx.Event
-	Frame() idx.Frame
+	Epoch() idx.EpochID
+	Seq() idx.EventID
+	Frame() idx.FrameID
 	Creator() idx.ValidatorID
 	Lamport() idx.Lamport
 	Parents() hash.Events
@@ -23,9 +23,9 @@ type Event interface {
 
 type MutableEvent interface {
 	Event
-	SetEpoch(idx.Epoch)
-	SetSeq(idx.Event)
-	SetFrame(idx.Frame)
+	SetEpoch(idx.EpochID)
+	SetSeq(idx.EventID)
+	SetFrame(idx.FrameID)
 	SetCreator(idx.ValidatorID)
 	SetLamport(idx.Lamport)
 	SetParents(hash.Events)
@@ -37,9 +37,9 @@ type MutableEvent interface {
 // Doesn't contain payload, it should be extended by an app
 // Doesn't contain event signature, it should be extended by an app
 type BaseEvent struct {
-	epoch   idx.Epoch
-	seq     idx.Event
-	frame   idx.Frame
+	epoch   idx.EpochID
+	seq     idx.EventID
+	frame   idx.FrameID
 	creator idx.ValidatorID
 	parents hash.Events
 	lamport idx.Lamport
@@ -80,15 +80,15 @@ func (e *BaseEvent) IsSelfParent(hash hash.Event) bool {
 	return *e.SelfParent() == hash
 }
 
-func (e *BaseEvent) Epoch() idx.Epoch {
+func (e *BaseEvent) Epoch() idx.EpochID {
 	return e.epoch
 }
 
-func (e *BaseEvent) Seq() idx.Event {
+func (e *BaseEvent) Seq() idx.EventID {
 	return e.seq
 }
 
-func (e *BaseEvent) Frame() idx.Frame {
+func (e *BaseEvent) Frame() idx.FrameID {
 	return e.frame
 }
 
@@ -112,15 +112,15 @@ func (e *BaseEvent) Size() int {
 	return 4 + 4 + 4 + 4 + len(e.parents)*32 + 4 + 32
 }
 
-func (e *MutableBaseEvent) SetEpoch(v idx.Epoch) {
+func (e *MutableBaseEvent) SetEpoch(v idx.EpochID) {
 	e.epoch = v
 }
 
-func (e *MutableBaseEvent) SetSeq(v idx.Event) {
+func (e *MutableBaseEvent) SetSeq(v idx.EventID) {
 	e.seq = v
 }
 
-func (e *MutableBaseEvent) SetFrame(v idx.Frame) {
+func (e *MutableBaseEvent) SetFrame(v idx.FrameID) {
 	e.frame = v
 }
 

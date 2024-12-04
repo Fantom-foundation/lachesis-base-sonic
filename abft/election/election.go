@@ -10,7 +10,7 @@ type (
 	// Election is cached data of election algorithm.
 	Election struct {
 		// election params
-		frameToDecide idx.Frame
+		frameToDecide idx.FrameID
 
 		validators *ltypes.Validators
 
@@ -26,12 +26,12 @@ type (
 	// ForklessCauseFn returns true if event A is forkless caused by event B
 	ForklessCauseFn func(a hash.Event, b hash.Event) bool
 	// GetFrameRootsFn returns all the roots in the specified frame
-	GetFrameRootsFn func(f idx.Frame) []RootAndSlot
+	GetFrameRootsFn func(f idx.FrameID) []RootAndSlot
 
 	// Slot specifies a root slot {addr, frame}. Normal validators can have only one root with this pair.
 	// Due to a fork, different roots may occupy the same slot
 	Slot struct {
-		Frame     idx.Frame
+		Frame     idx.FrameID
 		Validator idx.ValidatorID
 	}
 
@@ -54,14 +54,14 @@ type voteValue struct {
 
 // Res defines the final election result, i.e. decided frame
 type Res struct {
-	Frame   idx.Frame
+	Frame   idx.FrameID
 	Atropos hash.Event
 }
 
 // New election context
 func New(
 	validators *ltypes.Validators,
-	frameToDecide idx.Frame,
+	frameToDecide idx.FrameID,
 	forklessCauseFn ForklessCauseFn,
 	getFrameRoots GetFrameRootsFn,
 ) *Election {
@@ -76,7 +76,7 @@ func New(
 }
 
 // Reset erases the current election state, prepare for new election frame
-func (el *Election) Reset(validators *ltypes.Validators, frameToDecide idx.Frame) {
+func (el *Election) Reset(validators *ltypes.Validators, frameToDecide idx.FrameID) {
 	el.validators = validators
 	el.frameToDecide = frameToDecide
 	el.votes = make(map[voteID]voteValue)
@@ -99,7 +99,7 @@ func (el *Election) notDecidedRoots() []idx.ValidatorID {
 }
 
 // observedRoots returns all the roots at the specified frame which do forkless cause the specified root.
-func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []RootAndSlot {
+func (el *Election) observedRoots(root hash.Event, frame idx.FrameID) []RootAndSlot {
 	observedRoots := make([]RootAndSlot, 0, el.validators.Len())
 
 	frameRoots := el.getFrameRoots(frame)
@@ -111,7 +111,7 @@ func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []RootAndSlo
 	return observedRoots
 }
 
-func (el *Election) observedRootsMap(root hash.Event, frame idx.Frame) map[idx.ValidatorID]RootAndSlot {
+func (el *Election) observedRootsMap(root hash.Event, frame idx.FrameID) map[idx.ValidatorID]RootAndSlot {
 	observedRootsMap := make(map[idx.ValidatorID]RootAndSlot, el.validators.Len())
 
 	frameRoots := el.getFrameRoots(frame)

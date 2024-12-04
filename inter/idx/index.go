@@ -6,19 +6,19 @@ import (
 
 type (
 	// Epoch numeration.
-	Epoch uint32
+	EpochID uint32
 
 	// Event numeration.
-	Event uint32
+	EventID uint32
 
 	// Block numeration.
-	Block uint64
+	BlockID uint64
 
 	// Lamport numeration.
 	Lamport uint32
 
 	// Frame numeration.
-	Frame uint32
+	FrameID uint32
 
 	// Pack numeration.
 	Pack uint32
@@ -28,17 +28,17 @@ type (
 )
 
 // Bytes gets the byte representation of the index.
-func (e Epoch) Bytes() []byte {
+func (e EpochID) Bytes() []byte {
 	return bigendian.Uint32ToBytes(uint32(e))
 }
 
 // Bytes gets the byte representation of the index.
-func (e Event) Bytes() []byte {
+func (e EventID) Bytes() []byte {
 	return bigendian.Uint32ToBytes(uint32(e))
 }
 
 // Bytes gets the byte representation of the index.
-func (b Block) Bytes() []byte {
+func (b BlockID) Bytes() []byte {
 	return bigendian.Uint64ToBytes(uint64(b))
 }
 
@@ -58,23 +58,23 @@ func (s ValidatorID) Bytes() []byte {
 }
 
 // Bytes gets the byte representation of the index.
-func (f Frame) Bytes() []byte {
+func (f FrameID) Bytes() []byte {
 	return bigendian.Uint32ToBytes(uint32(f))
 }
 
 // BytesToEpoch converts bytes to epoch index.
-func BytesToEpoch(b []byte) Epoch {
-	return Epoch(bigendian.BytesToUint32(b))
+func BytesToEpoch(b []byte) EpochID {
+	return EpochID(bigendian.BytesToUint32(b))
 }
 
 // BytesToEvent converts bytes to event index.
-func BytesToEvent(b []byte) Event {
-	return Event(bigendian.BytesToUint32(b))
+func BytesToEvent(b []byte) EventID {
+	return EventID(bigendian.BytesToUint32(b))
 }
 
 // BytesToBlock converts bytes to block index.
-func BytesToBlock(b []byte) Block {
-	return Block(bigendian.BytesToUint64(b))
+func BytesToBlock(b []byte) BlockID {
+	return BlockID(bigendian.BytesToUint64(b))
 }
 
 // BytesToLamport converts bytes to block index.
@@ -83,8 +83,8 @@ func BytesToLamport(b []byte) Lamport {
 }
 
 // BytesToFrame converts bytes to block index.
-func BytesToFrame(b []byte) Frame {
-	return Frame(bigendian.BytesToUint32(b))
+func BytesToFrame(b []byte) FrameID {
+	return FrameID(bigendian.BytesToUint32(b))
 }
 
 // BytesToPack converts bytes to block index.

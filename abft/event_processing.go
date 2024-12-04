@@ -49,7 +49,7 @@ func (p *Orderer) Process(e ltypes.Event) (err error) {
 }
 
 // checkAndSaveEvent checks consensus-related fields: Frame, IsRoot
-func (p *Orderer) checkAndSaveEvent(e ltypes.Event) (error, idx.Frame) {
+func (p *Orderer) checkAndSaveEvent(e ltypes.Event) (error, idx.FrameID) {
 	// check frame & isRoot
 	selfParentFrame, frameIdx := p.calcFrameIdx(e)
 	if !p.config.SuppressFramePanic && e.Frame() != frameIdx {
@@ -63,7 +63,7 @@ func (p *Orderer) checkAndSaveEvent(e ltypes.Event) (error, idx.Frame) {
 }
 
 // calculates Atropos election for the root, calls p.onFrameDecided if election was decided
-func (p *Orderer) handleElection(selfParentFrame idx.Frame, root ltypes.Event) error {
+func (p *Orderer) handleElection(selfParentFrame idx.FrameID, root ltypes.Event) error {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
 		decided, err := p.election.ProcessRoot(election.RootAndSlot{
 			ID: root.ID(),
@@ -146,7 +146,7 @@ func (p *Orderer) processKnownRoots() (*election.Res, error) {
 }
 
 // forklessCausedByQuorumOn returns true if event is forkless caused by 2/3W roots on specified frame
-func (p *Orderer) forklessCausedByQuorumOn(e ltypes.Event, f idx.Frame) bool {
+func (p *Orderer) forklessCausedByQuorumOn(e ltypes.Event, f idx.FrameID) bool {
 	observedCounter := p.store.GetValidators().NewCounter()
 	// check "observing" prev roots only if called by creator, or if creator has marked that event as root
 	for _, it := range p.store.GetFrameRoots(f) {
@@ -162,7 +162,7 @@ func (p *Orderer) forklessCausedByQuorumOn(e ltypes.Event, f idx.Frame) bool {
 
 // calcFrameIdx checks root-conditions for new event and returns event's frame.
 // It is not safe for concurrent use.
-func (p *Orderer) calcFrameIdx(e ltypes.Event) (selfParentFrame, frame idx.Frame) {
+func (p *Orderer) calcFrameIdx(e ltypes.Event) (selfParentFrame, frame idx.FrameID) {
 	if e.SelfParent() == nil {
 		return 0, 1
 	}

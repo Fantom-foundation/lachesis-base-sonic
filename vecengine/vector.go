@@ -14,8 +14,8 @@ type HighestBeforeI interface {
 	InitWithEvent(i idx.Validator, e ltypes.Event)
 	IsEmpty(i idx.Validator) bool
 	IsForkDetected(i idx.Validator) bool
-	Seq(i idx.Validator) idx.Event
-	MinSeq(i idx.Validator) idx.Event
+	Seq(i idx.Validator) idx.EventID
+	MinSeq(i idx.Validator) idx.EventID
 	SetForkDetected(i idx.Validator)
 	CollectFrom(other HighestBeforeI, branches idx.Validator)
 	GatherFrom(to idx.Validator, other HighestBeforeI, from []idx.Validator)

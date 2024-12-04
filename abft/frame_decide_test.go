@@ -61,7 +61,7 @@ func testConfirmBlocks(t *testing.T, weights []ltypes.Weight, cheatersCount int)
 	lch, _, input, _ := NewCoreLachesis(nodes, weights)
 
 	var (
-		frames []idx.Frame
+		frames []idx.FrameID
 		blocks []*lachesis.Block
 	)
 	lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {

@@ -16,8 +16,8 @@ import (
 type dbEvent struct {
 	hash        hash.Event
 	validatorId idx.ValidatorID
-	seq         idx.Event
-	frame       idx.Frame
+	seq         idx.EventID
+	frame       idx.FrameID
 	lamportTs   idx.Lamport
 	parents     []hash.Event
 }
@@ -25,8 +25,8 @@ type dbEvent struct {
 type applyBlockFn func(block *lachesis.Block) *ltypes.Validators
 
 type BlockKey struct {
-	Epoch idx.Epoch
-	Frame idx.Frame
+	Epoch idx.EpochID
+	Frame idx.FrameID
 }
 
 type BlockResult struct {
@@ -41,7 +41,7 @@ type CoreLachesis struct {
 
 	blocks      map[BlockKey]*BlockResult
 	lastBlock   BlockKey
-	epochBlocks map[idx.Epoch]idx.Frame
+	epochBlocks map[idx.EpochID]idx.FrameID
 
 	applyBlock applyBlockFn
 }
@@ -57,7 +57,7 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []ltypes.Weight, mods ...m
 		}
 	}
 
-	openEDB := func(epoch idx.Epoch) kvdb.Store {
+	openEDB := func(epoch idx.EpochID) kvdb.Store {
 		return memorydb.New()
 	}
 	crit := func(err error) {
@@ -82,7 +82,7 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []ltypes.Weight, mods ...m
 	extended := &CoreLachesis{
 		IndexedLachesis: lch,
 		blocks:          map[BlockKey]*BlockResult{},
-		epochBlocks:     map[idx.Epoch]idx.Frame{},
+		epochBlocks:     map[idx.EpochID]idx.FrameID{},
 	}
 
 	err = extended.Bootstrap(lachesis.ConsensusCallbacks{

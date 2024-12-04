@@ -8,10 +8,10 @@ import (
 )
 
 type TestEventMarshaling struct {
-	Epoch idx.Epoch
-	Seq   idx.Event
+	Epoch idx.EpochID
+	Seq   idx.EventID
 
-	Frame idx.Frame
+	Frame idx.FrameID
 
 	Creator idx.ValidatorID
 

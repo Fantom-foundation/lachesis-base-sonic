@@ -20,13 +20,13 @@ func rootRecordKey(r *election.RootAndSlot) []byte {
 
 // AddRoot stores the new root
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) AddRoot(selfParentFrame idx.Frame, root ltypes.Event) {
+func (s *Store) AddRoot(selfParentFrame idx.FrameID, root ltypes.Event) {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
 		s.addRoot(root, f)
 	}
 }
 
-func (s *Store) addRoot(root ltypes.Event, frame idx.Frame) {
+func (s *Store) addRoot(root ltypes.Event, frame idx.FrameID) {
 	r := election.RootAndSlot{
 		Slot: election.Slot{
 			Frame:     frame,
@@ -55,7 +55,7 @@ const (
 
 // GetFrameRoots returns all the roots in the specified frame
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) GetFrameRoots(f idx.Frame) []election.RootAndSlot {
+func (s *Store) GetFrameRoots(f idx.FrameID) []election.RootAndSlot {
 	// get data from LRU cache first.
 	if rr, ok := s.cache.FrameRoots.Get(f); ok {
 		return rr.([]election.RootAndSlot)

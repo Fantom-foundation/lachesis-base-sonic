@@ -85,7 +85,7 @@ func (p *IndexedLachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error 
 	base := p.Lachesis.OrdererCallbacks()
 	ordererCallbacks := OrdererCallbacks{
 		ApplyAtropos: base.ApplyAtropos,
-		EpochDBLoaded: func(epoch idx.Epoch) {
+		EpochDBLoaded: func(epoch idx.EpochID) {
 			if base.EpochDBLoaded != nil {
 				base.EpochDBLoaded(epoch)
 			}

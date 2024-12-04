@@ -528,7 +528,7 @@ func testForklessCausedRandom(t *testing.T, dbProducer func() kvdb.FlushableKVSt
 }
 
 type eventSlot struct {
-	seq     idx.Event
+	seq     idx.EventID
 	creator idx.ValidatorID
 }
 
@@ -612,9 +612,9 @@ func TestRandomForksSanity(t *testing.T) {
 			isCheater := n < len(cheaters)
 			assertar.Equal(isCheater, branchSeq.IsForkDetected(), cheater)
 			if isCheater {
-				assertar.Equal(idx.Event(0), branchSeq.Seq, cheater)
+				assertar.Equal(idx.EventID(0), branchSeq.Seq, cheater)
 			} else {
-				assertar.NotEqual(idx.Event(0), branchSeq.Seq, cheater)
+				assertar.NotEqual(idx.EventID(0), branchSeq.Seq, cheater)
 			}
 		}
 	}
@@ -738,7 +738,7 @@ func TestRandomForks(t *testing.T) {
 					branchSeq := highestBefore.Get(idxs[cheater])
 					assertar.Equal(expectedCheater, branchSeq.IsForkDetected(), e.String())
 					if expectedCheater {
-						assertar.Equal(idx.Event(0), branchSeq.Seq, e.String())
+						assertar.Equal(idx.EventID(0), branchSeq.Seq, e.String())
 					}
 				}
 			}
