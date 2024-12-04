@@ -10,8 +10,8 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/epochcheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/parentscheck"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
@@ -26,10 +26,10 @@ func (tr *testReader) GetEpochValidators() (*pos.Validators, idx.Epoch) {
 
 func TestBasicEventValidation(t *testing.T) {
 	var tests = []struct {
-		e       dag.Event
+		e       ltypes.Event
 		wantErr error
 	}{
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(1)
@@ -37,7 +37,7 @@ func TestBasicEventValidation(t *testing.T) {
 			e.SetFrame(1)
 			return e
 		}(), nil},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(0)
 			e.SetLamport(1)
@@ -45,7 +45,7 @@ func TestBasicEventValidation(t *testing.T) {
 			e.SetFrame(1)
 			return e
 		}(), basiccheck.ErrNotInited},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(1)
@@ -53,7 +53,7 @@ func TestBasicEventValidation(t *testing.T) {
 			e.SetFrame(1)
 			return e
 		}(), basiccheck.ErrNoParents},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(math.MaxInt32 - 1)
 			e.SetLamport(1)
@@ -71,22 +71,22 @@ func TestBasicEventValidation(t *testing.T) {
 
 func TestEpochEventValidation(t *testing.T) {
 	var tests = []struct {
-		e       dag.Event
+		e       ltypes.Event
 		wantErr error
 	}{
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetEpoch(1)
 			e.SetCreator(1)
 			return e
 		}(), nil},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetEpoch(2)
 			e.SetCreator(1)
 			return e
 		}(), epochcheck.ErrNotRelevant},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetEpoch(1)
 			e.SetCreator(2)
@@ -103,12 +103,12 @@ func TestEpochEventValidation(t *testing.T) {
 
 func TestParentsEventValidation(t *testing.T) {
 	var tests = []struct {
-		e         dag.Event
-		pe        dag.Events
+		e         ltypes.Event
+		pe        ltypes.Events
 		wantErr   error
 		wantPanic bool
 	}{
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
@@ -119,16 +119,16 @@ func TestParentsEventValidation(t *testing.T) {
 			e.SetParents(hash.Events{selfParent.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
 				e.SetCreator(1)
 				e.SetID([24]byte{1})
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			nil, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
@@ -139,44 +139,44 @@ func TestParentsEventValidation(t *testing.T) {
 			e.SetParents(hash.Events{selfParent.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
 				e.SetCreator(1)
 				e.SetID([24]byte{1})
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			parentscheck.ErrWrongSelfParent, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(1)
 			e.SetParents(hash.Events{e.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			parentscheck.ErrWrongLamport, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(2)
 			e.SetParents(hash.Events{e.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			parentscheck.ErrWrongSelfParent, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
@@ -186,15 +186,15 @@ func TestParentsEventValidation(t *testing.T) {
 			e.SetParents(hash.Events{selfParent.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(2)
 				e.SetLamport(1)
 				e.SetID([24]byte{1})
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			parentscheck.ErrWrongSeq, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(1)
@@ -202,7 +202,7 @@ func TestParentsEventValidation(t *testing.T) {
 		}(),
 			nil,
 			parentscheck.ErrWrongSeq, false},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(1)
@@ -230,11 +230,11 @@ func TestParentsEventValidation(t *testing.T) {
 
 func TestAllEventValidation(t *testing.T) {
 	var tests = []struct {
-		e       dag.Event
-		pe      dag.Events
+		e       ltypes.Event
+		pe      ltypes.Events
 		wantErr error
 	}{
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
@@ -243,7 +243,7 @@ func TestAllEventValidation(t *testing.T) {
 		}(),
 			nil,
 			basiccheck.ErrNotInited},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(1)
@@ -253,7 +253,7 @@ func TestAllEventValidation(t *testing.T) {
 		}(),
 			nil,
 			epochcheck.ErrAuth},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(2)
 			e.SetLamport(2)
@@ -263,14 +263,14 @@ func TestAllEventValidation(t *testing.T) {
 			e.SetParents(hash.Events{e.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			parentscheck.ErrWrongSelfParent},
-		{func() dag.Event {
+		{func() ltypes.Event {
 			e := &tdag.TestEvent{}
 			e.SetSeq(1)
 			e.SetLamport(2)
@@ -280,11 +280,11 @@ func TestAllEventValidation(t *testing.T) {
 			e.SetParents(hash.Events{e.ID()})
 			return e
 		}(),
-			func() dag.Events {
+			func() ltypes.Events {
 				e := &tdag.TestEvent{}
 				e.SetSeq(1)
 				e.SetLamport(1)
-				return dag.Events{e}
+				return ltypes.Events{e}
 			}(),
 			nil},
 	}

@@ -4,13 +4,13 @@ import (
 	"errors"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // DfsSubgraph iterates all the event which are observed by head, and accepted by a filter
 // Excluding head
 // filter MAY BE called twice for the same event.
-func (vi *Engine) DfsSubgraph(head dag.Event, walk func(hash.Event) (godeeper bool)) error {
+func (vi *Engine) DfsSubgraph(head ltypes.Event, walk func(hash.Event) (godeeper bool)) error {
 	stack := make(hash.EventsStack, 0, vi.validators.Len()*5)
 
 	// first element

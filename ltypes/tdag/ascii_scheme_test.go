@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils"
 )
 
@@ -400,7 +400,7 @@ func testDAGtoASCIIschemeOptimisation(t *testing.T, origScheme string, refs map[
 	checkParents(t, named, refs)
 }
 
-func checkParents(t *testing.T, named map[string]dag.Event, expected map[string][]string) {
+func checkParents(t *testing.T, named map[string]ltypes.Event, expected map[string][]string) {
 	t.Helper()
 	assertar := assert.New(t)
 
@@ -421,7 +421,7 @@ func checkParents(t *testing.T, named map[string]dag.Event, expected map[string]
 	}
 }
 
-func edges2text(e dag.Event) map[string]struct{} {
+func edges2text(e ltypes.Event) map[string]struct{} {
 	res := make(map[string]struct{}, len(e.Parents()))
 	for _, p := range e.Parents() {
 		res[p.String()] = struct{}{}

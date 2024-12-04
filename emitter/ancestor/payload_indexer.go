@@ -2,7 +2,7 @@ package ancestor
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
 
@@ -15,7 +15,7 @@ func NewPayloadIndexer(cacheSize int) *PayloadIndexer {
 	return &PayloadIndexer{cache}
 }
 
-func (h *PayloadIndexer) ProcessEvent(event dag.Event, payloadMetric Metric) {
+func (h *PayloadIndexer) ProcessEvent(event ltypes.Event, payloadMetric Metric) {
 	maxParentsPayloadMetric := h.GetMetricOf(event.Parents())
 	if maxParentsPayloadMetric != 0 || payloadMetric != 0 {
 		h.payloadLamports.Add(event.ID(), maxParentsPayloadMetric+payloadMetric, 1)

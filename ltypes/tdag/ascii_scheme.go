@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type ForEachEvent struct {
-	Process func(e dag.Event, name string)
-	Build   func(e dag.MutableEvent, name string) error
+	Process func(e ltypes.Event, name string)
+	Build   func(e ltypes.MutableEvent, name string) error
 }
 
 // ASCIIschemeToDAG parses events from ASCII-scheme for test purpose.
@@ -27,11 +27,11 @@ func ASCIIschemeForEach(
 	callback ForEachEvent,
 ) (
 	nodes []idx.ValidatorID,
-	events map[idx.ValidatorID]dag.Events,
-	names map[string]dag.Event,
+	events map[idx.ValidatorID]ltypes.Events,
+	names map[string]ltypes.Event,
 ) {
-	events = make(map[idx.ValidatorID]dag.Events)
-	names = make(map[string]dag.Event)
+	events = make(map[idx.ValidatorID]ltypes.Events)
+	names = make(map[string]ltypes.Event)
 	var (
 		prevFarRefs map[int]int
 		curFarRefs  = make(map[int]int)
@@ -214,20 +214,20 @@ func ASCIIschemeToDAG(
 	scheme string,
 ) (
 	nodes []idx.ValidatorID,
-	events map[idx.ValidatorID]dag.Events,
-	names map[string]dag.Event,
+	events map[idx.ValidatorID]ltypes.Events,
+	names map[string]ltypes.Event,
 ) {
 	return ASCIIschemeForEach(scheme, ForEachEvent{})
 }
 
 // DAGtoASCIIscheme builds ASCII-scheme of events for debug purpose.
-func DAGtoASCIIscheme(events dag.Events) (string, error) {
+func DAGtoASCIIscheme(events ltypes.Events) (string, error) {
 	events = ByParents(events)
 
 	var (
 		scheme rows
 
-		processed = make(map[hash.Event]dag.Event)
+		processed = make(map[hash.Event]ltypes.Event)
 		nodeCols  = make(map[idx.ValidatorID]int)
 		ok        bool
 

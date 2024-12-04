@@ -6,7 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -43,7 +43,7 @@ func ForEachRandFork(
 	r *rand.Rand,
 	callback ForEachEvent,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[idx.ValidatorID]ltypes.Events,
 ) {
 	if r == nil {
 		// fixed seed
@@ -51,7 +51,7 @@ func ForEachRandFork(
 	}
 	// init results
 	nodeCount := len(nodes)
-	events = make(map[idx.ValidatorID]dag.Events, nodeCount)
+	events = make(map[idx.ValidatorID]ltypes.Events, nodeCount)
 	cheaters := map[idx.ValidatorID]int{}
 	for _, cheater := range cheatersArr {
 		cheaters[cheater] = 0
@@ -75,7 +75,7 @@ func ForEachRandFork(
 		e.SetCreator(creator)
 		e.SetParents(hash.Events{})
 		// first parent is a last creator's event or empty hash
-		var parent dag.Event
+		var parent ltypes.Event
 		if ee := events[creator]; len(ee) > 0 {
 			parent = ee[len(ee)-1]
 
@@ -146,7 +146,7 @@ func ForEachRandEvent(
 	r *rand.Rand,
 	callback ForEachEvent,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[idx.ValidatorID]ltypes.Events,
 ) {
 	return ForEachRandFork(nodes, []idx.ValidatorID{}, eventCount, parentCount, 0, r, callback)
 }
@@ -160,12 +160,12 @@ func GenRandEvents(
 	parentCount int,
 	r *rand.Rand,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[idx.ValidatorID]ltypes.Events,
 ) {
 	return ForEachRandEvent(nodes, eventCount, parentCount, r, ForEachEvent{})
 }
 
-func delPeerIndex(events map[idx.ValidatorID]dag.Events) (res dag.Events) {
+func delPeerIndex(events map[idx.ValidatorID]ltypes.Events) (res ltypes.Events) {
 	for _, ee := range events {
 		res = append(res, ee...)
 	}

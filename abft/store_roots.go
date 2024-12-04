@@ -6,7 +6,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -20,13 +20,13 @@ func rootRecordKey(r *election.RootAndSlot) []byte {
 
 // AddRoot stores the new root
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) AddRoot(selfParentFrame idx.Frame, root dag.Event) {
+func (s *Store) AddRoot(selfParentFrame idx.Frame, root ltypes.Event) {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
 		s.addRoot(root, f)
 	}
 }
 
-func (s *Store) addRoot(root dag.Event, frame idx.Frame) {
+func (s *Store) addRoot(root ltypes.Event, frame idx.Frame) {
 	r := election.RootAndSlot{
 		Slot: election.Slot{
 			Frame:     frame,

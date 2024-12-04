@@ -5,18 +5,18 @@ import (
 	"testing"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 func TestEventsByParents(t *testing.T) {
 	nodes := GenNodes(5)
 	events := GenRandEvents(nodes, 10, 3, nil)
-	var ee dag.Events
+	var ee ltypes.Events
 	for _, e := range events {
 		ee = append(ee, e...)
 	}
 	// shuffle
-	unordered := make(dag.Events, len(ee))
+	unordered := make(ltypes.Events, len(ee))
 	for i, j := range rand.Perm(len(ee)) {
 		unordered[i] = ee[j]
 	}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -31,11 +31,11 @@ type DagIndexer interface {
 	dagidx.VectorClock
 	dagidx.ForklessCause
 
-	Add(dag.Event) error
+	Add(ltypes.Event) error
 	Flush()
 	DropNotFlushed()
 
-	Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) dag.Event)
+	Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event)
 }
 
 // NewIndexedLachesis creates IndexedLachesis instance.
@@ -51,7 +51,7 @@ func NewIndexedLachesis(store *Store, input EventSource, dagIndexer DagIndexer, 
 
 // Build fills consensus-related fields: Frame, IsRoot
 // returns error if event should be dropped
-func (p *IndexedLachesis) Build(e dag.MutableEvent) error {
+func (p *IndexedLachesis) Build(e ltypes.MutableEvent) error {
 	e.SetID(p.uniqueDirtyID.sample())
 
 	defer p.dagIndexer.DropNotFlushed()
@@ -67,7 +67,7 @@ func (p *IndexedLachesis) Build(e dag.MutableEvent) error {
 // Event order matter: parents first.
 // All the event checkers must be launched.
 // Process is not safe for concurrent use.
-func (p *IndexedLachesis) Process(e dag.Event) (err error) {
+func (p *IndexedLachesis) Process(e ltypes.Event) (err error) {
 	defer p.dagIndexer.DropNotFlushed()
 	err = p.dagIndexer.Add(e)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/eventcheck"
 	"github.com/Fantom-foundation/lachesis-base/gossip/dagordering"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/utils/datasemaphore"
 	"github.com/Fantom-foundation/lachesis-base/utils/workers"
@@ -35,12 +35,12 @@ type Processor struct {
 }
 
 type EventCallback struct {
-	Process         func(e dag.Event) error
-	Released        func(e dag.Event, peer string, err error)
-	Get             func(hash.Event) dag.Event
+	Process         func(e ltypes.Event) error
+	Released        func(e ltypes.Event, peer string, err error)
+	Get             func(hash.Event) ltypes.Event
 	Exists          func(hash.Event) bool
-	CheckParents    func(e dag.Event, parents dag.Events) error
-	CheckParentless func(e dag.Event, checked func(error))
+	CheckParents    func(e ltypes.Event, parents ltypes.Events) error
+	CheckParentless func(e ltypes.Event, checked func(error))
 }
 
 type Callback struct {
@@ -56,8 +56,8 @@ func New(eventsSemaphore *datasemaphore.DataSemaphore, cfg Config, callback Call
 		eventsSemaphore: eventsSemaphore,
 	}
 	released := callback.Event.Released
-	callback.Event.Released = func(e dag.Event, peer string, err error) {
-		f.eventsSemaphore.Release(dag.Metric{Num: 1, Size: uint64(e.Size())})
+	callback.Event.Released = func(e ltypes.Event, peer string, err error) {
+		f.eventsSemaphore.Release(ltypes.Metric{Num: 1, Size: uint64(e.Size())})
 		if released != nil {
 			released(e, peer, err)
 		}
@@ -97,12 +97,12 @@ func (f *Processor) Overloaded() bool {
 }
 
 type checkRes struct {
-	e   dag.Event
+	e   ltypes.Event
 	err error
 	pos idx.Event
 }
 
-func (f *Processor) Enqueue(peer string, events dag.Events, ordered bool, notifyAnnounces func(hash.Events), done func()) error {
+func (f *Processor) Enqueue(peer string, events ltypes.Events, ordered bool, notifyAnnounces func(hash.Events), done func()) error {
 	if !f.eventsSemaphore.Acquire(events.Metric(), f.cfg.EventsSemaphoreTimeout) {
 		return ErrBusy
 	}
@@ -164,7 +164,7 @@ func (f *Processor) Enqueue(peer string, events dag.Events, ordered bool, notify
 	})
 }
 
-func (f *Processor) process(peer string, event dag.Event, resErr error) (toRequest hash.Events) {
+func (f *Processor) process(peer string, event ltypes.Event, resErr error) (toRequest hash.Events) {
 	// release event if failed validation
 	if resErr != nil {
 		f.callback.Event.Released(event, peer, resErr)
@@ -193,7 +193,7 @@ func (f *Processor) Clear() {
 	f.buffer.Clear()
 }
 
-func (f *Processor) TotalBuffered() dag.Metric {
+func (f *Processor) TotalBuffered() ltypes.Metric {
 	return f.buffer.Total()
 }
 

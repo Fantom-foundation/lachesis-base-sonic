@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
@@ -79,13 +79,13 @@ func testConfirmBlocks(t *testing.T, weights []pos.Weight, cheatersCount int) {
 	}
 	r := rand.New(rand.NewSource(int64(len(nodes) + cheatersCount))) // nolint:gosec
 	tdag.ForEachRandFork(nodes, nodes[:cheatersCount], eventCount, parentCount, 10, r, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			input.SetEvent(e)
 			assertar.NoError(
 				lch.Process(e))
 
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(FirstEpoch)
 			return lch.Build(e)
 		},

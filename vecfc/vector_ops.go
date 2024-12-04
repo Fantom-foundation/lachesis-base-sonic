@@ -1,16 +1,16 @@
 package vecfc
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/vecengine"
 )
 
-func (b *LowestAfterSeq) InitWithEvent(i idx.Validator, e dag.Event) {
+func (b *LowestAfterSeq) InitWithEvent(i idx.Validator, e ltypes.Event) {
 	b.Set(i, e.Seq())
 }
 
-func (b *LowestAfterSeq) Visit(i idx.Validator, e dag.Event) bool {
+func (b *LowestAfterSeq) Visit(i idx.Validator, e ltypes.Event) bool {
 	if b.Get(i) != 0 {
 		return false
 	}
@@ -19,7 +19,7 @@ func (b *LowestAfterSeq) Visit(i idx.Validator, e dag.Event) bool {
 	return true
 }
 
-func (b *HighestBeforeSeq) InitWithEvent(i idx.Validator, e dag.Event) {
+func (b *HighestBeforeSeq) InitWithEvent(i idx.Validator, e ltypes.Event) {
 	b.Set(i, BranchSeq{Seq: e.Seq(), MinSeq: e.Seq()})
 }
 

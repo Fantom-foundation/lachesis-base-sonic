@@ -2,11 +2,11 @@ package abft
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // EventSource is a callback for getting events from an external storage.
 type EventSource interface {
 	HasEvent(hash.Event) bool
-	GetEvent(hash.Event) dag.Event
+	GetEvent(hash.Event) ltypes.Event
 }

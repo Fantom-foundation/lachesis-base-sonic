@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"
@@ -104,7 +104,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 	}
 
 	// create events on lch0
-	ordered := map[idx.Epoch]dag.Events{}
+	ordered := map[idx.Epoch]ltypes.Events{}
 	parentCount := 5
 	if parentCount > len(nodes) {
 		parentCount = len(nodes)
@@ -113,7 +113,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 	r := rand.New(rand.NewSource(int64(len(nodes) + cheatersCount))) // nolint:gosec
 	for epoch := idx.Epoch(1); epoch <= idx.Epoch(epochs); epoch++ {
 		tdag.ForEachRandFork(nodes, nodes[:cheatersCount], eventCount, parentCount, 10, r, tdag.ForEachEvent{
-			Process: func(e dag.Event, name string) {
+			Process: func(e ltypes.Event, name string) {
 				ordered[epoch] = append(ordered[epoch], e)
 
 				inputs[0].SetEvent(e)
@@ -121,7 +121,7 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 					lchs[0].Process(e))
 				epochStates[lchs[0].store.GetEpoch()] = lchs[0].store.GetEpochState()
 			},
-			Build: func(e dag.MutableEvent, name string) error {
+			Build: func(e ltypes.MutableEvent, name string) error {
 				if epoch != lchs[0].store.GetEpoch() {
 					return errors.New("epoch already sealed, skip")
 				}
@@ -165,8 +165,8 @@ func testLachesisRandomAndReset(t *testing.T, weights []pos.Weight, mutateWeight
 }
 
 // reorder events, but ancestors are before it's descendants.
-func reorder(events dag.Events) dag.Events {
-	unordered := make(dag.Events, len(events))
+func reorder(events ltypes.Events) ltypes.Events {
+	unordered := make(ltypes.Events, len(events))
 	for i, j := range rand.Perm(len(events)) {
 		unordered[j] = events[i]
 	}

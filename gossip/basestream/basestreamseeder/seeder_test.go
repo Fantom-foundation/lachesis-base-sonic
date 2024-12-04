@@ -15,8 +15,8 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/gossip/basestream"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -63,7 +63,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 	config := defaultConfig()
 	config.MaxPendingResponsesSize = 5000
 
-	events := make(dag.Events, maxEvents)
+	events := make(ltypes.Events, maxEvents)
 	for i := range events {
 		e := &tdag.TestEvent{}
 		e.SetEpoch(idx.Epoch(i / 10))
@@ -85,7 +85,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 
 			res := testPayload{
 				IDs:    hash.Events{},
-				Events: dag.Events{},
+				Events: ltypes.Events{},
 				Size:   0,
 			}
 

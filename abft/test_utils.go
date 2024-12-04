@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -134,13 +134,13 @@ func mutateValidators(validators *pos.Validators) *pos.Validators {
 // EventStore is a abft event storage for test purpose.
 // It implements EventSource interface.
 type EventStore struct {
-	db map[hash.Event]dag.Event
+	db map[hash.Event]ltypes.Event
 }
 
 // NewEventStore creates store over memory map.
 func NewEventStore() *EventStore {
 	return &EventStore{
-		db: map[hash.Event]dag.Event{},
+		db: map[hash.Event]ltypes.Event{},
 	}
 }
 
@@ -150,12 +150,12 @@ func (s *EventStore) Close() {
 }
 
 // SetEvent stores event.
-func (s *EventStore) SetEvent(e dag.Event) {
+func (s *EventStore) SetEvent(e ltypes.Event) {
 	s.db[e.ID()] = e
 }
 
 // GetEvent returns stored event.
-func (s *EventStore) GetEvent(h hash.Event) dag.Event {
+func (s *EventStore) GetEvent(h hash.Event) ltypes.Event {
 	return s.db[h]
 }
 

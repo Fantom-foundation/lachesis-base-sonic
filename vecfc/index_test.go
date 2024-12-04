@@ -8,8 +8,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
@@ -51,9 +51,9 @@ func benchmark_Index_Add(b *testing.B, dbProducer func() kvdb.FlushableKVStore) 
 	b.StopTimer()
 
 	nodes := tdag.GenNodes(70)
-	ordered := make(dag.Events, 0)
+	ordered := make(ltypes.Events, 0)
 	tdag.ForEachRandEvent(nodes, 10, 10, nil, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
 	})
@@ -63,8 +63,8 @@ func benchmark_Index_Add(b *testing.B, dbProducer func() kvdb.FlushableKVStore) 
 		validatorsBuilder.Set(peer, 1)
 	}
 	validators := validatorsBuilder.Build()
-	events := make(map[hash.Event]dag.Event)
-	getEvent := func(id hash.Event) dag.Event {
+	events := make(map[hash.Event]ltypes.Event)
+	getEvent := func(id hash.Event) ltypes.Event {
 		return events[id]
 	}
 	for _, e := range ordered {

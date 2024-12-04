@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -272,12 +272,12 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 
 	// process events
 	_, _, names := tdag.ASCIIschemeForEach(scheme, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			input.SetEvent(e)
 			assertar.NoError(
 				lch.Process(e))
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(lch.store.GetEpoch())
 			return lch.Build(e)
 		},

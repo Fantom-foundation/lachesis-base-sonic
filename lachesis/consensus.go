@@ -1,7 +1,7 @@
 package lachesis
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
@@ -9,14 +9,14 @@ import (
 // Consensus is a consensus interface.
 type Consensus interface {
 	// Process takes event for processing.
-	Process(e dag.Event) error
+	Process(e ltypes.Event) error
 	// Build sets consensus fields. Returns an error if event should be dropped.
-	Build(e dag.MutableEvent) error
+	Build(e ltypes.MutableEvent) error
 	// Reset switches epoch state to a new empty epoch.
 	Reset(epoch idx.Epoch, validators *pos.Validators) error
 }
 
-type ApplyEventFn func(event dag.Event)
+type ApplyEventFn func(event ltypes.Event)
 type EndBlockFn func() (sealEpoch *pos.Validators)
 
 type BlockCallbacks struct {

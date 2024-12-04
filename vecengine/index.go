@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -29,7 +29,7 @@ type Engine struct {
 
 	bi *BranchesInfo
 
-	getEvent func(hash.Event) dag.Event
+	getEvent func(hash.Event) ltypes.Event
 
 	callback Callbacks
 
@@ -51,7 +51,7 @@ func NewIndex(crit func(error), callbacks Callbacks) *Engine {
 }
 
 // Reset resets buffers.
-func (vi *Engine) Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) dag.Event) {
+func (vi *Engine) Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) ltypes.Event) {
 	// use wrapper to be able to drop failed events by dropping cache
 	vi.getEvent = getEvent
 	vi.vecDb = db
@@ -63,7 +63,7 @@ func (vi *Engine) Reset(validators *pos.Validators, db kvdb.FlushableKVStore, ge
 }
 
 // Add calculates vector clocks for the event and saves into DB.
-func (vi *Engine) Add(e dag.Event) error {
+func (vi *Engine) Add(e ltypes.Event) error {
 	vi.InitBranchesInfo()
 	_, err := vi.fillEventVectors(e)
 	return err
@@ -97,7 +97,7 @@ func (vi *Engine) setForkDetected(before HighestBeforeI, branchID idx.Validator)
 	}
 }
 
-func (vi *Engine) fillGlobalBranchID(e dag.Event, meIdx idx.Validator) (idx.Validator, error) {
+func (vi *Engine) fillGlobalBranchID(e ltypes.Event, meIdx idx.Validator) (idx.Validator, error) {
 	// sanity checks
 	if len(vi.bi.BranchIDCreatorIdxs) != len(vi.bi.BranchIDLastSeq) {
 		return 0, errors.New("inconsistent BranchIDCreators len (inconsistent DB)")
@@ -136,7 +136,7 @@ func (vi *Engine) fillGlobalBranchID(e dag.Event, meIdx idx.Validator) (idx.Vali
 }
 
 // fillEventVectors calculates (and stores) event's vectors, and updates LowestAfter of newly-observed events.
-func (vi *Engine) fillEventVectors(e dag.Event) (allVecs, error) {
+func (vi *Engine) fillEventVectors(e ltypes.Event) (allVecs, error) {
 	meIdx := vi.validatorIdxs[e.Creator()]
 	myVecs := allVecs{
 		before: vi.callback.NewHighestBefore(idx.Validator(len(vi.bi.BranchIDCreatorIdxs))),

@@ -2,7 +2,7 @@ package ancestor
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
@@ -49,7 +49,7 @@ func NewFCIndexer(validators *pos.Validators, dagi DagIndex, me idx.ValidatorID)
 	return fc
 }
 
-func (fc *FCIndexer) ProcessEvent(e dag.Event) {
+func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 	if e.Creator() == fc.me {
 		fc.prevSelfEvent = e.ID()
 		fc.prevSelfFrame = e.Frame()

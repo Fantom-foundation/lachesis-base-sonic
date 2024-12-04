@@ -6,7 +6,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/utils/wmedian"
@@ -83,7 +83,7 @@ func (ws weightedSeq) Weight() pos.Weight {
 	return ws.weight
 }
 
-func (h *QuorumIndexer) ProcessEvent(event dag.Event, selfEvent bool) {
+func (h *QuorumIndexer) ProcessEvent(event ltypes.Event, selfEvent bool) {
 	vecClock := h.dagi.GetMergedHighestBefore(event.ID())
 	creatorIdx := h.validators.GetIdx(event.Creator())
 	// update global matrix

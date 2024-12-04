@@ -6,7 +6,7 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/eventcheck"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
@@ -14,7 +14,7 @@ import (
 type (
 	// event is a inter.Event and data for ordering purpose.
 	event struct {
-		event dag.Event
+		event ltypes.Event
 
 		peer     string
 		err      error
@@ -23,11 +23,11 @@ type (
 
 	// Callback is a set of EventsBuffer()'s args.
 	Callback struct {
-		Process  func(e dag.Event) error
-		Released func(e dag.Event, peer string, err error)
-		Get      func(hash.Event) dag.Event
+		Process  func(e ltypes.Event) error
+		Released func(e ltypes.Event, peer string, err error)
+		Get      func(hash.Event) ltypes.Event
 		Exists   func(hash.Event) bool
-		Check    func(e dag.Event, parents dag.Events) error
+		Check    func(e ltypes.Event, parents ltypes.Events) error
 	}
 )
 
@@ -36,10 +36,10 @@ type EventsBuffer struct {
 	callback    Callback
 	mu          sync.Mutex
 
-	limit dag.Metric
+	limit ltypes.Metric
 }
 
-func New(limit dag.Metric, callback Callback) *EventsBuffer {
+func New(limit ltypes.Metric, callback Callback) *EventsBuffer {
 	buf := &EventsBuffer{
 		callback: callback,
 		limit:    limit,
@@ -48,7 +48,7 @@ func New(limit dag.Metric, callback Callback) *EventsBuffer {
 	return buf
 }
 
-func (buf *EventsBuffer) PushEvent(de dag.Event, peer string) (complete bool) {
+func (buf *EventsBuffer) PushEvent(de ltypes.Event, peer string) (complete bool) {
 	e := &event{
 		event: de,
 		peer:  peer,
@@ -119,8 +119,8 @@ func (buf *EventsBuffer) getIncompleteEventsList() []*event {
 	return res
 }
 
-func (buf *EventsBuffer) completeEventParents(e *event) dag.Events {
-	parents := make(dag.Events, len(e.event.Parents()))
+func (buf *EventsBuffer) completeEventParents(e *event) ltypes.Events {
+	parents := make(ltypes.Events, len(e.event.Parents()))
 	for i, p := range e.event.Parents() {
 		parent := buf.callback.Get(p)
 		if parent == nil {
@@ -131,7 +131,7 @@ func (buf *EventsBuffer) completeEventParents(e *event) dag.Events {
 	return parents
 }
 
-func (buf *EventsBuffer) processCompleteEvent(e *event, parents dag.Events) bool {
+func (buf *EventsBuffer) processCompleteEvent(e *event, parents ltypes.Events) bool {
 	// validate
 	if buf.callback.Check != nil {
 		err := buf.callback.Check(e.event, parents)
@@ -151,7 +151,7 @@ func (buf *EventsBuffer) processCompleteEvent(e *event, parents dag.Events) bool
 	return true
 }
 
-func (buf *EventsBuffer) spillIncompletes(limit dag.Metric) {
+func (buf *EventsBuffer) spillIncompletes(limit ltypes.Metric) {
 	for idx.Event(buf.incompletes.Len()) > limit.Num || uint64(buf.incompletes.Weight()) > limit.Size {
 		_, val, ok := buf.incompletes.RemoveOldest()
 		if !ok {
@@ -184,14 +184,14 @@ func (buf *EventsBuffer) IsBuffered(id hash.Event) bool {
 func (buf *EventsBuffer) Clear() {
 	buf.mu.Lock()
 	defer buf.mu.Unlock()
-	buf.spillIncompletes(dag.Metric{})
+	buf.spillIncompletes(ltypes.Metric{})
 }
 
 // Total returns the total weight and number of items in the cache.
-func (buf *EventsBuffer) Total() dag.Metric {
+func (buf *EventsBuffer) Total() ltypes.Metric {
 	// wlru is thread-safe, no need for a mutex here
 	weight, num := buf.incompletes.Total()
-	return dag.Metric{
+	return ltypes.Metric{
 		Num:  idx.Event(num),
 		Size: uint64(weight),
 	}

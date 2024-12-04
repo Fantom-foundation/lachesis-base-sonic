@@ -14,8 +14,8 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/emitter/ancestor"
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
@@ -174,7 +174,7 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 	}
 
 	// create a list of heads for each node
-	headsAll := make([]dag.Events, numValidators)
+	headsAll := make([]ltypes.Events, numValidators)
 
 	//setup nodes
 	nodes := tdag.GenNodes(numValidators)
@@ -317,7 +317,7 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 						e.SetCreator(selfID)
 						e.SetParents(hash.Events{}) // first parent is empty hash
 
-						var parents dag.Events
+						var parents ltypes.Events
 						if isLeaf[self] { // leaf event
 							e.SetSeq(1)
 							e.SetLamport(1)
@@ -328,8 +328,8 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 						}
 
 						// get heads for parent selection
-						var heads dag.Events
-						var allHeads dag.Events
+						var heads ltypes.Events
+						var allHeads ltypes.Events
 						for _, head := range headsAll[self] {
 							heads = append(heads, head)
 							allHeads = append(allHeads, head)
@@ -483,7 +483,7 @@ func simulate(weights []pos.Weight, QIParentCount int, randParentCount int, offl
 
 }
 
-func updateHeads(newEvent dag.Event, heads *dag.Events) {
+func updateHeads(newEvent ltypes.Event, heads *ltypes.Events) {
 	// remove newEvent's parents from heads
 	for _, parent := range newEvent.Parents() {
 		for i := 0; i < len(*heads); i++ {
@@ -497,7 +497,7 @@ func updateHeads(newEvent dag.Event, heads *dag.Events) {
 	*heads = append(*heads, newEvent) //add newEvent to heads
 }
 
-func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *dag.Events, self idx.ValidatorID, time int) (frame idx.Frame) {
+func processEvent(input EventStore, lchs *CoreLachesis, e *QITestEvent, fcIndexer *ancestor.FCIndexer, heads *ltypes.Events, self idx.ValidatorID, time int) (frame idx.Frame) {
 	input.SetEvent(e)
 
 	lchs.dagIndexer.Add(e)

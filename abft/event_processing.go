@@ -4,7 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -14,7 +14,7 @@ var (
 
 // Build fills consensus-related fields: Frame, IsRoot
 // returns error if event should be dropped
-func (p *Orderer) Build(e dag.MutableEvent) error {
+func (p *Orderer) Build(e ltypes.MutableEvent) error {
 	// sanity check
 	if e.Epoch() != p.store.GetEpoch() {
 		p.crit(errors.New("event has wrong epoch"))
@@ -33,7 +33,7 @@ func (p *Orderer) Build(e dag.MutableEvent) error {
 // Event order matter: parents first.
 // All the event checkers must be launched.
 // Process is not safe for concurrent use.
-func (p *Orderer) Process(e dag.Event) (err error) {
+func (p *Orderer) Process(e ltypes.Event) (err error) {
 	err, selfParentFrame := p.checkAndSaveEvent(e)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (p *Orderer) Process(e dag.Event) (err error) {
 }
 
 // checkAndSaveEvent checks consensus-related fields: Frame, IsRoot
-func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
+func (p *Orderer) checkAndSaveEvent(e ltypes.Event) (error, idx.Frame) {
 	// check frame & isRoot
 	selfParentFrame, frameIdx := p.calcFrameIdx(e)
 	if !p.config.SuppressFramePanic && e.Frame() != frameIdx {
@@ -63,7 +63,7 @@ func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 }
 
 // calculates Atropos election for the root, calls p.onFrameDecided if election was decided
-func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) error {
+func (p *Orderer) handleElection(selfParentFrame idx.Frame, root ltypes.Event) error {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
 		decided, err := p.election.ProcessRoot(election.RootAndSlot{
 			ID: root.ID(),
@@ -146,7 +146,7 @@ func (p *Orderer) processKnownRoots() (*election.Res, error) {
 }
 
 // forklessCausedByQuorumOn returns true if event is forkless caused by 2/3W roots on specified frame
-func (p *Orderer) forklessCausedByQuorumOn(e dag.Event, f idx.Frame) bool {
+func (p *Orderer) forklessCausedByQuorumOn(e ltypes.Event, f idx.Frame) bool {
 	observedCounter := p.store.GetValidators().NewCounter()
 	// check "observing" prev roots only if called by creator, or if creator has marked that event as root
 	for _, it := range p.store.GetFrameRoots(f) {
@@ -162,7 +162,7 @@ func (p *Orderer) forklessCausedByQuorumOn(e dag.Event, f idx.Frame) bool {
 
 // calcFrameIdx checks root-conditions for new event and returns event's frame.
 // It is not safe for concurrent use.
-func (p *Orderer) calcFrameIdx(e dag.Event) (selfParentFrame, frame idx.Frame) {
+func (p *Orderer) calcFrameIdx(e ltypes.Event) (selfParentFrame, frame idx.Frame) {
 	if e.SelfParent() == nil {
 		return 0, 1
 	}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var (
@@ -21,7 +21,7 @@ func New() *Checker {
 	return &Checker{}
 }
 
-func (v *Checker) checkLimits(e dag.Event) error {
+func (v *Checker) checkLimits(e ltypes.Event) error {
 	if e.Seq() >= math.MaxInt32-1 || e.Epoch() >= math.MaxInt32-1 || e.Frame() >= math.MaxInt32-1 ||
 		e.Lamport() >= math.MaxInt32-1 {
 		return ErrHugeValue
@@ -30,7 +30,7 @@ func (v *Checker) checkLimits(e dag.Event) error {
 	return nil
 }
 
-func (v *Checker) checkInited(e dag.Event) error {
+func (v *Checker) checkInited(e ltypes.Event) error {
 	// it's unsigned, but check for negative in a case if type will change
 	if e.Seq() <= 0 || e.Epoch() <= 0 || e.Frame() <= 0 || e.Lamport() <= 0 {
 		return ErrNotInited
@@ -44,7 +44,7 @@ func (v *Checker) checkInited(e dag.Event) error {
 }
 
 // Validate event
-func (v *Checker) Validate(e dag.Event) error {
+func (v *Checker) Validate(e ltypes.Event) error {
 	if err := v.checkLimits(e); err != nil {
 		return err
 	}

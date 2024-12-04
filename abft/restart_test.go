@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -107,7 +107,7 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 		}
 	}
 
-	var ordered dag.Events
+	var ordered ltypes.Events
 	parentCount := 5
 	if parentCount > len(nodes) {
 		parentCount = len(nodes)
@@ -116,7 +116,7 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 	r := rand.New(rand.NewSource(int64(len(nodes) + cheatersCount))) // nolint:gosec
 	for epoch := idx.Epoch(1); epoch <= idx.Epoch(epochs); epoch++ {
 		tdag.ForEachRandFork(nodes, nodes[:cheatersCount], eventCount, parentCount, 10, r, tdag.ForEachEvent{
-			Process: func(e dag.Event, name string) {
+			Process: func(e ltypes.Event, name string) {
 				inputs[GENERATOR].SetEvent(e)
 				assertar.NoError(
 					lchs[GENERATOR].Process(e))
@@ -124,7 +124,7 @@ func testRestartAndReset(t *testing.T, weights []pos.Weight, mutateWeights bool,
 				ordered = append(ordered, e)
 				epochStates[lchs[GENERATOR].store.GetEpoch()] = lchs[GENERATOR].store.GetEpochState()
 			},
-			Build: func(e dag.MutableEvent, name string) error {
+			Build: func(e ltypes.MutableEvent, name string) error {
 				if epoch != lchs[GENERATOR].store.GetEpoch() {
 					return errors.New("epoch already sealed, skip")
 				}

@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-type eventFilterFn func(event dag.Event) bool
+type eventFilterFn func(event ltypes.Event) bool
 
 // dfsSubgraph iterates all the events which are observed by head, and accepted by a filter.
 // filter MAY BE called twice for the same event.

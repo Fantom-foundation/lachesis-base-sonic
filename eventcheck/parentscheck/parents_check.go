@@ -3,7 +3,7 @@ package parentscheck
 import (
 	"errors"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
@@ -22,7 +22,7 @@ func New() *Checker {
 }
 
 // Validate event
-func (v *Checker) Validate(e dag.Event, parents dag.Events) error {
+func (v *Checker) Validate(e ltypes.Event, parents ltypes.Events) error {
 	if len(e.Parents()) != len(parents) {
 		panic("parentscheck: expected event's parents as an argument")
 	}

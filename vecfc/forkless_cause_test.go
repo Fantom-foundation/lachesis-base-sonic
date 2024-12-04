@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
@@ -47,8 +47,8 @@ func benchForklessCauseProcess(b *testing.B, idx *int, inmem bool) {
 	nodes := tdag.GenNodes(10)
 	validators := pos.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.Event]dag.Event)
-	getEvent := func(id hash.Event) dag.Event {
+	events := make(map[hash.Event]ltypes.Event)
+	getEvent := func(id hash.Event) ltypes.Event {
 		return events[id]
 	}
 
@@ -70,7 +70,7 @@ func benchForklessCauseProcess(b *testing.B, idx *int, inmem bool) {
 	vi.Reset(validators, vecflushable.Wrap(db, 10000000), getEvent)
 
 	tdag.ForEachRandEvent(nodes, 10, 2, nil, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			events[e.ID()] = e
 			err := vi.Add(e)
 			if err != nil {
@@ -152,8 +152,8 @@ func testForklessCaused(t *testing.T, dagAscii string) {
 	nodes, _, _ := tdag.ASCIIschemeToDAG(dagAscii)
 	validators := pos.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.Event]dag.Event)
-	getEvent := func(id hash.Event) dag.Event {
+	events := make(map[hash.Event]ltypes.Event)
+	getEvent := func(id hash.Event) ltypes.Event {
 		return events[id]
 	}
 
@@ -161,7 +161,7 @@ func testForklessCaused(t *testing.T, dagAscii string) {
 	vi.Reset(validators, vecflushable.Wrap(memorydb.New(), vecflushable.TestSizeLimit), getEvent)
 
 	_, _, named := tdag.ASCIIschemeForEach(dagAscii, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			events[e.ID()] = e
 			err := vi.Add(e)
 			if err != nil {
@@ -486,17 +486,17 @@ func testForklessCausedRandom(t *testing.T, dbProducer func() kvdb.FlushableKVSt
 		"d019": {"a000": {}, "a001": {}, "a002": {}, "a003": {}, "a004": {}, "a005": {}, "a006": {}, "a007": {}, "a008": {}, "a009": {}, "a010": {}, "a011": {}, "a012": {}, "a013": {}, "a014": {}, "a015": {}, "a016": {}, "a017": {}, "a018": {}, "a019": {}, "b000": {}, "b001": {}, "b002": {}, "b003": {}, "b004": {}, "b005": {}, "b006": {}, "b007": {}, "b008": {}, "b009": {}, "b010": {}, "b011": {}, "b012": {}, "b013": {}, "b014": {}, "b015": {}, "b016": {}, "b017": {}, "b018": {}, "c000": {}, "c001": {}, "c002": {}, "c003": {}, "c004": {}, "c005": {}, "c006": {}, "c007": {}, "c008": {}, "c009": {}, "c010": {}, "c011": {}, "c012": {}, "c013": {}, "c014": {}, "c015": {}, "c016": {}, "c017": {}, "c018": {}, "d000": {}, "d001": {}, "d002": {}, "d003": {}, "d004": {}, "d005": {}, "d006": {}, "d007": {}, "d008": {}, "d009": {}, "d010": {}, "d011": {}, "d012": {}, "d013": {}, "d014": {}, "d015": {}, "d016": {}, "d017": {}, "d018": {}},
 	}
 
-	ordered := make(dag.Events, 0)
+	ordered := make(ltypes.Events, 0)
 	nodes, _, named := tdag.ASCIIschemeForEach(dagAscii, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
 	})
 
 	validators := pos.EqualWeightValidators(nodes, 1)
 
-	events := make(map[hash.Event]dag.Event)
-	getEvent := func(id hash.Event) dag.Event {
+	events := make(map[hash.Event]ltypes.Event)
+	getEvent := func(id hash.Event) ltypes.Event {
 		return events[id]
 	}
 
@@ -534,7 +534,7 @@ type eventSlot struct {
 }
 
 // naive implementation of fork detection, O(n)
-func testForksDetected(vi *Index, head dag.Event) (cheaters map[idx.ValidatorID]bool, err error) {
+func testForksDetected(vi *Index, head ltypes.Event) (cheaters map[idx.ValidatorID]bool, err error) {
 	cheaters = map[idx.ValidatorID]bool{}
 	visited := hash.EventsSet{}
 	detected := map[eventSlot]int{}
@@ -577,8 +577,8 @@ func TestRandomForksSanity(t *testing.T) {
 	validatorsBuilder.Set(nodes[4], pos.Weight(3))
 	validators := validatorsBuilder.Build()
 
-	processed := make(map[hash.Event]dag.Event)
-	getEvent := func(id hash.Event) dag.Event {
+	processed := make(map[hash.Event]ltypes.Event)
+	getEvent := func(id hash.Event) ltypes.Event {
 		return processed[id]
 	}
 
@@ -587,7 +587,7 @@ func TestRandomForksSanity(t *testing.T) {
 
 	// Many forks from each node in large graph, so probability of not seeing a fork is negligible
 	events := tdag.ForEachRandFork(nodes, cheaters, 300, 4, 30, nil, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			if _, ok := processed[e.ID()]; ok {
 				return
 			}
@@ -703,9 +703,9 @@ func TestRandomForks(t *testing.T) {
 
 			validators := pos.EqualWeightValidators(nodes, 1)
 
-			processedArr := dag.Events{}
-			processed := make(map[hash.Event]dag.Event)
-			getEvent := func(id hash.Event) dag.Event {
+			processedArr := ltypes.Events{}
+			processed := make(map[hash.Event]ltypes.Event)
+			getEvent := func(id hash.Event) ltypes.Event {
 				return processed[id]
 			}
 
@@ -713,7 +713,7 @@ func TestRandomForks(t *testing.T) {
 			vi.Reset(validators, vecflushable.Wrap(memorydb.New(), vecflushable.TestSizeLimit), getEvent)
 
 			_ = tdag.ForEachRandFork(nodes, cheaters, test.eventsNum, test.parentsNum, test.forksNum, r, tdag.ForEachEvent{
-				Process: func(e dag.Event, name string) {
+				Process: func(e ltypes.Event, name string) {
 					if _, ok := processed[e.ID()]; ok {
 						return
 					}
@@ -765,7 +765,7 @@ func TestRandomForks(t *testing.T) {
 			// check that events re-order doesn't change forklessCause result
 			for reorderTry := 0; reorderTry < test.reorderChecks; reorderTry++ {
 				// re-order events randomly, preserving parents order
-				unordered := make(dag.Events, len(processedArr))
+				unordered := make(ltypes.Events, len(processedArr))
 				for i, j := range r.Perm(len(processedArr)) {
 					unordered[i] = processedArr[j]
 				}
