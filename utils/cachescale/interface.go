@@ -1,7 +1,7 @@
 package cachescale
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 type Func interface {

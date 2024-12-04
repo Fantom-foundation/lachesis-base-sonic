@@ -5,10 +5,40 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/Fantom-foundation/lachesis-base/common/bigendian"
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
+
+// FakePeer generates random fake peer id for testing purpose.
+func FakePeer() idx.ValidatorID {
+	return idx.BytesToValidatorID(hash.FakeHash().Bytes()[:4])
+}
+
+// FakeEpoch gives fixed value of fake epoch for testing purpose.
+func FakeEpoch() idx.Epoch {
+	return 123456
+}
+
+// FakeEvent generates random fake event hash with the same epoch for testing purpose.
+func FakeEvent() (h hash.Event) {
+	_, err := rand.Read(h[:]) // nolint:gosec
+	if err != nil {
+		panic(err)
+	}
+	copy(h[0:4], bigendian.Uint32ToBytes(uint32(FakeEpoch())))
+	return
+}
+
+// FakeEvents generates random hashes of fake event with the same epoch for testing purpose.
+func FakeEvents(n int) hash.Events {
+	res := hash.Events{}
+	for i := 0; i < n; i++ {
+		res.Add(FakeEvent())
+	}
+	return res
+}
 
 // GenNodes generates nodes.
 // Result:
@@ -22,7 +52,7 @@ func GenNodes(
 	nodes = make([]idx.ValidatorID, nodeCount)
 	// make and name nodes
 	for i := 0; i < nodeCount; i++ {
-		addr := hash.FakePeer()
+		addr := FakePeer()
 		nodes[i] = addr
 		hash.SetNodeName(addr, "node"+string('A'+rune(i)))
 	}

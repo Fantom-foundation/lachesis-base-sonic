@@ -1,8 +1,8 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
 	"github.com/Fantom-foundation/lachesis-base/utils/wlru"
 )
 

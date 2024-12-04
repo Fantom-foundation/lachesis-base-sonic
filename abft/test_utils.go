@@ -3,10 +3,10 @@ package abft
 import (
 	"math/rand"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
 	"github.com/Fantom-foundation/lachesis-base/lachesis"

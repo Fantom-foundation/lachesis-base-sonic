@@ -4,7 +4,7 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/basiccheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/epochcheck"
 	"github.com/Fantom-foundation/lachesis-base/eventcheck/parentscheck"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 // Checkers is collection of all the checkers

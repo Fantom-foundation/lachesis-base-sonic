@@ -1,8 +1,6 @@
-package pos
+package types
 
-import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-)
+import "github.com/Fantom-foundation/lachesis-base/inter/idx"
 
 type (
 	validator struct {

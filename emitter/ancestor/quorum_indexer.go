@@ -5,10 +5,10 @@ import (
 	"sort"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
 	"github.com/Fantom-foundation/lachesis-base/utils/wmedian"
 )
 

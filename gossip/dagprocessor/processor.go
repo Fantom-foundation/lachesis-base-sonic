@@ -6,9 +6,9 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/eventcheck"
 	"github.com/Fantom-foundation/lachesis-base/gossip/dagordering"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
 	"github.com/Fantom-foundation/lachesis-base/utils/datasemaphore"
 	"github.com/Fantom-foundation/lachesis-base/utils/workers"
 )

@@ -1,13 +1,11 @@
-package dag
+package types
 
 import (
 	"fmt"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type Metric struct {
-	Num  idx.Event
+	Num  Event
 	Size uint64
 }
 

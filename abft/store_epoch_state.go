@@ -1,8 +1,8 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/types"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 const esKey = "e"

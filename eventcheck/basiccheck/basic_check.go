@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 var (

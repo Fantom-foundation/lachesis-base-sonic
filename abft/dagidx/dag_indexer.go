@@ -1,18 +1,17 @@
 package dagidx
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 type Seq interface {
-	Seq() idx.Event
+	Seq() types.Event
 	IsForkDetected() bool
 }
 
 type HighestBeforeSeq interface {
 	Size() int
-	Get(i idx.Validator) Seq
+	Get(i types.Validator) Seq
 }
 
 type ForklessCause interface {
@@ -30,9 +29,9 @@ type ForklessCause interface {
 	// unless more than 1/3W are Byzantine.
 	// This great property is the reason why this function exists,
 	// providing the base for the BFT algorithm.
-	ForklessCause(aID, bID hash.Event) bool
+	ForklessCause(aID, bID types.Event) bool
 }
 
 type VectorClock interface {
-	GetMergedHighestBefore(id hash.Event) HighestBeforeSeq
+	GetMergedHighestBefore(id types.Event) HighestBeforeSeq
 }

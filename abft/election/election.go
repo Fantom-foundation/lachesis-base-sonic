@@ -1,21 +1,20 @@
 package election
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"errors"
+	"github.com/Fantom-foundation/lachesis-base/types"
 )
 
 type (
 	// Election is cached data of election algorithm.
 	Election struct {
 		// election params
-		frameToDecide idx.Frame
+		frameToDecide types.Frame
 
-		validators *pos.Validators
+		validators *types.Validators
 
 		// election state
-		decidedRoots map[idx.ValidatorID]voteValue // decided roots at "frameToDecide"
+		decidedRoots map[types.ValidatorID]voteValue // decided roots at "frameToDecide"
 		votes        map[voteID]voteValue
 
 		// external world
@@ -24,20 +23,20 @@ type (
 	}
 
 	// ForklessCauseFn returns true if event A is forkless caused by event B
-	ForklessCauseFn func(a hash.Event, b hash.Event) bool
+	ForklessCauseFn func(a types.Event, b types.Event) bool
 	// GetFrameRootsFn returns all the roots in the specified frame
-	GetFrameRootsFn func(f idx.Frame) []RootAndSlot
+	GetFrameRootsFn func(f types.Frame) []RootAndSlot
 
 	// Slot specifies a root slot {addr, frame}. Normal validators can have only one root with this pair.
 	// Due to a fork, different roots may occupy the same slot
 	Slot struct {
-		Frame     idx.Frame
-		Validator idx.ValidatorID
+		Frame     types.Frame
+		Validator types.ValidatorID
 	}
 
 	// RootAndSlot specifies concrete root of slot.
 	RootAndSlot struct {
-		ID   hash.Event
+		ID   types.Event
 		Slot Slot
 	}
 )
@@ -88,9 +87,26 @@ func (el *Election) notDecidedRoots() []idx.ValidatorID {
 	notDecidedRoots := make([]idx.ValidatorID, 0, el.validators.Len())
 
 	for _, validator := range el.validators.IDs() {
+<<<<<<< Updated upstream
 		if _, ok := el.decidedRoots[validator]; !ok {
 			notDecidedRoots = append(notDecidedRoots, validator)
+=======
+		vote := voteValue{}
+		// in initial round, vote "yes" if observe the subject
+		observedRoot, ok := observedRootsMap[validator]
+		vote.yes = ok
+		vote.decided = false
+		if ok {
+			vote.observedRoot = observedRoot.ID
+>>>>>>> Stashed changes
 		}
+		// save vote for next rounds
+		// note that frame is a constant (frame -1 of the root frame)
+		vid := voteID{
+			fromRoot:     RootAndSlot{rootEvent, Slot{frame, rootValidator}},
+			forValidator: validator,
+		}
+		el.votes[vid] = vote
 	}
 	if idx.Validator(len(notDecidedRoots)+len(el.decidedRoots)) != el.validators.Len() { // sanity check
 		panic("Mismatch of roots")
@@ -111,6 +127,7 @@ func (el *Election) observedRoots(root hash.Event, frame idx.Frame) []RootAndSlo
 	return observedRoots
 }
 
+<<<<<<< Updated upstream
 func (el *Election) observedRootsMap(root hash.Event, frame idx.Frame) map[idx.ValidatorID]RootAndSlot {
 	observedRootsMap := make(map[idx.ValidatorID]RootAndSlot, el.validators.Len())
 
@@ -118,6 +135,49 @@ func (el *Election) observedRootsMap(root hash.Event, frame idx.Frame) map[idx.V
 	for _, frameRoot := range frameRoots {
 		if el.observe(root, frameRoot.ID) {
 			observedRootsMap[frameRoot.Slot.Validator] = frameRoot
+=======
+func (el *Election) aggregateVotes(frame idx.Frame, rootValidator idx.ValidatorID, rootEvent hash.Event) (*Res, error) {
+	var observedRoots []RootAndSlot
+	observedRoots = el.observedRoots(rootEvent, frame-1)
+	for _, validator := range el.validators.IDs() {
+		if _, ok := el.decidedRoots[validator]; !ok {
+			yesVotes := el.validators.NewCounter()
+			noVotes := el.validators.NewCounter()
+			// calc number of "yes" and "no", weighted by validator's weight
+			for _, observedRoot := range observedRoots {
+				vid := voteID{
+					fromRoot:     observedRoot,
+					forValidator: validator,
+				}
+				if vote, ok := el.votes[vid]; ok {
+					if vote.yes {
+						yesVotes.Count(observedRoot.Slot.Validator)
+					} else {
+						noVotes.Count(observedRoot.Slot.Validator)
+					}
+				} else {
+					return nil, errors.New("every root must vote for every not decided subject. possibly roots are processed out of order")
+				}
+			}
+			// vote as majority of votes
+			vote := voteValue{}
+			vote.yes = yesVotes.Sum() >= noVotes.Sum()
+			if vote.yes != nil {
+				vote.observedRoot = *subjectHash
+			}
+			// If supermajority is observed, then the final decision may be made.
+			// It's guaranteed to be final and consistent unless more than 1/3W are Byzantine.
+			vote.decided = yesVotes.HasQuorum() || noVotes.HasQuorum()
+			if vote.decided {
+				el.decidedRoots[validator] = vote
+			}
+			// save vote for next rounds
+			vid := voteID{
+				fromRoot:     RootAndSlot{rootEvent, Slot{frame, rootValidator}},
+				forValidator: validator,
+			}
+			el.votes[vid] = vote
+>>>>>>> Stashed changes
 		}
 	}
 	return observedRootsMap

@@ -1,13 +1,11 @@
-package pos
+package types
 
 import (
 	"math/big"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 // ValidatorsBuilderBig is a helper to create Validators object out of bigint numbers
-type ValidatorsBigBuilder map[idx.ValidatorID]*big.Int
+type ValidatorsBigBuilder map[ValidatorID]*big.Int
 
 // NewBigBuilder creates new mutable ValidatorsBigBuilder
 func NewBigBuilder() ValidatorsBigBuilder {
@@ -15,7 +13,7 @@ func NewBigBuilder() ValidatorsBigBuilder {
 }
 
 // Set appends item to ValidatorsBuilder object
-func (vv ValidatorsBigBuilder) Set(id idx.ValidatorID, weight *big.Int) {
+func (vv ValidatorsBigBuilder) Set(id ValidatorID, weight *big.Int) {
 	if weight == nil || weight.Sign() == 0 {
 		delete(vv, id)
 	} else {

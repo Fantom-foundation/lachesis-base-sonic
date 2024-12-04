@@ -1,10 +1,7 @@
-package dag
+package types
 
 import (
 	"strings"
-
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 // Events is a ordered slice of events.
@@ -20,15 +17,15 @@ func (ee Events) String() string {
 }
 
 func (ee Events) Metric() (metric Metric) {
-	metric.Num = idx.Event(len(ee))
+	metric.Num = Event(len(ee))
 	for _, e := range ee {
 		metric.Size += uint64(e.Size())
 	}
 	return metric
 }
 
-func (ee Events) IDs() hash.Events {
-	ids := make(hash.Events, len(ee))
+func (ee Events) IDs() Events {
+	ids := make(Events, len(ee))
 	for i, e := range ee {
 		ids[i] = e.ID()
 	}

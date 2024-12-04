@@ -1,17 +1,16 @@
 package lachesis
 
 import (
+	"github.com/Fantom-foundation/lachesis-base/types"
 	"github.com/ethereum/go-ethereum/rlp"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 // Cheaters is a slice type for storing cheaters list.
-type Cheaters []idx.ValidatorID
+type Cheaters []types.ValidatorID
 
 // Set returns map of cheaters
-func (s Cheaters) Set() map[idx.ValidatorID]struct{} {
-	set := map[idx.ValidatorID]struct{}{}
+func (s Cheaters) Set() map[types.ValidatorID]struct{} {
+	set := map[types.ValidatorID]struct{}{}
 	for _, element := range s {
 		set[element] = struct{}{}
 	}

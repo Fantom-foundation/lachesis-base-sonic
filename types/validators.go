@@ -1,4 +1,4 @@
-package pos
+package types
 
 import (
 	"fmt"
@@ -7,27 +7,25 @@ import (
 	"sort"
 
 	"github.com/ethereum/go-ethereum/rlp"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 type (
 	cache struct {
-		indexes     map[idx.ValidatorID]idx.Validator
+		indexes     map[ValidatorID]Validator
 		weights     []Weight
-		ids         []idx.ValidatorID
+		ids         []ValidatorID
 		totalWeight Weight
 	}
 	// Validators group of an epoch with weights.
 	// Optimized for BFT algorithm calculations.
 	// Read-only.
 	Validators struct {
-		values map[idx.ValidatorID]Weight
+		values map[ValidatorID]Weight
 		cache  cache
 	}
 
 	// ValidatorsBuilder is a helper to create Validators object
-	ValidatorsBuilder map[idx.ValidatorID]Weight
+	ValidatorsBuilder map[ValidatorID]Weight
 )
 
 // NewBuilder creates new mutable ValidatorsBuilder
@@ -36,7 +34,7 @@ func NewBuilder() ValidatorsBuilder {
 }
 
 // Set appends item to ValidatorsBuilder object
-func (vv ValidatorsBuilder) Set(id idx.ValidatorID, weight Weight) {
+func (vv ValidatorsBuilder) Set(id ValidatorID, weight Weight) {
 	if weight == 0 {
 		delete(vv, id)
 	} else {
@@ -50,7 +48,7 @@ func (vv ValidatorsBuilder) Build() *Validators {
 }
 
 // EqualWeightValidators builds new read-only Validators object with equal weights (for tests)
-func EqualWeightValidators(ids []idx.ValidatorID, weight Weight) *Validators {
+func EqualWeightValidators(ids []ValidatorID, weight Weight) *Validators {
 	builder := NewBuilder()
 	for _, id := range ids {
 		builder.Set(id, weight)
@@ -59,7 +57,7 @@ func EqualWeightValidators(ids []idx.ValidatorID, weight Weight) *Validators {
 }
 
 // ArrayToValidators builds new read-only Validators object from array
-func ArrayToValidators(ids []idx.ValidatorID, weights []Weight) *Validators {
+func ArrayToValidators(ids []ValidatorID, weights []Weight) *Validators {
 	builder := NewBuilder()
 	for i, id := range ids {
 		builder.Set(id, weights[i])
@@ -82,20 +80,20 @@ func newValidators(values ValidatorsBuilder) *Validators {
 }
 
 // Len returns count of validators in Validators objects
-func (vv *Validators) Len() idx.Validator {
-	return idx.Validator(len(vv.values))
+func (vv *Validators) Len() Validator {
+	return Validator(len(vv.values))
 }
 
 // calcCaches calculates internal caches for validators
 func (vv *Validators) calcCaches() cache {
 	cache := cache{
-		indexes: make(map[idx.ValidatorID]idx.Validator),
+		indexes: make(map[ValidatorID]Validator),
 		weights: make([]Weight, vv.Len()),
-		ids:     make([]idx.ValidatorID, vv.Len()),
+		ids:     make([]ValidatorID, vv.Len()),
 	}
 
 	for i, v := range vv.sortedArray() {
-		cache.indexes[v.ID] = idx.Validator(i)
+		cache.indexes[v.ID] = Validator(i)
 		cache.weights[i] = v.Weight
 		cache.ids[i] = v.ID
 		totalWeightBefore := cache.totalWeight
@@ -113,39 +111,39 @@ func (vv *Validators) calcCaches() cache {
 }
 
 // get returns weight for validator by ID
-func (vv *Validators) Get(id idx.ValidatorID) Weight {
+func (vv *Validators) Get(id ValidatorID) Weight {
 	return vv.values[id]
 }
 
 // GetIdx returns index (offset) of validator in the group
-func (vv *Validators) GetIdx(id idx.ValidatorID) idx.Validator {
+func (vv *Validators) GetIdx(id ValidatorID) Validator {
 	return vv.cache.indexes[id]
 }
 
 // GetID returns index validator ID by index (offset) of validator in the group
-func (vv *Validators) GetID(i idx.Validator) idx.ValidatorID {
+func (vv *Validators) GetID(i Validator) ValidatorID {
 	return vv.cache.ids[i]
 }
 
 // GetWeightByIdx returns weight for validator by index
-func (vv *Validators) GetWeightByIdx(i idx.Validator) Weight {
+func (vv *Validators) GetWeightByIdx(i Validator) Weight {
 	return vv.cache.weights[i]
 }
 
 // Exists returns boolean true if address exists in Validators object
-func (vv *Validators) Exists(id idx.ValidatorID) bool {
+func (vv *Validators) Exists(id ValidatorID) bool {
 	_, ok := vv.values[id]
 	return ok
 }
 
 // IDs returns not sorted ids.
-func (vv *Validators) IDs() []idx.ValidatorID {
+func (vv *Validators) IDs() []ValidatorID {
 	return vv.cache.ids
 }
 
 // SortedIDs returns deterministically sorted ids.
 // The order is the same as for Idxs().
-func (vv *Validators) SortedIDs() []idx.ValidatorID {
+func (vv *Validators) SortedIDs() []ValidatorID {
 	return vv.cache.ids
 }
 
@@ -156,7 +154,7 @@ func (vv *Validators) SortedWeights() []Weight {
 }
 
 // Idxs gets deterministic total order of validators.
-func (vv *Validators) Idxs() map[idx.ValidatorID]idx.Validator {
+func (vv *Validators) Idxs() map[ValidatorID]Validator {
 	return vv.cache.indexes
 }
 
@@ -220,7 +218,7 @@ func (vv *Validators) String() string {
 		if len(str) != 0 {
 			str += ","
 		}
-		str += fmt.Sprintf("[%d:%d]", vid, vv.GetWeightByIdx(idx.Validator(i)))
+		str += fmt.Sprintf("[%d:%d]", vid, vv.GetWeightByIdx(Validator(i)))
 	}
 	return str
 }
