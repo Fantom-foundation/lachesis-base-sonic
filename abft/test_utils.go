@@ -3,37 +3,33 @@ package abft
 import (
 	"math/rand"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
 )
 
 type dbEvent struct {
-	hash        hash.Event
-	validatorId idx.ValidatorID
-	seq         idx.Event
-	frame       idx.Frame
-	lamportTs   idx.Lamport
-	parents     []hash.Event
+	hash        ltypes.EventHash
+	validatorId ltypes.ValidatorID
+	seq         ltypes.EventID
+	frame       ltypes.FrameID
+	lamportTs   ltypes.Lamport
+	parents     []ltypes.EventHash
 }
 
-type applyBlockFn func(block *lachesis.Block) *pos.Validators
+type applyBlockFn func(block *ltypes.Block) *ltypes.Validators
 
 type BlockKey struct {
-	Epoch idx.Epoch
-	Frame idx.Frame
+	Epoch ltypes.EpochID
+	Frame ltypes.FrameID
 }
 
 type BlockResult struct {
-	Atropos    hash.Event
-	Cheaters   lachesis.Cheaters
-	Validators *pos.Validators
+	Atropos    ltypes.EventHash
+	Cheaters   ltypes.Cheaters
+	Validators *ltypes.Validators
 }
 
 // CoreLachesis extends Indexed Orderer for tests.
@@ -42,14 +38,14 @@ type CoreLachesis struct {
 
 	blocks      map[BlockKey]*BlockResult
 	lastBlock   BlockKey
-	epochBlocks map[idx.Epoch]idx.Frame
+	epochBlocks map[ltypes.EpochID]ltypes.FrameID
 
 	applyBlock applyBlockFn
 }
 
 // NewCoreLachesis creates empty abft consensus with mem store and optional node weights w.o. some callbacks usually instantiated by Client
-func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memorydb.Mod) (*CoreLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
-	validators := make(pos.ValidatorsBuilder, len(nodes))
+func NewCoreLachesis(nodes []ltypes.ValidatorID, weights []ltypes.Weight, mods ...memorydb.Mod) (*CoreLachesis, *Store, *EventStore, *adapters.VectorToDagIndexer) {
+	validators := make(ltypes.ValidatorsBuilder, len(nodes))
 	for i, v := range nodes {
 		if weights == nil {
 			validators[v] = 1
@@ -58,7 +54,7 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memo
 		}
 	}
 
-	openEDB := func(epoch idx.Epoch) kvdb.Store {
+	openEDB := func(epoch ltypes.EpochID) kvdb.Store {
 		return memorydb.New()
 	}
 	crit := func(err error) {
@@ -83,13 +79,13 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memo
 	extended := &CoreLachesis{
 		IndexedLachesis: lch,
 		blocks:          map[BlockKey]*BlockResult{},
-		epochBlocks:     map[idx.Epoch]idx.Frame{},
+		epochBlocks:     map[ltypes.EpochID]ltypes.FrameID{},
 	}
 
-	err = extended.Bootstrap(lachesis.ConsensusCallbacks{
-		BeginBlock: func(block *lachesis.Block) lachesis.BlockCallbacks {
-			return lachesis.BlockCallbacks{
-				EndBlock: func() (sealEpoch *pos.Validators) {
+	err = extended.Bootstrap(ltypes.ConsensusCallbacks{
+		BeginBlock: func(block *ltypes.Block) ltypes.BlockCallbacks {
+			return ltypes.BlockCallbacks{
+				EndBlock: func() (sealEpoch *ltypes.Validators) {
 					// track blocks
 					key := BlockKey{
 						Epoch: extended.store.GetEpoch(),
@@ -121,12 +117,12 @@ func NewCoreLachesis(nodes []idx.ValidatorID, weights []pos.Weight, mods ...memo
 	return extended, store, input, dagIndexer
 }
 
-func mutateValidators(validators *pos.Validators) *pos.Validators {
+func mutateValidators(validators *ltypes.Validators) *ltypes.Validators {
 	r := rand.New(rand.NewSource(int64(validators.TotalWeight()))) // nolint:gosec
-	builder := pos.NewBuilder()
+	builder := ltypes.NewBuilder()
 	for _, vid := range validators.IDs() {
 		stake := uint64(validators.Get(vid))*uint64(500+r.Intn(500))/1000 + 1
-		builder.Set(vid, pos.Weight(stake))
+		builder.Set(vid, ltypes.Weight(stake))
 	}
 	return builder.Build()
 }
@@ -134,13 +130,13 @@ func mutateValidators(validators *pos.Validators) *pos.Validators {
 // EventStore is a abft event storage for test purpose.
 // It implements EventSource interface.
 type EventStore struct {
-	db map[hash.Event]dag.Event
+	db map[ltypes.EventHash]ltypes.Event
 }
 
 // NewEventStore creates store over memory map.
 func NewEventStore() *EventStore {
 	return &EventStore{
-		db: map[hash.Event]dag.Event{},
+		db: map[ltypes.EventHash]ltypes.Event{},
 	}
 }
 
@@ -150,17 +146,17 @@ func (s *EventStore) Close() {
 }
 
 // SetEvent stores event.
-func (s *EventStore) SetEvent(e dag.Event) {
+func (s *EventStore) SetEvent(e ltypes.Event) {
 	s.db[e.ID()] = e
 }
 
 // GetEvent returns stored event.
-func (s *EventStore) GetEvent(h hash.Event) dag.Event {
+func (s *EventStore) GetEvent(h ltypes.EventHash) ltypes.Event {
 	return s.db[h]
 }
 
 // HasEvent returns true if event exists.
-func (s *EventStore) HasEvent(h hash.Event) bool {
+func (s *EventStore) HasEvent(h ltypes.EventHash) bool {
 	_, ok := s.db[h]
 	return ok
 }

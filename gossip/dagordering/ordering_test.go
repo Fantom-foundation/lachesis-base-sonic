@@ -8,10 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 func TestEventsBuffer(t *testing.T) {
@@ -24,29 +22,29 @@ func testEventsBuffer(t *testing.T, try int64) {
 	t.Helper()
 	nodes := tdag.GenNodes(5)
 
-	var ordered dag.Events
+	var ordered ltypes.Events
 	r := rand.New(rand.NewSource(try)) // nolint:gosec
 	_ = tdag.ForEachRandEvent(nodes, 10, 3, r, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	checked := 0
 
-	processed := make(map[hash.Event]dag.Event)
-	limit := dag.Metric{
-		Num:  idx.Event(len(ordered)),
+	processed := make(map[ltypes.EventHash]ltypes.Event)
+	limit := ltypes.Metric{
+		Num:  ltypes.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
 	buffer := New(limit, Callback{
 
-		Process: func(e dag.Event) error {
+		Process: func(e ltypes.Event) error {
 			if _, ok := processed[e.ID()]; ok {
 				t.Fatalf("%s already processed", e.String())
 				return nil
@@ -61,23 +59,23 @@ func testEventsBuffer(t *testing.T, try int64) {
 			return nil
 		},
 
-		Released: func(e dag.Event, peer string, err error) {
+		Released: func(e ltypes.Event, peer string, err error) {
 			if err != nil {
 				t.Fatalf("%s unexpectedly dropped with '%s'", e.String(), err)
 			}
 		},
 
-		Exists: func(id hash.Event) bool {
+		Exists: func(id ltypes.EventHash) bool {
 			return processed[id] != nil
 		},
 
-		Get: func(id hash.Event) dag.Event {
+		Get: func(id ltypes.EventHash) ltypes.Event {
 			return processed[id]
 		},
 
-		Check: func(e dag.Event, parents dag.Events) error {
+		Check: func(e ltypes.Event, parents ltypes.Events) error {
 			checked++
-			if e.Frame() != idx.Frame(e.Seq()) {
+			if e.Frame() != ltypes.FrameID(e.Seq()) {
 				return errors.New("malformed event frame")
 			}
 			return nil
@@ -112,28 +110,28 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 	nodes := tdag.GenNodes(5)
 	eventsPerNode := 1 + rand.Intn(maxEvents)/5 // nolint:gosec
 
-	var ordered dag.Events
+	var ordered ltypes.Events
 	_ = tdag.ForEachRandEvent(nodes, eventsPerNode, 3, rand.New(rand.NewSource(try)), tdag.ForEachEvent{ // nolint:gosec
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
 	released := uint32(0)
 
-	processed := make(map[hash.Event]dag.Event)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	var mutex sync.Mutex
-	limit := dag.Metric{
-		Num:  idx.Event(rand.Intn(maxEvents)),    // nolint:gosec
-		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
+	limit := ltypes.Metric{
+		Num:  ltypes.EventID(rand.Intn(maxEvents)), // nolint:gosec
+		Size: uint64(rand.Intn(maxEvents * 100)),   // nolint:gosec
 	}
 	buffer := New(limit, Callback{
-		Process: func(e dag.Event) error {
+		Process: func(e ltypes.Event) error {
 			mutex.Lock()
 			defer mutex.Unlock()
 			if _, ok := processed[e.ID()]; ok {
@@ -156,25 +154,25 @@ func testEventsBufferReleasing(t *testing.T, maxEvents int, try int64) {
 			return nil
 		},
 
-		Released: func(e dag.Event, peer string, err error) {
+		Released: func(e ltypes.Event, peer string, err error) {
 			mutex.Lock()
 			defer mutex.Unlock()
 			atomic.AddUint32(&released, 1)
 		},
 
-		Exists: func(e hash.Event) bool {
+		Exists: func(e ltypes.EventHash) bool {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e] != nil
 		},
 
-		Get: func(e hash.Event) dag.Event {
+		Get: func(e ltypes.EventHash) ltypes.Event {
 			mutex.Lock()
 			defer mutex.Unlock()
 			return processed[e]
 		},
 
-		Check: func(e dag.Event, parents dag.Events) error {
+		Check: func(e ltypes.Event, parents ltypes.Events) error {
 			mutex.Lock()
 			defer mutex.Unlock()
 			if rand.Intn(10) == 0 { // nolint:gosec

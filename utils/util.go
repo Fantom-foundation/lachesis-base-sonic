@@ -3,13 +3,12 @@ package utils
 import (
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // NameOf returns human readable string representation.
-func NameOf(p idx.ValidatorID) string {
-	if name := hash.GetNodeName(p); len(name) > 0 {
+func NameOf(p ltypes.ValidatorID) string {
+	if name := ltypes.GetNodeName(p); len(name) > 0 {
 		return name
 	}
 

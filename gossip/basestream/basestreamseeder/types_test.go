@@ -7,8 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Fantom-foundation/lachesis-base/gossip/basestream"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type testLocator struct {
@@ -28,12 +27,12 @@ func (l testLocator) Inc() basestream.Locator {
 }
 
 type testPayload struct {
-	IDs    hash.Events
-	Events dag.Events
+	IDs    ltypes.EventHashes
+	Events ltypes.Events
 	Size   uint64
 }
 
-func (p testPayload) AddEvent(id hash.Event, event dag.Event) {
+func (p testPayload) AddEvent(id ltypes.EventHash, event ltypes.Event) {
 	p.IDs = append(p.IDs, id)          // nolint:staticcheck
 	p.Events = append(p.Events, event) // nolint:staticcheck
 	p.Size += uint64(event.Size())     // nolint:staticcheck

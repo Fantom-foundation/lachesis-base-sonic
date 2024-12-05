@@ -3,9 +3,7 @@ package epochcheck
 import (
 	"errors"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 
 // Reader returns currents epoch and its validators group.
 type Reader interface {
-	GetEpochValidators() (*pos.Validators, idx.Epoch)
+	GetEpochValidators() (*ltypes.Validators, ltypes.EpochID)
 }
 
 // Checker which require only current epoch info
@@ -32,7 +30,7 @@ func New(reader Reader) *Checker {
 }
 
 // Validate event
-func (v *Checker) Validate(e dag.Event) error {
+func (v *Checker) Validate(e ltypes.Event) error {
 	// check epoch first, because validators group is returned only for the current epoch
 	validators, epoch := v.reader.GetEpochValidators()
 	if e.Epoch() != epoch {

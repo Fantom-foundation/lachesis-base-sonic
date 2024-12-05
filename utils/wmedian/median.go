@@ -1,16 +1,16 @@
 package wmedian
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type WeightedValue interface {
-	Weight() pos.Weight
+	Weight() ltypes.Weight
 }
 
-func Of(values []WeightedValue, stop pos.Weight) WeightedValue {
+func Of(values []WeightedValue, stop ltypes.Weight) WeightedValue {
 	// Calculate weighted median
-	var curWeight pos.Weight
+	var curWeight ltypes.Weight
 	for _, value := range values {
 		curWeight += value.Weight()
 		if curWeight >= stop {

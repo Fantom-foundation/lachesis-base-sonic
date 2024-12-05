@@ -5,12 +5,12 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/cachescale"
 )
 
 type Config struct {
-	EventsBufferLimit dag.Metric
+	EventsBufferLimit ltypes.Metric
 
 	EventsSemaphoreTimeout time.Duration
 
@@ -19,7 +19,7 @@ type Config struct {
 
 func DefaultConfig(scale cachescale.Func) Config {
 	return Config{
-		EventsBufferLimit: dag.Metric{
+		EventsBufferLimit: ltypes.Metric{
 			// Shouldn't be too big because complexity is O(n) for each insertion in the EventsBuffer
 			Num:  3000,
 			Size: scale.U64(10 * opt.MiB),

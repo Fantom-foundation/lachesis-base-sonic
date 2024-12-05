@@ -1,8 +1,7 @@
 package abft
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 const esKey = "e"
@@ -39,11 +38,11 @@ func (s *Store) getEpochState(key []byte) *EpochState {
 }
 
 // GetEpoch returns current epoch
-func (s *Store) GetEpoch() idx.Epoch {
+func (s *Store) GetEpoch() ltypes.EpochID {
 	return s.GetEpochState().Epoch
 }
 
 // GetValidators returns current validators
-func (s *Store) GetValidators() *pos.Validators {
+func (s *Store) GetValidators() *ltypes.Validators {
 	return s.GetEpochState().Validators
 }

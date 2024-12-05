@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // GenNodes generates nodes.
@@ -16,15 +14,15 @@ import (
 func GenNodes(
 	nodeCount int,
 ) (
-	nodes []idx.ValidatorID,
+	nodes []ltypes.ValidatorID,
 ) {
 	// init results
-	nodes = make([]idx.ValidatorID, nodeCount)
+	nodes = make([]ltypes.ValidatorID, nodeCount)
 	// make and name nodes
 	for i := 0; i < nodeCount; i++ {
-		addr := hash.FakePeer()
+		addr := ltypes.FakePeer()
 		nodes[i] = addr
-		hash.SetNodeName(addr, "node"+string('A'+rune(i)))
+		ltypes.SetNodeName(addr, "node"+string('A'+rune(i)))
 	}
 
 	return
@@ -35,15 +33,15 @@ func GenNodes(
 //   - callbacks are called for each new event;
 //   - events maps node address to array of its events;
 func ForEachRandFork(
-	nodes []idx.ValidatorID,
-	cheatersArr []idx.ValidatorID,
+	nodes []ltypes.ValidatorID,
+	cheatersArr []ltypes.ValidatorID,
 	eventCount int,
 	parentCount int,
 	forksCount int,
 	r *rand.Rand,
 	callback ForEachEvent,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[ltypes.ValidatorID]ltypes.Events,
 ) {
 	if r == nil {
 		// fixed seed
@@ -51,8 +49,8 @@ func ForEachRandFork(
 	}
 	// init results
 	nodeCount := len(nodes)
-	events = make(map[idx.ValidatorID]dag.Events, nodeCount)
-	cheaters := map[idx.ValidatorID]int{}
+	events = make(map[ltypes.ValidatorID]ltypes.Events, nodeCount)
+	cheaters := map[ltypes.ValidatorID]int{}
 	for _, cheater := range cheatersArr {
 		cheaters[cheater] = 0
 	}
@@ -73,9 +71,9 @@ func ForEachRandFork(
 		// make
 		e := &TestEvent{}
 		e.SetCreator(creator)
-		e.SetParents(hash.Events{})
+		e.SetParents(ltypes.EventHashes{})
 		// first parent is a last creator's event or empty hash
-		var parent dag.Event
+		var parent ltypes.Event
 		if ee := events[creator]; len(ee) > 0 {
 			parent = ee[len(ee)-1]
 
@@ -124,7 +122,7 @@ func ForEachRandFork(
 		var id [24]byte
 		copy(id[:], hasher.Sum(nil)[:24])
 		e.SetID(id)
-		hash.SetEventName(e.ID(), fmt.Sprintf("%s%03d", string('a'+rune(self)), len(events[creator])))
+		ltypes.SetEventName(e.ID(), fmt.Sprintf("%s%03d", string('a'+rune(self)), len(events[creator])))
 		events[creator] = append(events[creator], e)
 		// callback
 		if callback.Process != nil {
@@ -140,32 +138,32 @@ func ForEachRandFork(
 //   - callbacks are called for each new event;
 //   - events maps node address to array of its events;
 func ForEachRandEvent(
-	nodes []idx.ValidatorID,
+	nodes []ltypes.ValidatorID,
 	eventCount int,
 	parentCount int,
 	r *rand.Rand,
 	callback ForEachEvent,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[ltypes.ValidatorID]ltypes.Events,
 ) {
-	return ForEachRandFork(nodes, []idx.ValidatorID{}, eventCount, parentCount, 0, r, callback)
+	return ForEachRandFork(nodes, []ltypes.ValidatorID{}, eventCount, parentCount, 0, r, callback)
 }
 
 // GenRandEvents generates random events for test purpose.
 // Result:
 //   - events maps node address to array of its events;
 func GenRandEvents(
-	nodes []idx.ValidatorID,
+	nodes []ltypes.ValidatorID,
 	eventCount int,
 	parentCount int,
 	r *rand.Rand,
 ) (
-	events map[idx.ValidatorID]dag.Events,
+	events map[ltypes.ValidatorID]ltypes.Events,
 ) {
 	return ForEachRandEvent(nodes, eventCount, parentCount, r, ForEachEvent{})
 }
 
-func delPeerIndex(events map[idx.ValidatorID]dag.Events) (res dag.Events) {
+func delPeerIndex(events map[ltypes.ValidatorID]ltypes.Events) (res ltypes.Events) {
 	for _, ee := range events {
 		res = append(res, ee...)
 	}

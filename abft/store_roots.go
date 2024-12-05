@@ -5,9 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 func rootRecordKey(r *election.RootAndSlot) []byte {
@@ -20,13 +18,13 @@ func rootRecordKey(r *election.RootAndSlot) []byte {
 
 // AddRoot stores the new root
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) AddRoot(selfParentFrame idx.Frame, root dag.Event) {
+func (s *Store) AddRoot(selfParentFrame ltypes.FrameID, root ltypes.Event) {
 	for f := selfParentFrame + 1; f <= root.Frame(); f++ {
 		s.addRoot(root, f)
 	}
 }
 
-func (s *Store) addRoot(root dag.Event, frame idx.Frame) {
+func (s *Store) addRoot(root ltypes.Event, frame ltypes.FrameID) {
 	r := election.RootAndSlot{
 		Slot: election.Slot{
 			Frame:     frame,
@@ -55,7 +53,7 @@ const (
 
 // GetFrameRoots returns all the roots in the specified frame
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) GetFrameRoots(f idx.Frame) []election.RootAndSlot {
+func (s *Store) GetFrameRoots(f ltypes.FrameID) []election.RootAndSlot {
 	// get data from LRU cache first.
 	if rr, ok := s.cache.FrameRoots.Get(f); ok {
 		return rr.([]election.RootAndSlot)
@@ -71,10 +69,10 @@ func (s *Store) GetFrameRoots(f idx.Frame) []election.RootAndSlot {
 		}
 		r := election.RootAndSlot{
 			Slot: election.Slot{
-				Frame:     idx.BytesToFrame(key[:frameSize]),
-				Validator: idx.BytesToValidatorID(key[frameSize : frameSize+validatorIDSize]),
+				Frame:     ltypes.BytesToFrameID(key[:frameSize]),
+				Validator: ltypes.BytesToValidatorID(key[frameSize : frameSize+validatorIDSize]),
 			},
-			ID: hash.BytesToEvent(key[frameSize+validatorIDSize:]),
+			ID: ltypes.BytesToEvent(key[frameSize+validatorIDSize:]),
 		}
 		if r.Slot.Frame != f {
 			s.crit(fmt.Errorf("roots table: invalid frame=%d, expected=%d", r.Slot.Frame, f))

@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type fakeFS struct {
@@ -41,7 +41,7 @@ func newFakeFS(namespace string) *fakeFS {
 }
 
 func uniqNamespace() string {
-	return hash.FakeHash(rand.Int63()).Hex() // nolint:gosec
+	return ltypes.FakeHash(rand.Int63()).Hex() // nolint:gosec
 }
 
 func (fs *fakeFS) ListFakeDBs() []string {

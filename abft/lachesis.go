@@ -2,14 +2,10 @@ package abft
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-var _ lachesis.Consensus = (*Lachesis)(nil)
+var _ ltypes.Consensus = (*Lachesis)(nil)
 
 type DagIndex interface {
 	dagidx.VectorClock
@@ -23,7 +19,7 @@ type DagIndex interface {
 type Lachesis struct {
 	*Orderer
 	dagIndex DagIndex
-	callback lachesis.ConsensusCallbacks
+	callback ltypes.ConsensusCallbacks
 }
 
 // NewLachesis creates Lachesis instance.
@@ -36,8 +32,8 @@ func NewLachesis(store *Store, input EventSource, dagIndex DagIndex, crit func(e
 	return p
 }
 
-func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventConfirmed func(dag.Event)) error {
-	err := p.dfsSubgraph(atropos, func(e dag.Event) bool {
+func (p *Lachesis) confirmEvents(frame ltypes.FrameID, atropos ltypes.EventHash, onEventConfirmed func(ltypes.Event)) error {
+	err := p.dfsSubgraph(atropos, func(e ltypes.Event) bool {
 		decidedFrame := p.store.GetEventConfirmedOn(e.ID())
 		if decidedFrame != 0 {
 			return false
@@ -52,14 +48,14 @@ func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventCon
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame ltypes.FrameID, atropos ltypes.EventHash) *ltypes.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()
 	// cheaters are ordered deterministically
-	cheaters := make([]idx.ValidatorID, 0, validators.Len())
+	cheaters := make([]ltypes.ValidatorID, 0, validators.Len())
 	for creatorIdx, creator := range validators.SortedIDs() {
-		if atroposVecClock.Get(idx.Validator(creatorIdx)).IsForkDetected() {
+		if atroposVecClock.Get(ltypes.ValidatorIdx(creatorIdx)).IsForkDetected() {
 			cheaters = append(cheaters, creator)
 		}
 	}
@@ -67,7 +63,7 @@ func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos
 	if p.callback.BeginBlock == nil {
 		return nil
 	}
-	blockCallback := p.callback.BeginBlock(&lachesis.Block{
+	blockCallback := p.callback.BeginBlock(&ltypes.Block{
 		Atropos:  atropos,
 		Cheaters: cheaters,
 	})
@@ -84,11 +80,11 @@ func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos
 	return nil
 }
 
-func (p *Lachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error {
+func (p *Lachesis) Bootstrap(callback ltypes.ConsensusCallbacks) error {
 	return p.BootstrapWithOrderer(callback, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) BootstrapWithOrderer(callback ltypes.ConsensusCallbacks, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.Bootstrap(ordererCallbacks)
 	if err != nil {
 		return err
@@ -97,11 +93,11 @@ func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, or
 	return nil
 }
 
-func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *pos.Validators) error {
+func (p *Lachesis) StartFrom(callback ltypes.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators) error {
 	return p.StartFromWithOrderer(callback, epoch, validators, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch idx.Epoch, validators *pos.Validators, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) StartFromWithOrderer(callback ltypes.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.StartFrom(ordererCallbacks, epoch, validators)
 	if err != nil {
 		return err

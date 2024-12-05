@@ -1,9 +1,7 @@
-package hash
+package ltypes
 
 import (
 	"sync"
-
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
 
 var (
@@ -11,14 +9,14 @@ var (
 	eventNameDictMu sync.RWMutex
 
 	// nodeNameDict is an optional dictionary to make node address human readable in log.
-	nodeNameDict = make(map[idx.ValidatorID]string)
+	nodeNameDict = make(map[ValidatorID]string)
 
 	// eventNameDict is an optional dictionary to make events human readable in log.
-	eventNameDict = make(map[Event]string)
+	eventNameDict = make(map[EventHash]string)
 )
 
 // SetNodeName sets an optional human readable alias of node address in log.
-func SetNodeName(n idx.ValidatorID, name string) {
+func SetNodeName(n ValidatorID, name string) {
 	nodeNameDictMu.Lock()
 	defer nodeNameDictMu.Unlock()
 
@@ -26,7 +24,7 @@ func SetNodeName(n idx.ValidatorID, name string) {
 }
 
 // SetEventName sets an optional human readable alias of event hash in log.
-func SetEventName(e Event, name string) {
+func SetEventName(e EventHash, name string) {
 	eventNameDictMu.Lock()
 	defer eventNameDictMu.Unlock()
 
@@ -34,15 +32,15 @@ func SetEventName(e Event, name string) {
 }
 
 // GetNodeName gets an optional human readable alias of node address.
-func GetNodeName(n idx.ValidatorID) string {
+func GetNodeName(n ValidatorID) string {
 	nodeNameDictMu.RLock()
 	defer nodeNameDictMu.RUnlock()
 
 	return nodeNameDict[n]
 }
 
-// GetEventName gets an optional human readable alias of event hash.
-func GetEventName(e Event) string {
+// GetEventName gets an optional human readable alias of event ltypes.
+func GetEventName(e EventHash) string {
 	eventNameDictMu.RLock()
 	defer eventNameDictMu.RUnlock()
 

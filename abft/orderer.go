@@ -3,15 +3,13 @@ package abft
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type OrdererCallbacks struct {
-	ApplyAtropos func(decidedFrame idx.Frame, atropos hash.Event) (sealEpoch *pos.Validators)
+	ApplyAtropos func(decidedFrame ltypes.FrameID, atropos ltypes.EventHash) (sealEpoch *ltypes.Validators)
 
-	EpochDBLoaded func(idx.Epoch)
+	EpochDBLoaded func(ltypes.EpochID)
 }
 
 type OrdererDagIndex interface {

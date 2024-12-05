@@ -6,16 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-var _ lachesis.Consensus = (*IndexedLachesis)(nil)
+var _ ltypes.Consensus = (*IndexedLachesis)(nil)
 
 // IndexedLachesis performs events ordering and detects cheaters
 // It's a wrapper around Orderer, which adds features which might potentially be application-specific:
@@ -31,11 +27,11 @@ type DagIndexer interface {
 	dagidx.VectorClock
 	dagidx.ForklessCause
 
-	Add(dag.Event) error
+	Add(ltypes.Event) error
 	Flush()
 	DropNotFlushed()
 
-	Reset(validators *pos.Validators, db kvdb.FlushableKVStore, getEvent func(hash.Event) dag.Event)
+	Reset(validators *ltypes.Validators, db kvdb.FlushableKVStore, getEvent func(ltypes.EventHash) ltypes.Event)
 }
 
 // NewIndexedLachesis creates IndexedLachesis instance.
@@ -51,7 +47,7 @@ func NewIndexedLachesis(store *Store, input EventSource, dagIndexer DagIndexer, 
 
 // Build fills consensus-related fields: Frame, IsRoot
 // returns error if event should be dropped
-func (p *IndexedLachesis) Build(e dag.MutableEvent) error {
+func (p *IndexedLachesis) Build(e ltypes.MutableEvent) error {
 	e.SetID(p.uniqueDirtyID.sample())
 
 	defer p.dagIndexer.DropNotFlushed()
@@ -67,7 +63,7 @@ func (p *IndexedLachesis) Build(e dag.MutableEvent) error {
 // Event order matter: parents first.
 // All the event checkers must be launched.
 // Process is not safe for concurrent use.
-func (p *IndexedLachesis) Process(e dag.Event) (err error) {
+func (p *IndexedLachesis) Process(e ltypes.Event) (err error) {
 	defer p.dagIndexer.DropNotFlushed()
 	err = p.dagIndexer.Add(e)
 	if err != nil {
@@ -82,11 +78,11 @@ func (p *IndexedLachesis) Process(e dag.Event) (err error) {
 	return nil
 }
 
-func (p *IndexedLachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error {
+func (p *IndexedLachesis) Bootstrap(callback ltypes.ConsensusCallbacks) error {
 	base := p.Lachesis.OrdererCallbacks()
 	ordererCallbacks := OrdererCallbacks{
 		ApplyAtropos: base.ApplyAtropos,
-		EpochDBLoaded: func(epoch idx.Epoch) {
+		EpochDBLoaded: func(epoch ltypes.EpochID) {
 			if base.EpochDBLoaded != nil {
 				base.EpochDBLoaded(epoch)
 			}

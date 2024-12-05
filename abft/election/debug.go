@@ -4,11 +4,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // DebugStateHash may be used in tests to match election state
-func (el *Election) DebugStateHash() hash.Hash {
+func (el *Election) DebugStateHash() ltypes.Hash {
 	hasher := sha256.New()
 	write := func(bb []byte) {
 		if _, err := hasher.Write(bb); err != nil {
@@ -26,7 +26,7 @@ func (el *Election) DebugStateHash() hash.Hash {
 		write(validator.Bytes())
 		write(vote.observedRoot.Bytes())
 	}
-	return hash.FromBytes(hasher.Sum(nil))
+	return ltypes.FromBytes(hasher.Sum(nil))
 }
 
 // @param (optional) voters is roots to print votes for. May be nil

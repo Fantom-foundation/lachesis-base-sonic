@@ -5,9 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 /*
@@ -20,7 +19,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("NotExisting", func(t *testing.T) {
 		assertar := assert.New(t)
 
-		h := hash.FakeEvent()
+		h := ltypes.FakeEvent()
 		e1 := store.GetEvent(h)
 		assertar.Nil(e1)
 	})
@@ -30,7 +29,7 @@ func TestEventStore(t *testing.T) {
 
 		nodes := tdag.GenNodes(5)
 		tdag.ForEachRandEvent(nodes, int(TestMaxEpochEvents)-1, 4, nil, tdag.ForEachEvent{
-			Process: func(e dag.Event, name string) {
+			Process: func(e ltypes.Event, name string) {
 				store.SetEvent(e)
 				e1 := store.GetEvent(e.ID())
 

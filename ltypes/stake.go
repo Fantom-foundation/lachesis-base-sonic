@@ -1,8 +1,4 @@
-package pos
-
-import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-)
+package ltypes
 
 type (
 	// Weight amount.
@@ -16,7 +12,7 @@ type (
 	// WeightCounter counts weights.
 	WeightCounter struct {
 		validators Validators
-		already    []bool // idx.Validator -> bool
+		already    []bool // Validator -> bool
 
 		quorum Weight
 		sum    Weight
@@ -38,13 +34,13 @@ func newWeightCounter(vv Validators) *WeightCounter {
 }
 
 // Count validator and return true if it hadn't counted before.
-func (s *WeightCounter) Count(v idx.ValidatorID) bool {
+func (s *WeightCounter) Count(v ValidatorID) bool {
 	validatorIdx := s.validators.GetIdx(v)
 	return s.CountByIdx(validatorIdx)
 }
 
 // CountByIdx validator and return true if it hadn't counted before.
-func (s *WeightCounter) CountByIdx(validatorIdx idx.Validator) bool {
+func (s *WeightCounter) CountByIdx(validatorIdx ValidatorIdx) bool {
 	if s.already[validatorIdx] {
 		return false
 	}

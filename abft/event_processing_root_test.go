@@ -7,9 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 func TestLachesisClassicRoots(t *testing.T) {
@@ -254,12 +253,12 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 	assertar := assert.New(t)
 
 	// decode is a event name parser
-	decode := func(name string) (frameN idx.Frame, isRoot bool) {
+	decode := func(name string) (frameN ltypes.FrameID, isRoot bool) {
 		n, err := strconv.ParseUint(strings.Split(name, ".")[0][1:2], 10, 64)
 		if err != nil {
 			panic(err.Error() + ". Name event " + name + " properly: <UpperCaseForRoot><FrameN><Engine>")
 		}
-		frameN = idx.Frame(n)
+		frameN = ltypes.FrameID(n)
 
 		isRoot = name == strings.ToUpper(name)
 		return
@@ -272,12 +271,12 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 
 	// process events
 	_, _, names := tdag.ASCIIschemeForEach(scheme, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			input.SetEvent(e)
 			assertar.NoError(
 				lch.Process(e))
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(lch.store.GetEpoch())
 			return lch.Build(e)
 		},
@@ -286,7 +285,7 @@ func testSpecialNamedRoots(t *testing.T, scheme string) {
 	// check each
 	for name, event := range names {
 		mustBeFrame, mustBeRoot := decode(name)
-		var selfParentFrame idx.Frame
+		var selfParentFrame ltypes.FrameID
 		if event.SelfParent() != nil {
 			selfParentFrame = input.GetEvent(*event.SelfParent()).Frame()
 		}
@@ -321,12 +320,12 @@ func codegen4LachesisRandomRoot() {
 	for _, e := range config {
 		frame := p.FrameOfEvent(e.ID())
 		_, isRoot := frame.Roots[e.Creator][e.ID()]
-		oldName := hash.GetEventName(e.ID())
+		oldName := ltypes.GetEventName(e.ID())
 		newName := fmt.Sprintf("%s%d.%02d", oldName[0:1], frame.Engine, e.Seq)
 		if isRoot {
 			newName = strings.ToUpper(newName[0:1]) + newName[1:]
 		}
-		hash.SetEventName(e.ID(), newName)
+		ltypes.SetEventName(e.ID(), newName)
 	}
 
 	fmt.Println(inter.DAGtoASCIIscheme(config))

@@ -8,10 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/utils/cachescale"
 	"github.com/Fantom-foundation/lachesis-base/utils/datasemaphore"
 )
@@ -22,23 +20,23 @@ func TestProcessor(t *testing.T) {
 	}
 }
 
-var maxGroupSize = dag.Metric{
+var maxGroupSize = ltypes.Metric{
 	Num:  50,
 	Size: 50 * 50,
 }
 
-func shuffleEventsIntoChunks(inEvents dag.Events) []dag.Events {
+func shuffleEventsIntoChunks(inEvents ltypes.Events) []ltypes.Events {
 	if len(inEvents) == 0 {
 		return nil
 	}
-	var chunks []dag.Events
-	var lastChunk dag.Events
-	var lastChunkSize dag.Metric
+	var chunks []ltypes.Events
+	var lastChunk ltypes.Events
+	var lastChunkSize ltypes.Metric
 	for _, rnd := range rand.Perm(len(inEvents)) {
 		e := inEvents[rnd]
 		if rand.Intn(10) == 0 || lastChunkSize.Num+1 >= maxGroupSize.Num || lastChunkSize.Size+uint64(e.Size()) >= maxGroupSize.Size { // nolint:gosec
 			chunks = append(chunks, lastChunk)
-			lastChunk = dag.Events{}
+			lastChunk = ltypes.Events{}
 		}
 		lastChunk = append(lastChunk, e)
 		lastChunkSize.Num++
@@ -52,23 +50,23 @@ func testProcessor(t *testing.T) {
 	t.Helper()
 	nodes := tdag.GenNodes(5)
 
-	var ordered dag.Events
+	var ordered ltypes.Events
 	_ = tdag.ForEachRandEvent(nodes, 10, 3, nil, tdag.ForEachEvent{
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
-	limit := dag.Metric{
-		Num:  idx.Event(len(ordered)),
+	limit := ltypes.Metric{
+		Num:  ltypes.EventID(len(ordered)),
 		Size: ordered.Metric().Size,
 	}
-	semaphore := datasemaphore.New(limit, func(received dag.Metric, processing dag.Metric, releasing dag.Metric) {
+	semaphore := datasemaphore.New(limit, func(received ltypes.Metric, processing ltypes.Metric, releasing ltypes.Metric) {
 		t.Fatal("events semaphore inconsistency")
 	})
 	config := DefaultConfig(cachescale.Identity)
@@ -76,12 +74,12 @@ func testProcessor(t *testing.T) {
 
 	checked := 0
 
-	highestLamport := idx.Lamport(0)
-	processed := make(map[hash.Event]dag.Event)
+	highestLamport := ltypes.Lamport(0)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	mu := sync.RWMutex{}
 	processor := New(semaphore, config, Callback{
 		Event: EventCallback{
-			Process: func(e dag.Event) error {
+			Process: func(e ltypes.Event) error {
 				mu.Lock()
 				defer mu.Unlock()
 				if _, ok := processed[e.ID()]; ok {
@@ -101,38 +99,38 @@ func testProcessor(t *testing.T) {
 				return nil
 			},
 
-			Released: func(e dag.Event, peer string, err error) {
+			Released: func(e ltypes.Event, peer string, err error) {
 				if err != nil {
 					t.Fatalf("%s unexpectedly dropped with '%s'", e.String(), err)
 				}
 			},
 
-			Exists: func(e hash.Event) bool {
+			Exists: func(e ltypes.EventHash) bool {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[e] != nil
 			},
 
-			Get: func(id hash.Event) dag.Event {
+			Get: func(id ltypes.EventHash) ltypes.Event {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[id]
 			},
 
-			CheckParents: func(e dag.Event, parents dag.Events) error {
+			CheckParents: func(e ltypes.Event, parents ltypes.Events) error {
 				mu.RLock()
 				defer mu.RUnlock()
 				checked++
-				if e.Frame() != idx.Frame(e.Seq()) {
+				if e.Frame() != ltypes.FrameID(e.Seq()) {
 					return errors.New("malformed event frame")
 				}
 				return nil
 			},
-			CheckParentless: func(e dag.Event, checked func(err error)) {
+			CheckParentless: func(e ltypes.Event, checked func(err error)) {
 				checked(nil)
 			},
 		},
-		HighestLamport: func() idx.Lamport {
+		HighestLamport: func() ltypes.Lamport {
 			return highestLamport
 		},
 	})
@@ -144,7 +142,7 @@ func testProcessor(t *testing.T) {
 	wg := sync.WaitGroup{}
 	for _, chunk := range chunks {
 		wg.Add(1)
-		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events hash.Events) {}, func() { // nolint:gosec
+		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events ltypes.EventHashes) {}, func() { // nolint:gosec
 			wg.Done()
 		})
 		if err != nil {
@@ -175,27 +173,27 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 	t.Helper()
 	nodes := tdag.GenNodes(5)
 
-	var ordered dag.Events
+	var ordered ltypes.Events
 	_ = tdag.ForEachRandEvent(nodes, 10, 3, rand.New(rand.NewSource(try)), tdag.ForEachEvent{ // nolint:gosec
-		Process: func(e dag.Event, name string) {
+		Process: func(e ltypes.Event, name string) {
 			ordered = append(ordered, e)
 		},
-		Build: func(e dag.MutableEvent, name string) error {
+		Build: func(e ltypes.MutableEvent, name string) error {
 			e.SetEpoch(1)
-			e.SetFrame(idx.Frame(e.Seq()))
+			e.SetFrame(ltypes.FrameID(e.Seq()))
 			return nil
 		},
 	})
 
-	limit := dag.Metric{
-		Num:  idx.Event(rand.Intn(maxEvents)),    // nolint:gosec
-		Size: uint64(rand.Intn(maxEvents * 100)), // nolint:gosec
+	limit := ltypes.Metric{
+		Num:  ltypes.EventID(rand.Intn(maxEvents)), // nolint:gosec
+		Size: uint64(rand.Intn(maxEvents * 100)),   // nolint:gosec
 	}
-	limitPlus1group := dag.Metric{
+	limitPlus1group := ltypes.Metric{
 		Num:  limit.Num + maxGroupSize.Num,
 		Size: limit.Size + maxGroupSize.Size,
 	}
-	semaphore := datasemaphore.New(limitPlus1group, func(received dag.Metric, processing dag.Metric, releasing dag.Metric) {
+	semaphore := datasemaphore.New(limitPlus1group, func(received ltypes.Metric, processing ltypes.Metric, releasing ltypes.Metric) {
 		t.Fatal("events semaphore inconsistency")
 	})
 	config := DefaultConfig(cachescale.Identity)
@@ -203,12 +201,12 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 
 	released := uint32(0)
 
-	highestLamport := idx.Lamport(0)
-	processed := make(map[hash.Event]dag.Event)
+	highestLamport := ltypes.Lamport(0)
+	processed := make(map[ltypes.EventHash]ltypes.Event)
 	mu := sync.RWMutex{}
 	processor := New(semaphore, config, Callback{
 		Event: EventCallback{
-			Process: func(e dag.Event) error {
+			Process: func(e ltypes.Event) error {
 				mu.Lock()
 				defer mu.Unlock()
 				if _, ok := processed[e.ID()]; ok {
@@ -234,25 +232,25 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 				return nil
 			},
 
-			Released: func(e dag.Event, peer string, err error) {
+			Released: func(e ltypes.Event, peer string, err error) {
 				mu.Lock()
 				defer mu.Unlock()
 				atomic.AddUint32(&released, 1)
 			},
 
-			Exists: func(e hash.Event) bool {
+			Exists: func(e ltypes.EventHash) bool {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[e] != nil
 			},
 
-			Get: func(id hash.Event) dag.Event {
+			Get: func(id ltypes.EventHash) ltypes.Event {
 				mu.RLock()
 				defer mu.RUnlock()
 				return processed[id]
 			},
 
-			CheckParents: func(e dag.Event, parents dag.Events) error {
+			CheckParents: func(e ltypes.Event, parents ltypes.Events) error {
 				if rand.Intn(10) == 0 { // nolint:gosec
 					return errors.New("testing error")
 				}
@@ -261,7 +259,7 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 				}
 				return nil
 			},
-			CheckParentless: func(e dag.Event, checked func(err error)) {
+			CheckParentless: func(e ltypes.Event, checked func(err error)) {
 				var err error
 				if rand.Intn(10) == 0 { // nolint:gosec
 					err = errors.New("testing error")
@@ -272,7 +270,7 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 				checked(err)
 			},
 		},
-		HighestLamport: func() idx.Lamport {
+		HighestLamport: func() ltypes.Lamport {
 			return highestLamport
 		},
 	})
@@ -286,7 +284,7 @@ func testProcessorReleasing(t *testing.T, maxEvents int, try int64) {
 	wg := sync.WaitGroup{}
 	for _, chunk := range chunks {
 		wg.Add(1)
-		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events hash.Events) {}, func() { // nolint:gosec
+		err := processor.Enqueue("", chunk, rand.Intn(2) == 0, func(events ltypes.EventHashes) {}, func() { // nolint:gosec
 			wg.Done()
 		})
 		if err != nil {

@@ -1,7 +1,7 @@
 package cachescale
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 type Func interface {
@@ -13,7 +13,7 @@ type Func interface {
 	U64(uint64) uint64
 	F32(float32) float32
 	F64(float64) float64
-	Events(v idx.Event) idx.Event
-	Blocks(v idx.Block) idx.Block
-	Frames(v idx.Frame) idx.Frame
+	Events(v ltypes.EventID) ltypes.EventID
+	Blocks(v ltypes.BlockID) ltypes.BlockID
+	Frames(v ltypes.FrameID) ltypes.FrameID
 }

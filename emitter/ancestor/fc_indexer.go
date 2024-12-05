@@ -1,10 +1,7 @@
 package ancestor
 
 import (
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 const (
@@ -12,44 +9,44 @@ const (
 )
 
 type highestEvent struct {
-	id    hash.Event
-	frame idx.Frame
+	id    ltypes.EventHash
+	frame ltypes.FrameID
 }
 
 type FCIndexer struct {
 	dagi       DagIndex
-	validators *pos.Validators
-	me         idx.ValidatorID
+	validators *ltypes.Validators
+	me         ltypes.ValidatorID
 
-	prevSelfEvent hash.Event
-	prevSelfFrame idx.Frame
+	prevSelfEvent ltypes.EventHash
+	prevSelfFrame ltypes.FrameID
 
-	TopFrame idx.Frame
+	TopFrame ltypes.FrameID
 
-	FrameRoots map[idx.Frame]hash.Events
+	FrameRoots map[ltypes.FrameID]ltypes.EventHashes
 
-	highestEvents map[idx.ValidatorID]highestEvent
+	highestEvents map[ltypes.ValidatorID]highestEvent
 
 	searchStrategy SearchStrategy
 }
 
 type DagIndex interface {
-	ForklessCauseProgress(aID, bID hash.Event, candidateParents, chosenParents hash.Events) (*pos.WeightCounter, []*pos.WeightCounter)
+	ForklessCauseProgress(aID, bID ltypes.EventHash, candidateParents, chosenParents ltypes.EventHashes) (*ltypes.WeightCounter, []*ltypes.WeightCounter)
 }
 
-func NewFCIndexer(validators *pos.Validators, dagi DagIndex, me idx.ValidatorID) *FCIndexer {
+func NewFCIndexer(validators *ltypes.Validators, dagi DagIndex, me ltypes.ValidatorID) *FCIndexer {
 	fc := &FCIndexer{
 		dagi:          dagi,
 		validators:    validators,
 		me:            me,
-		FrameRoots:    make(map[idx.Frame]hash.Events),
-		highestEvents: make(map[idx.ValidatorID]highestEvent),
+		FrameRoots:    make(map[ltypes.FrameID]ltypes.EventHashes),
+		highestEvents: make(map[ltypes.ValidatorID]highestEvent),
 	}
 	fc.searchStrategy = NewMetricStrategy(fc.GetMetricOf)
 	return fc
 }
 
-func (fc *FCIndexer) ProcessEvent(e dag.Event) {
+func (fc *FCIndexer) ProcessEvent(e ltypes.Event) {
 	if e.Creator() == fc.me {
 		fc.prevSelfEvent = e.ID()
 		fc.prevSelfFrame = e.Frame()
@@ -72,7 +69,7 @@ func (fc *FCIndexer) ProcessEvent(e dag.Event) {
 			}
 			frameRoots := fc.FrameRoots[f]
 			if frameRoots == nil {
-				frameRoots = make(hash.Events, fc.validators.Len())
+				frameRoots = make(ltypes.EventHashes, fc.validators.Len())
 			}
 			frameRoots[fc.validators.GetIdx(e.Creator())] = e.ID()
 			fc.FrameRoots[f] = frameRoots
@@ -80,7 +77,7 @@ func (fc *FCIndexer) ProcessEvent(e dag.Event) {
 	}
 }
 
-func (fc *FCIndexer) rootProgress(frame idx.Frame, event hash.Event, chosenHeads hash.Events) int {
+func (fc *FCIndexer) rootProgress(frame ltypes.FrameID, event ltypes.EventHash, chosenHeads ltypes.EventHashes) int {
 	// This function computes the knowledge of roots amongst validators by counting which validators known which roots.
 	// Root knowledge is a binary matrix indexed by roots and validators.
 	// The ijth entry of the matrix is 1 if root i is known by validator j in the subgraph of event, and zero otherwise.
@@ -91,7 +88,7 @@ func (fc *FCIndexer) rootProgress(frame idx.Frame, event hash.Event, chosenHeads
 	}
 	numNonZero := 0 // number of non-zero entries in the root knowledge matrix
 	for _, root := range roots {
-		if root == hash.ZeroEvent {
+		if root == ltypes.ZeroEvent {
 			continue
 		}
 		FCProgress, _ := fc.dagi.ForklessCauseProgress(event, root, nil, chosenHeads)
@@ -100,7 +97,7 @@ func (fc *FCIndexer) rootProgress(frame idx.Frame, event hash.Event, chosenHeads
 	return numNonZero
 }
 
-func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.Frame, bK int, bFrame idx.Frame) bool {
+func (fc *FCIndexer) greater(aID ltypes.EventHash, aFrame ltypes.FrameID, bK int, bFrame ltypes.FrameID) bool {
 	if aFrame != bFrame {
 		return aFrame > bFrame
 	}
@@ -109,7 +106,7 @@ func (fc *FCIndexer) greater(aID hash.Event, aFrame idx.Frame, bK int, bFrame id
 
 // ValidatorsPastMe returns total weight of validators which exceeded knowledge of "my" previous event
 // Typically node shouldn't emit an event until the value >= quorum, which happens to lead to an almost optimal events timing
-func (fc *FCIndexer) ValidatorsPastMe() pos.Weight {
+func (fc *FCIndexer) ValidatorsPastMe() ltypes.Weight {
 	selfFrame := fc.prevSelfFrame
 
 	kGreaterWeight := fc.validators.NewCounter()
@@ -123,7 +120,7 @@ func (fc *FCIndexer) ValidatorsPastMe() pos.Weight {
 	return kGreaterWeight.Sum() // self should not create a new event
 }
 
-func (fc *FCIndexer) GetMetricOf(ids hash.Events) Metric {
+func (fc *FCIndexer) GetMetricOf(ids ltypes.EventHashes) Metric {
 	if fc.TopFrame == 0 {
 		return 0
 	}

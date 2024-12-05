@@ -3,8 +3,7 @@ package tdag
 import (
 	"strings"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 // TestEvents is a ordered slice of events.
@@ -21,14 +20,14 @@ func (ee TestEvents) String() string {
 
 // ByParents returns events topologically ordered by parent dependency.
 // Used only for tests.
-func ByParents(ee dag.Events) (res dag.Events) {
-	unsorted := make(dag.Events, len(ee))
-	exists := hash.EventsSet{}
+func ByParents(ee ltypes.Events) (res ltypes.Events) {
+	unsorted := make(ltypes.Events, len(ee))
+	exists := ltypes.EventHashSet{}
 	for i, e := range ee {
 		unsorted[i] = e
 		exists.Add(e.ID())
 	}
-	ready := hash.EventsSet{}
+	ready := ltypes.EventHashSet{}
 	for len(unsorted) > 0 {
 	EVENTS:
 		for i, e := range unsorted {
@@ -52,7 +51,7 @@ func ByParents(ee dag.Events) (res dag.Events) {
 // ByParents returns events topologically ordered by parent dependency.
 // Used only for tests.
 func (ee TestEvents) ByParents() (res TestEvents) {
-	unsorted := make(dag.Events, len(ee))
+	unsorted := make(ltypes.Events, len(ee))
 	for i, e := range ee {
 		unsorted[i] = e
 	}

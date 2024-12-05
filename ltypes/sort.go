@@ -1,12 +1,8 @@
-package pos
-
-import (
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
-)
+package ltypes
 
 type (
 	validator struct {
-		ID     idx.ValidatorID
+		ID     ValidatorID
 		Weight Weight
 	}
 

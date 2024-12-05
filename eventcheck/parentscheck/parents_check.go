@@ -3,8 +3,7 @@ package parentscheck
 import (
 	"errors"
 
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
 var (
@@ -22,7 +21,7 @@ func New() *Checker {
 }
 
 // Validate event
-func (v *Checker) Validate(e dag.Event, parents dag.Events) error {
+func (v *Checker) Validate(e ltypes.Event, parents ltypes.Events) error {
 	if len(e.Parents()) != len(parents) {
 		panic("parentscheck: expected event's parents as an argument")
 	}
@@ -30,9 +29,9 @@ func (v *Checker) Validate(e dag.Event, parents dag.Events) error {
 	// double parents are checked by basiccheck
 
 	// lamport
-	maxLamport := idx.Lamport(0)
+	maxLamport := ltypes.Lamport(0)
 	for _, p := range parents {
-		maxLamport = idx.MaxLamport(maxLamport, p.Lamport())
+		maxLamport = ltypes.MaxLamport(maxLamport, p.Lamport())
 	}
 	if e.Lamport() != maxLamport+1 {
 		return ErrWrongLamport

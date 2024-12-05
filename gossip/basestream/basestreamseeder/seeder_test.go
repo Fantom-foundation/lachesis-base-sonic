@@ -14,10 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Fantom-foundation/lachesis-base/gossip/basestream"
-	"github.com/Fantom-foundation/lachesis-base/hash"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag"
-	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
-	"github.com/Fantom-foundation/lachesis-base/inter/idx"
+	"github.com/Fantom-foundation/lachesis-base/ltypes"
+	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
 
 func defaultConfig() Config {
@@ -63,11 +61,11 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 	config := defaultConfig()
 	config.MaxPendingResponsesSize = 5000
 
-	events := make(dag.Events, maxEvents)
+	events := make(ltypes.Events, maxEvents)
 	for i := range events {
 		e := &tdag.TestEvent{}
-		e.SetEpoch(idx.Epoch(i / 10))
-		e.SetLamport(idx.Lamport(i / 2))
+		e.SetEpoch(ltypes.EpochID(i / 10))
+		e.SetLamport(ltypes.Lamport(i / 2))
 		var rID [24]byte
 		copy(rID[:], big.NewInt(int64(i+1)).Bytes())
 		events[i] = e.Build(rID)
@@ -84,8 +82,8 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 			onKey func(key basestream.Locator) bool, onAppended func(items basestream.Payload) bool) basestream.Payload {
 
 			res := testPayload{
-				IDs:    hash.Events{},
-				Events: dag.Events{},
+				IDs:    ltypes.EventHashes{},
+				Events: ltypes.Events{},
 				Size:   0,
 			}
 
@@ -174,7 +172,7 @@ func testSeederResponsesOrder(t *testing.T, maxPeers int, maxEvents int) {
 	}
 	// check that all the responses were sent in a correct order
 	for _, sessionResponses := range responses.peerSession {
-		prev := hash.Event{}
+		prev := ltypes.EventHash{}
 		done := false
 		for _, r := range sessionResponses {
 			require.False(t, done)
