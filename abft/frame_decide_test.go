@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
@@ -61,9 +60,9 @@ func testConfirmBlocks(t *testing.T, weights []ltypes.Weight, cheatersCount int)
 
 	var (
 		frames []ltypes.FrameID
-		blocks []*lachesis.Block
+		blocks []*ltypes.Block
 	)
-	lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
+	lch.applyBlock = func(block *ltypes.Block) *ltypes.Validators {
 		frames = append(frames, lch.store.GetLastDecidedFrame()+1)
 		blocks = append(blocks, block)
 

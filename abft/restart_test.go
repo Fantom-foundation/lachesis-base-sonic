@@ -10,7 +10,6 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
@@ -93,7 +92,7 @@ func testRestartAndReset(t *testing.T, weights []ltypes.Weight, mutateWeights bo
 	// seal epoch on decided frame == maxEpochBlocks
 	for _, _lch := range lchs {
 		lch := _lch // capture
-		lch.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
+		lch.applyBlock = func(block *ltypes.Block) *ltypes.Validators {
 			if lch.store.GetLastDecidedFrame()+1 == ltypes.FrameID(maxEpochBlocks) {
 				// seal epoch
 				if mutateWeights {

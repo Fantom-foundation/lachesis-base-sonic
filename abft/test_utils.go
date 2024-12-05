@@ -5,7 +5,6 @@ import (
 
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/memorydb"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/utils/adapters"
 	"github.com/Fantom-foundation/lachesis-base/vecfc"
@@ -20,7 +19,7 @@ type dbEvent struct {
 	parents     []ltypes.EventHash
 }
 
-type applyBlockFn func(block *lachesis.Block) *ltypes.Validators
+type applyBlockFn func(block *ltypes.Block) *ltypes.Validators
 
 type BlockKey struct {
 	Epoch ltypes.EpochID
@@ -29,7 +28,7 @@ type BlockKey struct {
 
 type BlockResult struct {
 	Atropos    ltypes.EventHash
-	Cheaters   lachesis.Cheaters
+	Cheaters   ltypes.Cheaters
 	Validators *ltypes.Validators
 }
 
@@ -83,9 +82,9 @@ func NewCoreLachesis(nodes []ltypes.ValidatorID, weights []ltypes.Weight, mods .
 		epochBlocks:     map[ltypes.EpochID]ltypes.FrameID{},
 	}
 
-	err = extended.Bootstrap(lachesis.ConsensusCallbacks{
-		BeginBlock: func(block *lachesis.Block) lachesis.BlockCallbacks {
-			return lachesis.BlockCallbacks{
+	err = extended.Bootstrap(ltypes.ConsensusCallbacks{
+		BeginBlock: func(block *ltypes.Block) ltypes.BlockCallbacks {
+			return ltypes.BlockCallbacks{
 				EndBlock: func() (sealEpoch *ltypes.Validators) {
 					// track blocks
 					key := BlockKey{

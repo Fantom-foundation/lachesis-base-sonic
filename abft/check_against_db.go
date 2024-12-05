@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 	"github.com/Fantom-foundation/lachesis-base/ltypes/tdag"
 )
@@ -24,7 +23,7 @@ func CheckEpochAgainstDB(conn *sql.DB, epoch ltypes.EpochID) error {
 
 	recalculatedAtropoi := make([]ltypes.EventHash, 0)
 	// Capture the elected atropoi by planting the `applyBlock` callback (nil by default)
-	testLachesis.applyBlock = func(block *lachesis.Block) *ltypes.Validators {
+	testLachesis.applyBlock = func(block *ltypes.Block) *ltypes.Validators {
 		recalculatedAtropoi = append(recalculatedAtropoi, block.Atropos)
 		return nil
 	}

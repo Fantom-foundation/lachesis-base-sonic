@@ -2,11 +2,10 @@ package abft
 
 import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-var _ lachesis.Consensus = (*Lachesis)(nil)
+var _ ltypes.Consensus = (*Lachesis)(nil)
 
 type DagIndex interface {
 	dagidx.VectorClock
@@ -20,7 +19,7 @@ type DagIndex interface {
 type Lachesis struct {
 	*Orderer
 	dagIndex DagIndex
-	callback lachesis.ConsensusCallbacks
+	callback ltypes.ConsensusCallbacks
 }
 
 // NewLachesis creates Lachesis instance.
@@ -64,7 +63,7 @@ func (p *Lachesis) applyAtropos(decidedFrame ltypes.FrameID, atropos ltypes.Even
 	if p.callback.BeginBlock == nil {
 		return nil
 	}
-	blockCallback := p.callback.BeginBlock(&lachesis.Block{
+	blockCallback := p.callback.BeginBlock(&ltypes.Block{
 		Atropos:  atropos,
 		Cheaters: cheaters,
 	})
@@ -81,11 +80,11 @@ func (p *Lachesis) applyAtropos(decidedFrame ltypes.FrameID, atropos ltypes.Even
 	return nil
 }
 
-func (p *Lachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error {
+func (p *Lachesis) Bootstrap(callback ltypes.ConsensusCallbacks) error {
 	return p.BootstrapWithOrderer(callback, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) BootstrapWithOrderer(callback ltypes.ConsensusCallbacks, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.Bootstrap(ordererCallbacks)
 	if err != nil {
 		return err
@@ -94,11 +93,11 @@ func (p *Lachesis) BootstrapWithOrderer(callback lachesis.ConsensusCallbacks, or
 	return nil
 }
 
-func (p *Lachesis) StartFrom(callback lachesis.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators) error {
+func (p *Lachesis) StartFrom(callback ltypes.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators) error {
 	return p.StartFromWithOrderer(callback, epoch, validators, p.OrdererCallbacks())
 }
 
-func (p *Lachesis) StartFromWithOrderer(callback lachesis.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
+func (p *Lachesis) StartFromWithOrderer(callback ltypes.ConsensusCallbacks, epoch ltypes.EpochID, validators *ltypes.Validators, ordererCallbacks OrdererCallbacks) error {
 	err := p.Orderer.StartFrom(ordererCallbacks, epoch, validators)
 	if err != nil {
 		return err

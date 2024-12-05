@@ -1,21 +1,17 @@
-package lachesis
-
-import (
-	"github.com/Fantom-foundation/lachesis-base/ltypes"
-)
+package ltypes
 
 // Consensus is a consensus interface.
 type Consensus interface {
 	// Process takes event for processing.
-	Process(e ltypes.Event) error
+	Process(e Event) error
 	// Build sets consensus fields. Returns an error if event should be dropped.
-	Build(e ltypes.MutableEvent) error
+	Build(e MutableEvent) error
 	// Reset switches epoch state to a new empty epoch.
-	Reset(epoch ltypes.EpochID, validators *ltypes.Validators) error
+	Reset(epoch EpochID, validators *Validators) error
 }
 
-type ApplyEventFn func(event ltypes.Event)
-type EndBlockFn func() (sealEpoch *ltypes.Validators)
+type ApplyEventFn func(event Event)
+type EndBlockFn func() (sealEpoch *Validators)
 
 type BlockCallbacks struct {
 	// ApplyEvent is called on confirmation of each event during block processing.

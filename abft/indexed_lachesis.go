@@ -8,11 +8,10 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/abft/dagidx"
 	"github.com/Fantom-foundation/lachesis-base/kvdb"
 	"github.com/Fantom-foundation/lachesis-base/kvdb/flushable"
-	"github.com/Fantom-foundation/lachesis-base/lachesis"
 	"github.com/Fantom-foundation/lachesis-base/ltypes"
 )
 
-var _ lachesis.Consensus = (*IndexedLachesis)(nil)
+var _ ltypes.Consensus = (*IndexedLachesis)(nil)
 
 // IndexedLachesis performs events ordering and detects cheaters
 // It's a wrapper around Orderer, which adds features which might potentially be application-specific:
@@ -79,7 +78,7 @@ func (p *IndexedLachesis) Process(e ltypes.Event) (err error) {
 	return nil
 }
 
-func (p *IndexedLachesis) Bootstrap(callback lachesis.ConsensusCallbacks) error {
+func (p *IndexedLachesis) Bootstrap(callback ltypes.ConsensusCallbacks) error {
 	base := p.Lachesis.OrdererCallbacks()
 	ordererCallbacks := OrdererCallbacks{
 		ApplyAtropos: base.ApplyAtropos,
