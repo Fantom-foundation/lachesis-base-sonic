@@ -8,6 +8,7 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
+	"github.com/viterin/vek/vek32"
 )
 
 type (
@@ -35,6 +36,12 @@ type Election struct {
 	decided  map[idx.Frame]map[idx.ValidatorID]bool
 	eventMap map[idx.Frame]map[idx.ValidatorID]hash.Event
 
+	votes        map[hash.Event][]float32
+	stake        []float32
+	valMap       map[idx.ValidatorID]idx.Validator
+	valNum       idx.Validator
+	maxSeenFrame idx.Frame
+
 	deliveryBuffer heapBuffer
 	frameToDeliver idx.Frame
 }
@@ -60,19 +67,37 @@ func (el *Election) Reset(validators *pos.Validators) {
 	el.deliveryBuffer = make(heapBuffer, 0)
 	heap.Init(&el.deliveryBuffer)
 	el.frameToDeliver = 1
+	el.maxSeenFrame = 0
 	el.validators = validators
+	el.votes = make(map[hash.Event][]float32)
+	el.stake = make([]float32, 0, validators.Len())
+	el.valNum = validators.Len()
+	el.valMap = validators.Idxs()
 }
 
 func (el *Election) newFrameToDecide(frame idx.Frame) {
-	el.vote[frame] = make(map[hash.Event]map[idx.ValidatorID]bool)
 	el.decided[frame] = make(map[idx.ValidatorID]bool)
 	el.eventMap[frame] = make(map[idx.ValidatorID]hash.Event)
 }
 
 func (el *Election) decidedFrameCleanup(frame idx.Frame) {
-	delete(el.vote, frame)
 	delete(el.decided, frame)
 	delete(el.eventMap, frame)
+}
+
+func (el *Election) PutInYourVotes(voterMatr []float32, frame idx.Frame, observedRoots []EventDescriptor) {
+	// frame=2: voteMatr = [] -1 -1 -1 -1 -1]
+	// frame=3: voteMatr = [agg1, agg2, agg3, agg4, agg5] -1 -1 -1 -1 -1]
+	for idx := idx.Validator(0); idx < el.valNum; idx++ {
+		voterMatr = append(voterMatr, -1.)
+	}
+
+	// frame=2: voteMatr = [seen1, seen2, seen3, seen4, seen5]
+	// frame=3: voteMatr = [agg1, agg2, agg3, agg4, agg5, seen1, seen2, seen3, seen4, seen5]
+	// All should be in range [-1, 1]
+	for _, seenRoot := range observedRoots {
+		voterMatr[idx.Validator(frame-2)*el.valNum+el.valMap[seenRoot.ValidatorID]] = 1.
+	}
 }
 
 // ProcessRoot calculates Atropos votes only for the new root.
@@ -80,25 +105,53 @@ func (el *Election) decidedFrameCleanup(frame idx.Frame) {
 func (el *Election) ProcessRoot(
 	frame idx.Frame,
 	validatorId idx.ValidatorID,
-	root hash.Event,
+	voterRoot hash.Event,
 ) ([]*AtroposDecision, error) {
-	// Iterate over all undecided frames
-	if _, ok := el.vote[frame]; !ok {
+	el.maxSeenFrame = max(el.maxSeenFrame, frame)
+	if _, ok := el.eventMap[frame]; !ok {
 		el.newFrameToDecide(frame)
 	}
-	for frameToDecide := range el.vote {
-		round := int32(frame) - int32(frameToDecide)
-		if round <= 0 {
-			// Root cannot vote
-			continue
-		} else if round == 1 {
-			el.yesVote(frameToDecide, root)
-		} else {
-			el.aggregateVotes(frameToDecide, frame, root) // check if election is decided
-			atropos, _ := el.chooseAtropos(frameToDecide)
-			if atropos != nil {
-				heap.Push(&el.deliveryBuffer, atropos)
-				el.decidedFrameCleanup(frameToDecide)
+	el.eventMap[frame][validatorId] = voterRoot
+
+	if frame == 1 {
+		return []*AtroposDecision{}, nil
+	} else if frame == 2 {
+		el.votes[voterRoot] = make([]float32, 0, el.valNum)
+		el.PutInYourVotes(el.votes[voterRoot], frame, el.observedRoots(voterRoot, frame-1))
+		return []*AtroposDecision{}, nil
+	}
+	// valNum=5
+	// frame=2: voteMatr = [] 0 0 0 0 0]
+	// frame=3: voteMatr = [. . . . .] 0 0 0 0 0]
+	voterMatr := make([]float32, (frame-2)*idx.Frame(el.valNum), (frame-1)*idx.Frame(el.valNum))
+	decisionMatr := make([]float32, len(voterMatr))
+
+	observedRoots := el.observedRoots(voterRoot, frame-1)
+	stakeAccul := float32(0)
+	for _, seenRoot := range observedRoots {
+		vek32.Add_Inplace(voterMatr, el.votes[seenRoot.EventID])
+		stakeAccul += float32(el.validators.GetWeightByIdx(el.validators.GetIdx(seenRoot.ValidatorID)))
+	}
+	copy(decisionMatr, voterMatr)
+	vek32.Div_Inplace(voterMatr, vek32.Abs(voterMatr))
+
+	el.PutInYourVotes(voterMatr, frame, observedRoots)
+	vek32.MulNumber_Inplace(voterMatr, float32(el.validators.GetWeightByIdx(el.validators.GetIdx(validatorId))))
+
+	Q := (4.*float32(el.validators.TotalWeight()) - 3*stakeAccul) / 4
+	yesDecisions := vek32.GtNumber(decisionMatr, Q)
+	noDecisions := vek32.LtNumber(decisionMatr, -Q)
+
+	for f := el.frameToDeliver; f <= el.maxSeenFrame-2; f++ {
+		for _, v := range el.validators.SortedIDs() {
+			offset := (idx.Validator(f)-1)*el.valNum + el.validators.GetIdx(v)
+			if yesDecisions[offset] {
+				heap.Push(&el.deliveryBuffer, AtroposDecision{f, el.eventMap[f][v]})
+				el.decidedFrameCleanup(f)
+				break
+			}
+			if !noDecisions[offset] {
+				break
 			}
 		}
 	}

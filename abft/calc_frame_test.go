@@ -1,6 +1,7 @@
 package abft
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Fantom-foundation/lachesis-base/hash"
@@ -33,6 +34,16 @@ func testCalcFrameIdx(t *testing.T, gap int) {
 }
 
 var maxLamport idx.Lamport = 0
+
+func TestGucci(t *testing.T) {
+	nodes := tdag.GenNodes(2)
+
+	lch, _, store, _ := NewCoreLachesis(nodes, []pos.Weight{1, 3})
+	e0_1 := processTestEvent(t, lch, store, nodes[0], 1, hash.Events{})
+	e1_1 := processTestEvent(t, lch, store, nodes[1], 1, hash.Events{})
+
+	fmt.Println(e0_1, e1_1)
+}
 
 // processTestEvent builds and pipes the event through main Lacehsis' DAG manipulation pipeline
 func processTestEvent(t *testing.T, lch *CoreLachesis, store *EventStore, validatorId idx.ValidatorID, seq idx.Event, parents hash.Events) *tdag.TestEvent {
