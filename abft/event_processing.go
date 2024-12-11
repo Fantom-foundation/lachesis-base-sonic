@@ -38,8 +38,26 @@ func (p *Orderer) Process(e dag.Event) (err error) {
 		return err
 	}
 
-	err = p.handleElection(selfParentFrame, e)
-	if err != nil {
+	if selfParentFrame == e.Frame() {
+		return nil
+	}
+	if err := p.handleElection(e); err != nil {
+		// election doesn't fail under normal circumstances
+		// storage is in an inconsistent state
+		p.crit(err)
+	}
+	return err
+}
+
+// Process event's that have been locally built
+func (p *Orderer) ProcessLocalEvent(e dag.Event) (err error) {
+	selfParentFrame := p.getSelfParentFrame(e)
+	if selfParentFrame == e.Frame() {
+		return nil
+	}
+	// It's a root
+	p.store.AddRoot(e)
+	if err := p.handleElection(e); err != nil {
 		// election doesn't fail under normal circumstances
 		// storage is in an inconsistent state
 		p.crit(err)
@@ -56,13 +74,13 @@ func (p *Orderer) checkAndSaveEvent(e dag.Event) (error, idx.Frame) {
 	}
 
 	if selfParentFrame != frameIdx {
-		p.store.AddRoot(selfParentFrame, e)
+		p.store.AddRoot(e)
 	}
 	return nil, selfParentFrame
 }
 
 // calculates Atropos election for the root, calls p.onFrameDecided if election was decided
-func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) error {
+func (p *Orderer) handleElection(root dag.Event) error {
 	decisions, err := p.election.ProcessRoot(root.Frame(), root.Creator(), root.ID())
 	if err != nil {
 		return err
@@ -149,4 +167,11 @@ func (p *Orderer) calcFrameIdx_v1(e dag.Event) (selfParentFrame, frame idx.Frame
 		frame++
 	}
 	return selfParentFrame, frame
+}
+
+func (p *Orderer) getSelfParentFrame(e dag.Event) idx.Frame {
+	if e.SelfParent() == nil {
+		return 0
+	}
+	return p.input.GetEvent(*e.SelfParent()).Frame()
 }

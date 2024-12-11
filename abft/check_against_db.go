@@ -92,7 +92,7 @@ func ingestEvent(testLachesis *CoreLachesis, eventStore *EventStore, event *dbEv
 	if err := testLachesis.Lachesis.Build(testEvent); err != nil {
 		return fmt.Errorf("error wihile building event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
 	}
-	if err := testLachesis.Lachesis.Process(testEvent); err != nil {
+	if err := testLachesis.Lachesis.ProcessLocalEvent(testEvent); err != nil {
 		return fmt.Errorf("error while processing event for validator: %d, seq: %d, err: %v", event.validatorId, event.seq, err)
 	}
 	return nil
