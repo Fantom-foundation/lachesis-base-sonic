@@ -29,7 +29,7 @@ func rootRecordKey_v1(frame idx.Frame, root *electionv1.EventDescriptor) []byte 
 
 // AddRoot stores the new root
 // Not safe for concurrent use due to the complex mutable cache!
-func (s *Store) AddRoot(selfParentFrame idx.Frame, root dag.Event) {
+func (s *Store) AddRoot(root dag.Event) {
 	s.addRoot_v1(root, root.Frame())
 }
 
