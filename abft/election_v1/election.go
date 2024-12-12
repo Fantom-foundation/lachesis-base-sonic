@@ -7,7 +7,6 @@ import (
 	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
-	"github.com/viterin/vek"
 	"github.com/viterin/vek/vek32"
 )
 
@@ -89,11 +88,17 @@ func (el *Election) ProcessRoot(
 	validatorId idx.ValidatorID,
 	voterRoot hash.Event,
 ) ([]*AtroposDecision, error) {
-	vek.SetAcceleration(false)
+	if _, ok := el.delivered[frame]; ok {
+		return []*AtroposDecision{}, nil
+	}
 	el.newRoot(frame, validatorId, voterRoot)
 	if frame == 1 {
 		el.votes[voterRoot] = make([]float32, 0)
 		return []*AtroposDecision{}, nil
+	}
+	offset := (el.frameToDeliver - 2) * el.valNum
+	if el.frameToDeliver == 1 {
+		offset = 0
 	}
 	voterMatr := make([]float32, (frame-2)*el.valNum, (frame-1)*el.valNum)
 	voteVec := vek32.Repeat(-1., int(el.valNum))
@@ -103,33 +108,32 @@ func (el *Election) ProcessRoot(
 	for _, seenRoot := range observedRoots {
 		voteVec[el.valMap[seenRoot.ValidatorID]] = 1.
 		stakeAccul += float32(el.validators.GetWeightByIdx(el.validators.GetIdx(seenRoot.ValidatorID)))
-
-		vek32.Add_Inplace(voterMatr, el.votes[seenRoot.EventID])
+		vek32.Add_Inplace(voterMatr[offset:], el.votes[seenRoot.EventID][offset:])
 	}
 	if frame > 2 {
-		el.decideRoots(frame, voterMatr, stakeAccul)
-		vek32.Div_Inplace(voterMatr, vek32.Abs(voterMatr))
+		el.decideRoots(frame, voterMatr[offset:], stakeAccul)
+		vek32.Div_Inplace(voterMatr[offset:], vek32.Abs(voterMatr[offset:]))
 	}
 	voterMatr = append(voterMatr, voteVec...)
-	vek32.MulNumber_Inplace(voterMatr, float32(el.validators.GetWeightByIdx(el.valMap[validatorId])))
+	vek32.MulNumber_Inplace(voterMatr[offset:], float32(el.validators.GetWeightByIdx(el.valMap[validatorId])))
 	el.votes[voterRoot] = voterMatr
 	return el.alignedAtropoi(), nil
 }
 
-func (el *Election) decideRoots(frame idx.Frame, aggregationMatr []float32, seenRootsStake float32) {
+func (el *Election) decideRoots(aggregatingFrame idx.Frame, aggregationMatr []float32, seenRootsStake float32) {
 	Q := (4.*float32(el.validators.TotalWeight()) - 3*seenRootsStake) / 4
 	yesDecisions := vek32.GtNumber(aggregationMatr, Q)
 	noDecisions := vek32.LtNumber(aggregationMatr, -Q)
 
-	for f := range el.eventMap {
-		if _, ok := el.delivered[f]; ok || f >= frame-1 {
+	for frame := range el.eventMap {
+		if frame < el.frameToDeliver || frame >= aggregatingFrame-1 {
 			continue
 		}
 		for _, v := range el.validators.SortedIDs() {
-			offset := (f-1)*el.valNum + idx.Frame(el.validators.GetIdx(v))
+			offset := (frame-el.frameToDeliver)*el.valNum + idx.Frame(el.validators.GetIdx(v))
 			if yesDecisions[offset] {
-				heap.Push(&el.deliveryBuffer, &AtroposDecision{f, el.eventMap[f][v]})
-				el.decidedFrameCleanup(f)
+				heap.Push(&el.deliveryBuffer, &AtroposDecision{frame, el.eventMap[frame][v]})
+				el.decidedFrameCleanup(frame)
 				break
 			}
 			if !noDecisions[offset] {
@@ -174,6 +178,12 @@ func (el *Election) alignedAtropoi() []*AtroposDecision {
 			delete(el.votes, el.eventMap[f][v])
 		}
 	}
+	// for root := range el.votes {
+	// 	if len(el.votes[root]) == 0 {
+	// 		continue
+	// 	}
+	// 	el.votes[root] = el.votes[root][len(deliveredAtropoi)*int(el.valNum):]
+	// }
 	return deliveredAtropoi
 }
 
