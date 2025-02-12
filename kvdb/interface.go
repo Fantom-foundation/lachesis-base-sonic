@@ -86,7 +86,8 @@ type Iteratee interface {
 type Store interface {
 	IteratedReader
 	Snapshoter
-	ethdb.Stater
+	ethdb.KeyValueStater
+	ethdb.AncientStater
 	Writer
 	Batcher
 	ethdb.Compacter
