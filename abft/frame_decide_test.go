@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag/tdag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
@@ -106,7 +105,7 @@ func testConfirmBlocks(t *testing.T, weights []pos.Weight, cheatersCount int) {
 		atropos := blocks[i].Atropos
 
 		// call confirmBlock again
-		_, err := lch.onFrameDecided(frame, atropos, hash.Event{})
+		_, err := lch.onFrameDecided(frame, atropos, block.Electing)
 		gotBlock := lch.blocks[lch.lastBlock]
 
 		if !assertar.NoError(err) {
