@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Fantom-foundation/lachesis-base/abft/election"
+	"github.com/Fantom-foundation/lachesis-base/hash"
 	"github.com/Fantom-foundation/lachesis-base/inter/dag"
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 )
@@ -80,7 +81,7 @@ func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) erro
 		}
 
 		// if we’re here, then this root has observed that lowest not decided frame is decided now
-		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos)
+		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos, root.ID())
 		if err != nil {
 			return err
 		}
@@ -101,7 +102,7 @@ func (p *Orderer) handleElection(selfParentFrame idx.Frame, root dag.Event) erro
 // bootstrapElection calls processKnownRoots until it returns nil
 func (p *Orderer) bootstrapElection() (bool, error) {
 	for {
-		decided, err := p.processKnownRoots()
+		decided, electing, err := p.processKnownRoots()
 		if err != nil {
 			return false, err
 		}
@@ -109,7 +110,7 @@ func (p *Orderer) bootstrapElection() (bool, error) {
 			break
 		}
 
-		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos)
+		sealed, err := p.onFrameDecided(decided.Frame, decided.Atropos, electing)
 		if err != nil {
 			return false, err
 		}
@@ -122,7 +123,7 @@ func (p *Orderer) bootstrapElection() (bool, error) {
 
 // The function is similar to processRoot, but it fully re-processes the current voting.
 // This routine should be called after node startup, and after each decided frame.
-func (p *Orderer) processKnownRoots() (*election.Res, error) {
+func (p *Orderer) processKnownRoots() (*election.Res, hash.Event, error) {
 	// iterate all the roots from LastDecidedFrame+1 to highest, call processRoot for each
 	lastDecidedFrame := p.store.GetLastDecidedFrame()
 	var decided *election.Res
@@ -132,17 +133,17 @@ func (p *Orderer) processKnownRoots() (*election.Res, error) {
 			var err error
 			decided, err = p.election.ProcessRoot(it)
 			if err != nil {
-				return nil, err
+				return nil, hash.ZeroEvent, err
 			}
 			if decided != nil {
-				return decided, nil
+				return decided, hash.ZeroEvent, nil
 			}
 		}
 		if len(frameRoots) == 0 {
 			break
 		}
 	}
-	return nil, nil
+	return nil, hash.ZeroEvent, nil
 }
 
 // forklessCausedByQuorumOn returns true if event is forkless caused by 2/3W roots on specified frame

@@ -52,7 +52,7 @@ func (p *Lachesis) confirmEvents(frame idx.Frame, atropos hash.Event, onEventCon
 	return err
 }
 
-func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos.Validators {
+func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos, electing hash.Event) *pos.Validators {
 	atroposVecClock := p.dagIndex.GetMergedHighestBefore(atropos)
 
 	validators := p.store.GetValidators()
@@ -68,6 +68,7 @@ func (p *Lachesis) applyAtropos(decidedFrame idx.Frame, atropos hash.Event) *pos
 		return nil
 	}
 	blockCallback := p.callback.BeginBlock(&lachesis.Block{
+		Electing: electing,
 		Atropos:  atropos,
 		Cheaters: cheaters,
 	})
