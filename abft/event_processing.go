@@ -136,7 +136,7 @@ func (p *Orderer) processKnownRoots() (*election.Res, hash.Event, error) {
 				return nil, hash.ZeroEvent, err
 			}
 			if decided != nil {
-				return decided, hash.ZeroEvent, nil
+				return decided, it.ID, nil
 			}
 		}
 		if len(frameRoots) == 0 {
