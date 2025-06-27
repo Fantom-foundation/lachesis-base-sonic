@@ -556,6 +556,20 @@ func (b *cacheBatch) Replay(w kvdb.Writer) error {
 	return nil
 }
 
+// DeleteRange deletes a range of the batch.
+func (b *cacheBatch) DeleteRange(start, end []byte) error {
+	// delete all keys in range
+	for it := b.db.modified.Iterator(); it.Next(); {
+		key := []byte(it.Key().(string))
+		if bytes.Compare(key, start) < 0 || bytes.Compare(key, end) >= 0 {
+			continue // skip keys that are not in the range
+		}
+		b.writes = append(b.writes, kv{common.CopyBytes(key), nil})
+		b.size += len(key)
+	}
+	return nil
+}
+
 // Snapshot is a DB snapshot.
 type Snapshot struct {
 	flushableReader

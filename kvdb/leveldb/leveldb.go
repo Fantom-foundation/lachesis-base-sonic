@@ -5,6 +5,7 @@
 package leveldb
 
 import (
+	"bytes"
 	"fmt"
 	"sync"
 
@@ -321,6 +322,18 @@ func (b *batch) Reset() {
 // Replay replays the batch contents.
 func (b *batch) Replay(w kvdb.Writer) error {
 	return b.b.Replay(&replayer{writer: w})
+}
+
+func (b *batch) DeleteRange(start, end []byte) error {
+	for it := b.db.NewIterator(util.BytesPrefix(nil), nil); it.Next(); {
+		key := it.Key()
+		if bytes.Compare(key, start) < 0 || bytes.Compare(key, end) >= 0 {
+			continue // skip keys that are not in the range
+		}
+		b.b.Delete(key)
+		b.size++
+	}
+	return nil
 }
 
 // replayer is a small wrapper to implement the correct replay methods.

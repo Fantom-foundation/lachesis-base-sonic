@@ -33,6 +33,9 @@ type Batch interface {
 
 	// Replay replays the batch contents.
 	Replay(w Writer) error
+
+	// DeleteRange deletes a range of the batch.
+	DeleteRange([]byte, []byte) error
 }
 
 // Iterator iterates over a database's key/value pairs in ascending key order.

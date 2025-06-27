@@ -125,3 +125,11 @@ func (b *syncedBatch) Replay(w kvdb.Writer) error {
 
 	return b.underlying.Replay(w)
 }
+
+// DeleteRange deletes a range of the batch.
+func (b *syncedBatch) DeleteRange(start, end []byte) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.underlying.DeleteRange(start, end)
+}
