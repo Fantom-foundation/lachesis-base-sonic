@@ -1,15 +1,13 @@
 package leveldb
 
 import (
-	"os"
 	"testing"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func TestBatchDeleteRange_KeysInRangeGetDeleted(t *testing.T) {
-	db, cleanup := newTestDB(t)
-	defer cleanup()
+	db := newTestDB(t)
 
 	// Insert test keys: "a", "b", "c", "d", "e"
 	keys := [][]byte{[]byte("a"), []byte("b"), []byte("c"), []byte("d"), []byte("e")}
@@ -58,8 +56,7 @@ func TestBatchDeleteRange_KeysInRangeGetDeleted(t *testing.T) {
 }
 
 func TestBatchDeleteRange_NoKeysInRange(t *testing.T) {
-	db, cleanup := newTestDB(t)
-	defer cleanup()
+	db := newTestDB(t)
 
 	// Insert keys "a", "b"
 	keys := [][]byte{[]byte("a"), []byte("b")}
@@ -94,14 +91,16 @@ func TestBatchDeleteRange_NoKeysInRange(t *testing.T) {
 	}
 }
 
-func newTestDB(t *testing.T) (*leveldb.DB, func()) {
+func newTestDB(t *testing.T) *leveldb.DB {
 	dir := t.TempDir()
 	db, err := leveldb.OpenFile(dir, nil)
 	if err != nil {
 		t.Fatalf("failed to open test db: %v", err)
 	}
-	return db, func() {
-		db.Close()
-		os.RemoveAll(dir)
-	}
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close test db: %v", err)
+		}
+	})
+	return db
 }

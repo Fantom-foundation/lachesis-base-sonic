@@ -1,7 +1,6 @@
 package pebble
 
 import (
-	"os"
 	"testing"
 
 	"github.com/cockroachdb/pebble"
@@ -9,8 +8,7 @@ import (
 )
 
 func TestBatchDeleteRange_KeysInRangeGetDeleted(t *testing.T) {
-	db, cleanup := newTestDB(t)
-	defer cleanup()
+	db := newTestDB(t)
 
 	// Insert some keys
 	keys := [][]byte{
@@ -46,17 +44,17 @@ func TestBatchDeleteRange_KeysInRangeGetDeleted(t *testing.T) {
 
 	got := [][]byte{}
 	for _, key := range testKeys {
-		_, _, err := db.Get(key)
+		_, closer, err := db.Get(key)
 		if err == nil {
 			got = append(got, key)
 		}
+		closer.Close()
 	}
 	require.ElementsMatch(t, got, testKeys, "Keys not deleted in range")
 }
 
 func TestBatchDeleteRange_NoKeysInRange(t *testing.T) {
-	db, cleanup := newTestDB(t)
-	defer cleanup()
+	db := newTestDB(t)
 
 	// Insert some keys
 	keys := [][]byte{
@@ -90,22 +88,25 @@ func TestBatchDeleteRange_NoKeysInRange(t *testing.T) {
 
 	got := [][]byte{}
 	for _, key := range testKeys {
-		_, _, err := db.Get(key)
+		_, closer, err := db.Get(key)
 		if err == nil {
 			got = append(got, key)
 		}
+		closer.Close()
 	}
 	require.ElementsMatch(t, got, testKeys, "Keys not deleted in range")
 }
 
-func newTestDB(t *testing.T) (*pebble.DB, func()) {
+func newTestDB(t *testing.T) *pebble.DB {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir+"testDB", &pebble.Options{})
 	if err != nil {
 		t.Fatalf("failed to open test db: %v", err)
 	}
-	return db, func() {
-		db.Close()
-		os.RemoveAll(dir)
-	}
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close test db: %v", err)
+		}
+	})
+	return db
 }

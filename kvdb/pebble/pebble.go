@@ -489,8 +489,11 @@ func (b *batch) Replay(w kvdb.Writer) (err error) {
 func (b *batch) DeleteRange(start, end []byte) error {
 	for iter := b.b.Reader(); len(iter) > 0; {
 		_, key, _, ok, err := iter.Next()
-		if err != nil && !ok {
+		if err != nil {
 			return err
+		}
+		if !ok {
+			break
 		}
 		if bytes.Compare(key, start) < 0 || bytes.Compare(key, end) >= 0 {
 			continue // skip keys that are not in the range
