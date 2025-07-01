@@ -119,6 +119,11 @@ func (b *batch) Replay(w kvdb.Writer) error {
 	return nil
 }
 
+// DeleteRange deletes a range of the batch.
+func (b *batch) DeleteRange(start, end []byte) error {
+	return nil
+}
+
 // iterator can walk over the (potentially partial) keyspace of a memory key
 // value store. Internally it is a deep copy of the entire iterated state,
 // sorted by keys.

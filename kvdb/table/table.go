@@ -130,6 +130,10 @@ func (b *batch) Replay(w kvdb.Writer) error {
 	return b.batch.Replay(&replayer{w, b.prefix})
 }
 
+func (b *batch) DeleteRange(start, end []byte) error {
+	return b.batch.DeleteRange(prefixed(start, b.prefix), prefixed(end, b.prefix))
+}
+
 /*
  * Replayer
  */

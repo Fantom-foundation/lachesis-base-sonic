@@ -323,6 +323,15 @@ func (b *batch) Replay(w kvdb.Writer) error {
 	return b.b.Replay(&replayer{writer: w})
 }
 
+func (b *batch) DeleteRange(start, end []byte) error {
+	for it := b.db.NewIterator(&util.Range{Start: start, Limit: end}, nil); it.Next(); {
+		key := it.Key()
+		b.b.Delete(key)
+		b.size++
+	}
+	return nil
+}
+
 // replayer is a small wrapper to implement the correct replay methods.
 type replayer struct {
 	writer  kvdb.Writer

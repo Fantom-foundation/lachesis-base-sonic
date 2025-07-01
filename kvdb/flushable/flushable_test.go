@@ -319,6 +319,89 @@ func TestFlushableIterator(t *testing.T) {
 	}
 }
 
+func TestCacheBatchDeleteRange_RemovesElementsInRange(t *testing.T) {
+	disk := dbProducer("TestFlushableIterator")
+	leveldb, err := disk.OpenDB("1")
+	require.NoError(t, err)
+	defer leveldb.Drop()
+	defer leveldb.Close()
+
+	flushable := Wrap(leveldb)
+
+	keys := [][]byte{
+		[]byte("a"),
+		[]byte("b"),
+		[]byte("c"),
+		[]byte("d"),
+		[]byte("e"),
+	}
+
+	// Put all keys
+	for _, key := range keys {
+		if err := flushable.Put(key, []byte("val-"+string(key))); err != nil {
+			t.Fatalf("failed to put key %s: %v", key, err)
+		}
+	}
+
+	// Create a batch and call DeleteRange for ["b", "d")
+	batch := flushable.NewBatch()
+	err = batch.DeleteRange([]byte("b"), []byte("d"))
+	require.NoError(t, err)
+
+	// Write the batch
+	err = batch.Write()
+	require.NoError(t, err)
+
+	// "b" and "c" should be deleted, "a", "d", "e" should remain
+	testKeys := [][]byte{
+		[]byte("a"),
+		[]byte("d"),
+		[]byte("e"),
+	}
+
+	got := [][]byte{}
+	for _, key := range keys {
+		val, err := flushable.Get(key)
+		require.NoError(t, err)
+		if val != nil {
+			got = append(got, key)
+		}
+	}
+	require.ElementsMatch(t, testKeys, got, "after DeleteRange, expected keys do not match")
+
+	// Test DeleteRange with no keys in range
+	batch = flushable.NewBatch()
+	err = batch.DeleteRange([]byte("x"), []byte("z"))
+	require.NoError(t, err)
+	err = batch.Write()
+	require.NoError(t, err)
+
+	// All keys should remain unchanged
+	got = [][]byte{}
+	for _, key := range keys {
+		val, err := flushable.Get(key)
+		require.NoError(t, err)
+		if val != nil {
+			got = append(got, key)
+		}
+	}
+	require.ElementsMatch(t, testKeys, got, "after DeleteRange with no keys in range, all keys should remain unchanged")
+
+	// Test DeleteRange with all keys
+	batch = flushable.NewBatch()
+	err = batch.DeleteRange([]byte("a"), []byte("z"))
+	require.NoError(t, err)
+	err = batch.Write()
+	require.NoError(t, err)
+
+	// All keys should be deleted
+	for _, k := range keys {
+		val, err := flushable.Get(k)
+		require.NoError(t, err)
+		require.Nil(t, val)
+	}
+}
+
 func BenchmarkFlushable(b *testing.B) {
 	disk := dbProducer("BenchmarkFlushable")
 
