@@ -20,7 +20,7 @@ var (
 	errTerminated = errors.New("terminated")
 )
 
-// ItemsRequesterFn is a callback type for sending a item retrieval request.
+// ItemsRequesterFn is a callback type for sending an item retrieval request.
 type ItemsRequesterFn func([]interface{}) error
 
 type announceData struct {
@@ -67,7 +67,7 @@ type Callback struct {
 	Suspend        func() bool
 }
 
-// New creates a item fetcher to retrieve items based on hash announcements.
+// New creates an item fetcher to retrieve items based on hash announcements.
 func New(cfg Config, callback Callback) *Fetcher {
 	f := &Fetcher{
 		cfg:           cfg,
@@ -102,7 +102,7 @@ func (f *Fetcher) Stop() {
 	f.wg.Wait()
 }
 
-// Overloaded returns true if too much items are being requested
+// Overloaded returns true if too many items are being requested.
 func (f *Fetcher) Overloaded() bool {
 	return len(f.receivedItems) > f.cfg.MaxQueuedBatches*3/4 ||
 		len(f.notifications) > f.cfg.MaxQueuedBatches*3/4 ||
@@ -176,9 +176,8 @@ func (f *Fetcher) processNotification(notification announcesBatch, fetchTimer *t
 	now := time.Now()
 	for _, id := range notification.ids {
 		// add new announcement. other peers may already have announced it, so it's an array
-		anns := f.getAnnounces(id)
-		anns = append(anns, notification.announceData)
-		f.announces.Add(id, append(anns, notification.announceData), uint(len(anns)))
+		anns := append(f.getAnnounces(id), notification.announceData)
+		f.announces.Add(id, anns, uint(len(anns)))
 		// if it wasn't announced before, then schedule for fetching this time
 		if !noFetching {
 			if _, ok := f.fetching[id]; !ok {
