@@ -31,8 +31,10 @@ func TestFetcher(t *testing.T) {
 	announcedIds2 := []interface{}{"eventD", "eventE"}
 	fetchedIds := make([]interface{}, 0, 5)
 
-	fetchItemsFn := func(ids []interface{}) error {
+	fetchReceived := make(chan struct{})
+	fetchItemsFn := func(ids []any) error {
 		fetchedIds = append(fetchedIds, ids...)
+		fetchReceived <- struct{}{}
 		return nil
 	}
 
@@ -40,7 +42,9 @@ func TestFetcher(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(1 * time.Millisecond)
+	// Fetch requests should be in two batches, one containing 2 elements, one 1
+	<-fetchReceived
+	<-fetchReceived
 	if len(fetchedIds) != 3 {
 		t.Errorf("unexpected fetchedIds: %v", fetchedIds)
 	}
@@ -49,7 +53,7 @@ func TestFetcher(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(1 * time.Millisecond)
+	<-fetchReceived // both new IDs are fetched in one request
 	if len(fetchedIds) != 5 {
 		t.Errorf("unexpected fetchedIds: %v", fetchedIds)
 	}
