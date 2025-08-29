@@ -18,7 +18,7 @@ func TestFetcher(t *testing.T) {
 		MaxQueuedBatches:    2,
 	}, itemsfetcher.Callback{
 		OnlyInterested: func(ids []interface{}) []interface{} {
-			return ids // we are interested in any announced item
+			return ids // we are interested in all announced item
 		},
 		Suspend: func() bool {
 			return false
