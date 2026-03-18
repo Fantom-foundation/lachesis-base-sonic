@@ -224,3 +224,15 @@ func (vv *Validators) String() string {
 	}
 	return str
 }
+
+func (vv *Validators) SuperString(epoch idx.Epoch) string {
+	str := ""
+	// EpochId,ValidatorId,Weight
+	for i, vid := range vv.SortedIDs() {
+		if len(str) != 0 {
+			str += "\n"
+		}
+		str += fmt.Sprintf("%d,%d,%d", epoch, vid, vv.GetWeightByIdx(idx.Validator(i)))
+	}
+	return str
+}

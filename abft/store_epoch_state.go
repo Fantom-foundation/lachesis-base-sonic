@@ -1,6 +1,9 @@
 package abft
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/Fantom-foundation/lachesis-base/inter/idx"
 	"github.com/Fantom-foundation/lachesis-base/inter/pos"
 )
@@ -9,6 +12,10 @@ const esKey = "e"
 
 // SetEpochState stores epoch.
 func (s *Store) SetEpochState(e *EpochState) {
+	f, _ := os.OpenFile("staking-function.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fmt.Fprintf(f, "%s\n", e.Validators.SuperString(e.Epoch))
+	f.Close()
+
 	s.cache.EpochState = e
 	s.setEpochState([]byte(esKey), e)
 }
