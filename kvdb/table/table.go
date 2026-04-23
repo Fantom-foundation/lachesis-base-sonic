@@ -134,6 +134,9 @@ func (b *batch) DeleteRange(start, end []byte) error {
 	return b.batch.DeleteRange(prefixed(start, b.prefix), prefixed(end, b.prefix))
 }
 
+func (b *batch) Close() {
+}
+
 /*
  * Replayer
  */

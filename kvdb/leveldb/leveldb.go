@@ -332,6 +332,10 @@ func (b *batch) DeleteRange(start, end []byte) error {
 	return nil
 }
 
+// Close closes the batch and releases all associated resources.
+func (b *batch) Close() {
+}
+
 // replayer is a small wrapper to implement the correct replay methods.
 type replayer struct {
 	writer  kvdb.Writer

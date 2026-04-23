@@ -133,3 +133,11 @@ func (b *syncedBatch) DeleteRange(start, end []byte) error {
 
 	return b.underlying.DeleteRange(start, end)
 }
+
+// Close closes the batch and releases all associated resources.
+func (b *syncedBatch) Close() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.underlying.Close()
+}

@@ -36,6 +36,9 @@ type Batch interface {
 
 	// DeleteRange deletes the range [start, end) from batch.
 	DeleteRange(start []byte, end []byte) error
+
+	// Close closes the batch and releases all associated resources.
+	Close()
 }
 
 // Iterator iterates over a database's key/value pairs in ascending key order.
