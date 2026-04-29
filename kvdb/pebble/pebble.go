@@ -502,3 +502,7 @@ func (b *batch) DeleteRange(start, end []byte) error {
 	}
 	return b.b.DeleteRange(start, end, pebble.NoSync)
 }
+
+// Close closes the batch and releases all associated resources.
+func (b *batch) Close() {
+}

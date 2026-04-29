@@ -570,6 +570,10 @@ func (b *cacheBatch) DeleteRange(start, end []byte) error {
 	return nil
 }
 
+// Close closes the batch and releases all associated resources.
+func (b *cacheBatch) Close() {
+}
+
 // Snapshot is a DB snapshot.
 type Snapshot struct {
 	flushableReader
